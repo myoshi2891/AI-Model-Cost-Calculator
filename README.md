@@ -73,4 +73,4 @@ bun install
 
 ## ライセンス
 
-[MIT License](LICENSE) (またはプロジェクトのライセンス条項に従ってください)
+[MIT License](LICENSE)
