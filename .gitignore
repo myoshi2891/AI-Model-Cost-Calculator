@@ -1,0 +1,64 @@
+# ========================================
+# AI Model Pricing .gitignore
+# ========================================
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+*.iml
+*.swp
+*.swo
+
+# Python (scraper/)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+.Python
+.mypy_cache/
+*.egg-info/
+.pytest_cache/
+
+# Node.js (web/)
+node_modules/
+dist/
+dist-ssr/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Security / Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+credentials.json
+config.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Data / Generated Assets (Root)
+# Set these if you want to keep generated assets out of Git
+index.html
+pricing.json
+
+# Backup/Temp
+*.tmp
+*.bak

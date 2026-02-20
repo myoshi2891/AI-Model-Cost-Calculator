@@ -1,0 +1,22 @@
+[project]
+name = "scraper"
+version = "0.1.0"
+description = "AI Model Pricing auto-scraper"
+readme = "README.md"
+authors = [
+    { name = "myoshizumi", email = "myoshizumi@alumni.berklee.edu" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "playwright>=1.49.0",
+    "httpx>=0.28.0",
+    "python-dateutil>=2.9.0",
+    "pydantic>=2.10.0",
+]
+
+[project.scripts]
+scraper = "scraper.main:main"
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
