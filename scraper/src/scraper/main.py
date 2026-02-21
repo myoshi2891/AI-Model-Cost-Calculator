@@ -108,6 +108,11 @@ def _scrape_all(
 
 def _write_output(data: PricingData, output_path: Path) -> None:
     """pricing.json を書き込み、web フロントエンド用ディレクトリにもコピーする。"""
+    # 浮動小数点アーティファクトを除去（例: 0.034999... → 0.035）
+    for m in data.api_models:
+        m.price_in = round(m.price_in, 6)
+        m.price_out = round(m.price_out, 6)
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = data.model_dump()
 

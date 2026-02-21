@@ -51,7 +51,17 @@ _AWS_KEYWORDS: dict[str, list[str]] = {
 
 
 def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
-    """AWS Bedrock の価格を Pricing API から取得。"""
+    """
+    Fetches AWS Bedrock on-demand prices from the AWS Pricing API and returns normalized ApiModel entries.
+    
+    If provided, `existing` models from the AWS provider are used to seed fallback prices; built-in fallbacks fill any remaining missing models. Prices are converted to USD per 1,000,000 tokens (with recognition of per-1K unit descriptions) and selection prefers standard token usage tiers for the us-east-1 region. If the Pricing API call or parsing fails, all models fall back to the prepared fallback prices.
+    
+    Parameters:
+        existing (list[ApiModel] | None): Optional list of previously scraped ApiModel objects whose AWS entries are used as higher-priority fallback prices.
+    
+    Returns:
+        list[ApiModel]: List of ApiModel objects for each known model, each populated with provider="AWS", name, display metadata, computed price_in and price_out (USD per 1M tokens), and a scrape_status indicating whether the price was scraped or came from a fallback.
+    """
     logger.info("AWS: Pricing API から取得開始")
 
     fallback_map: dict[str, tuple[float, float]] = {}
@@ -75,6 +85,8 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
         for model_name, keywords in _AWS_KEYWORDS.items():
             in_price: float | None = None
             out_price: float | None = None
+            found_use1_in = False
+            found_use1_out = False
             fb_in, fb_out = fallback_map[model_name]
 
             for sku, product in products.items():
@@ -90,14 +102,46 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
                         usd_per_unit = float(pd.get("pricePerUnit", {}).get("USD", "0") or "0")
                         if usd_per_unit == 0:
                             continue
-                        # USD per token → USD per 1M tokens
-                        price_1m = usd_per_unit * 1_000_000
-                        if "Input" in usage_type or "input" in pd.get("description", "").lower():
+                        usage_type_lower = usage_type.lower()
+                        desc_lower = pd.get("description", "").lower()
+
+                        # Skip non-standard tiers (batch, flex, etc.)
+                        # Standard format: [Region]-Nova[Size]-[input|output]-tokens
+                        if not usage_type_lower.endswith(("-input-tokens", "-output-tokens")):
+                            continue
+
+                        # Skip specific keywords in usage type
+                        if any(kw in usage_type_lower for kw in ["batch", "flex", "priority", "custom-model", "latency-optimized", "cache", "storage", "throughput", "training"]):
+                            continue
+
+                        # USD per unit -> USD per 1M tokens
+                        # AWS Bedrock is typically per 1,000 tokens
+                        if "1k" in desc_lower:
+                            multiplier = 1000
+                            logger.debug(
+                                "AWS/%s: 1K単位の価格検出 (usage=%s, desc=%s, usd=%.6f, price_1m=%.4f)",
+                                model_name, usage_type, desc_lower, usd_per_unit, usd_per_unit * multiplier,
+                            )
+                        else:
+                            multiplier = 1_000_000
+                        price_1m = usd_per_unit * multiplier
+
+                        # Prefer us-east-1 (USE1) for price consistency
+                        # Also prefer rows that don't have extra qualifiers in usage type
+                        is_use1 = "use1" in usage_type_lower
+                        
+                        if "input" in usage_type_lower or "input" in desc_lower:
                             if in_price is None:
                                 in_price = price_1m
-                        elif "Output" in usage_type or "output" in pd.get("description", "").lower():
+                            elif is_use1 and not found_use1_in and usage_type_lower.count("-") <= 3:
+                                in_price = price_1m
+                                found_use1_in = True
+                        elif "output" in usage_type_lower or "output" in desc_lower:
                             if out_price is None:
                                 out_price = price_1m
+                            elif is_use1 and not found_use1_out and usage_type_lower.count("-") <= 3:
+                                out_price = price_1m
+                                found_use1_out = True
 
             pi, si = sanity_check(in_price, f"AWS/{model_name}/in", fb_in)
             po, so = sanity_check(out_price, f"AWS/{model_name}/out", fb_out)

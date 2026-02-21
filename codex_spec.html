@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Codex — AI仕様駆動開発 マークダウンファイル完全ガイド</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap');
+
+  :root {
+    --bg:        #050609;
+    --surface:   #0b0d12;
+    --surface2:  #121620;
+    --surface3:  #1a2030;
+    --border:    #1f2535;
+    --border2:   #2a3348;
+
+    --oai:       #10a37f;   /* OpenAI green */
+    --oai2:      #0d8c6d;
+    --oai-dim:   rgba(16,163,127,0.15);
+
+    --blue:      #3b82f6;
+    --purple:    #8b5cf6;
+    --amber:     #f59e0b;
+    --rose:      #f43f5e;
+    --cyan:      #06b6d4;
+    --lime:      #84cc16;
+
+    --text:       #c4cfe8;
+    --text-dim:   #606e8c;
+    --text-bright:#eef2ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: relative;
+    overflow: hidden;
+    background: #060810;
+    border-bottom: 1px solid var(--border);
+    padding: 4rem 2rem 5rem;
+    text-align: center;
+  }
+  .hdr-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 50% at 50% -10%, rgba(16,163,127,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 15% 100%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 85% 100%, rgba(139,92,246,0.08) 0%, transparent 60%);
+  }
+  .hdr-eyebrow {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--oai);
+    border: 1px solid rgba(16,163,127,.3);
+    background: rgba(16,163,127,.06);
+    border-radius: 2rem; padding: .3rem .9rem;
+    margin-bottom: 1.4rem;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+    font-weight: 800; color: var(--text-bright);
+    line-height: 1.1; margin-bottom: 1rem;
+  }
+  .oai-text { color: var(--oai); }
+  .hdr-sub {
+    font-size: .93rem; color: var(--text-dim);
+    max-width: 620px; margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+  .badge-row { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .66rem; padding: .25rem .75rem;
+    border-radius: 2rem; border: 1px solid;
+  }
+  .b-oai    { color: var(--oai);   border-color: rgba(16,163,127,.45); background: rgba(16,163,127,.07); }
+  .b-blue   { color: var(--blue);  border-color: rgba(59,130,246,.45);  background: rgba(59,130,246,.07); }
+  .b-purple { color: var(--purple);border-color: rgba(139,92,246,.45); background: rgba(139,92,246,.07); }
+  .b-amber  { color: var(--amber); border-color: rgba(245,158,11,.45);  background: rgba(245,158,11,.07); }
+  .b-rose   { color: var(--rose);  border-color: rgba(244,63,94,.45);   background: rgba(244,63,94,.07); }
+
+  /* ─── LAYOUT ─── */
+  main { max-width: 1150px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+
+  /* ─── TOC ─── */
+  .toc {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--oai); border-radius: 10px;
+    padding: 1.5rem 2rem; margin-bottom: 3.5rem;
+  }
+  .toc-lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .7rem; letter-spacing: .18em; color: var(--oai);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li {
+    counter-increment: toc;
+    display: flex; align-items: baseline; gap: .5rem;
+    padding: .22rem 0; font-size: .88rem;
+  }
+  .toc li::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; color: var(--text-dim); min-width: 2.2rem;
+  }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--oai); }
+
+  /* ─── SECTION ─── */
+  section { margin-bottom: 4.5rem; }
+  .sec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .68rem; letter-spacing: .18em; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: .4rem;
+  }
+  h2.sec-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem; font-weight: 800; color: var(--text-bright);
+    margin-bottom: 1.4rem;
+    padding-bottom: .8rem; border-bottom: 1px solid var(--border);
+  }
+  h2.sec-title .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .88rem; color: var(--oai); margin-right: .5rem;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem; font-weight: 700; color: var(--text-bright);
+    margin: 2rem 0 .7rem;
+  }
+  p { margin-bottom: .9rem; font-size: .93rem; }
+
+  /* ─── FILE CARD ─── */
+  .fc {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+  }
+  .fc-hdr {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .fc-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .fc-name { font-family: 'JetBrains Mono', monospace; font-size: .95rem; font-weight: 600; color: var(--text-bright); }
+  .fc-path { font-family: 'JetBrains Mono', monospace; font-size: .67rem; color: var(--text-dim); margin-top: .1rem; }
+  .fc-meta { display: flex; gap: .4rem; margin-top: .3rem; flex-wrap: wrap; }
+  .fc-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: .62rem;
+    padding: .15rem .5rem; border-radius: 4px;
+  }
+  .fc-body { padding: 1.5rem; }
+
+  /* ─── CODE BLOCK ─── */
+  .cb { background: #040508; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1rem 0; }
+  .cb-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .45rem 1rem;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace; font-size: .67rem; color: var(--text-dim);
+  }
+  .cb-dots { display: flex; gap: 4px; }
+  .cbd { width: 9px; height: 9px; border-radius: 50%; }
+  pre {
+    padding: 1.2rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: .76rem;
+    line-height: 1.78; color: #aabbd4; overflow-x: auto; white-space: pre;
+  }
+  .c-hd   { color: var(--blue); font-weight: 600; }
+  .c-oai  { color: var(--oai); font-weight: 600; }
+  .c-str  { color: var(--oai); }
+  .c-cm   { color: #334060; font-style: italic; }
+  .c-kw   { color: var(--purple); }
+  .c-hl   { color: var(--amber); }
+  .c-rose { color: var(--rose); }
+
+  /* ─── DIRECTORY TREE ─── */
+  .tree {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem;
+    font-family: 'JetBrains Mono', monospace; font-size: .79rem;
+    line-height: 2.1; margin: 1.5rem 0;
+  }
+  .t0 { display: flex; align-items: center; gap: .5rem; }
+  .t1 { padding-left: 1.5rem; }
+  .t2 { padding-left: 3rem; }
+  .t3 { padding-left: 4.5rem; }
+  .t4 { padding-left: 6rem; }
+  .tf { color: var(--amber); }
+  .tb { color: var(--blue); }
+  .tg { color: var(--oai); }
+  .tp { color: var(--purple); }
+  .tr { color: var(--rose); }
+  .tc { color: var(--cyan); }
+  .tl { color: var(--lime); }
+  .td { color: var(--text-dim); font-size: .67rem; }
+
+  /* ─── INFO BOXES ─── */
+  .ib { border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0; display: flex; gap: .8rem; font-size: .87rem; }
+  .ii { font-size: 1rem; flex-shrink: 0; margin-top: .1rem; }
+  .i-oai  { background: rgba(16,163,127,.07);  border: 1px solid rgba(16,163,127,.22); }
+  .i-blue { background: rgba(59,130,246,.07);  border: 1px solid rgba(59,130,246,.22); }
+  .i-warn { background: rgba(245,158,11,.07);  border: 1px solid rgba(245,158,11,.22); }
+  .i-rose { background: rgba(244,63,94,.07);   border: 1px solid rgba(244,63,94,.22); }
+  .i-purp { background: rgba(139,92,246,.07);  border: 1px solid rgba(139,92,246,.22); }
+
+  /* ─── FLOW ─── */
+  .flow-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; margin: 2rem 0; overflow-x: auto;
+  }
+  .flow-lbl {
+    font-family: 'JetBrains Mono', monospace; font-size: .69rem;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+  .flow { display: flex; align-items: flex-start; gap: 0; min-width: max-content; }
+  .fst  { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+  .fbox {
+    padding: .65rem 1rem; border-radius: 8px; font-size: .77rem; font-weight: 500;
+    text-align: center; white-space: nowrap; border: 1px solid; min-width: 108px; line-height: 1.4;
+  }
+  .f-oai  { background: rgba(16,163,127,.1);  border-color: rgba(16,163,127,.4);  color: var(--oai); }
+  .f-blue { background: rgba(59,130,246,.1);  border-color: rgba(59,130,246,.4);  color: var(--blue); }
+  .f-purp { background: rgba(139,92,246,.1);  border-color: rgba(139,92,246,.4);  color: var(--purple); }
+  .f-amb  { background: rgba(245,158,11,.1);  border-color: rgba(245,158,11,.4);  color: var(--amber); }
+  .f-rose { background: rgba(244,63,94,.1);   border-color: rgba(244,63,94,.4);   color: var(--rose); }
+  .f-cyan { background: rgba(6,182,212,.1);   border-color: rgba(6,182,212,.4);   color: var(--cyan); }
+  .ffile { font-family: 'JetBrains Mono', monospace; font-size: .61rem; color: var(--text-dim); text-align: center; }
+  .farr  { padding: 0 .3rem; color: var(--text-dim); font-size: 1.1rem; margin-top: -1.5rem; }
+
+  /* ─── GRID ─── */
+  .g2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .g3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .mc {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.1rem;
+  }
+  .mc-tag { font-family: 'JetBrains Mono', monospace; font-size: .72rem; font-weight: 600; margin-bottom: .4rem; }
+  .mc p { font-size: .82rem; color: var(--text-dim); margin: 0; line-height: 1.6; }
+
+  /* ─── TABLE ─── */
+  table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: .83rem; }
+  th {
+    background: var(--surface2); color: var(--text-bright);
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    padding: .7rem 1rem; text-align: left;
+    border-bottom: 1px solid var(--border); font-size: .78rem;
+  }
+  td { padding: .7rem 1rem; border-bottom: 1px solid rgba(31,37,53,.7); color: var(--text); vertical-align: top; }
+  td:first-child { font-family: 'JetBrains Mono', monospace; font-size: .75rem; color: var(--oai); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ─── PRECEDENCE DIAGRAM ─── */
+  .prec-diagram {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem 2rem; margin: 1.5rem 0;
+  }
+  .prec-label {
+    font-family: 'JetBrains Mono', monospace; font-size: .68rem;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 1.2rem;
+  }
+  .prec-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .6rem .8rem; border-radius: 6px;
+    margin-bottom: .4rem; border: 1px solid;
+  }
+  .pr-1 { background: rgba(16,163,127,.08);  border-color: rgba(16,163,127,.25); }
+  .pr-2 { background: rgba(59,130,246,.06);  border-color: rgba(59,130,246,.2); }
+  .pr-3 { background: rgba(139,92,246,.06);  border-color: rgba(139,92,246,.2); }
+  .pr-4 { background: rgba(245,158,11,.06);  border-color: rgba(245,158,11,.2); }
+  .prec-rank {
+    font-family: 'JetBrains Mono', monospace; font-size: .68rem;
+    min-width: 2.5rem; color: var(--text-dim);
+  }
+  .prec-file { font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 600; color: var(--text-bright); }
+  .prec-desc { font-size: .78rem; color: var(--text-dim); }
+  .prec-arrow {
+    text-align: center; color: var(--text-dim); font-size: .8rem;
+    padding: .2rem 0; letter-spacing: .05em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ─── PATTERN CARDS ─── */
+  .patterns { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .pat-c {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem; position: relative; overflow: hidden;
+  }
+  .pat-c::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .pp-oai::before  { background: var(--oai); }
+  .pp-blue::before { background: var(--blue); }
+  .pp-purp::before { background: var(--purple); }
+  .pp-amb::before  { background: var(--amber); }
+  .pp-rose::before { background: var(--rose); }
+  .pat-num { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 600; opacity: .05; position: absolute; top: .3rem; right: .8rem; line-height: 1; color: white; }
+  .pat-c h4 { font-family: 'Syne', sans-serif; font-size: .86rem; font-weight: 700; color: var(--text-bright); margin-bottom: .4rem; }
+  .pat-c p { font-size: .77rem; color: var(--text-dim); margin: 0; line-height: 1.55; }
+  .pat-struct { font-family: 'JetBrains Mono', monospace; font-size: .63rem; color: var(--text-dim); margin-top: .5rem; }
+
+  /* ─── BEST PRACTICE GRID ─── */
+  .bps { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .bp-c {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem; position: relative; overflow: hidden;
+  }
+  .bp-c::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .bp-oai::before  { background: var(--oai); }
+  .bp-blue::before { background: var(--blue); }
+  .bp-purp::before { background: var(--purple); }
+  .bp-amb::before  { background: var(--amber); }
+  .bp-rose::before { background: var(--rose); }
+  .bp-cyan::before { background: var(--cyan); }
+  .bp-n { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 600; opacity: .05; position: absolute; top: .3rem; right: .8rem; line-height: 1; color: white; }
+  .bp-c h4 { font-family: 'Syne', sans-serif; font-size: .86rem; font-weight: 700; color: var(--text-bright); margin-bottom: .4rem; }
+  .bp-c p { font-size: .77rem; color: var(--text-dim); margin: 0; line-height: 1.55; }
+
+  /* ─── OPEN STANDARD BANNER ─── */
+  .std-banner {
+    background: linear-gradient(135deg, rgba(16,163,127,.12) 0%, rgba(59,130,246,.08) 50%, rgba(139,92,246,.08) 100%);
+    border: 1px solid rgba(16,163,127,.3);
+    border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+  }
+  .std-icon { font-size: 2rem; flex-shrink: 0; }
+  .std-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: var(--text-bright); margin-bottom: .3rem; }
+  .std-desc { font-size: .86rem; color: var(--text); line-height: 1.65; }
+
+  /* ─── SOURCES ─── */
+  .sources {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem 2rem; margin-top: 3rem;
+  }
+  .sources h3 { font-family: 'Syne', sans-serif; font-size: .88rem; color: var(--text-dim); margin-bottom: 1.2rem; font-weight: 700; }
+  .src { display: flex; align-items: baseline; gap: .8rem; padding: .55rem 0; border-bottom: 1px solid rgba(31,37,53,.6); font-size: .8rem; }
+  .src:last-child { border-bottom: none; }
+  .sn { font-family: 'JetBrains Mono', monospace; font-size: .67rem; color: var(--text-dim); min-width: 2.2rem; }
+  .src a { color: var(--oai); text-decoration: none; word-break: break-all; }
+  .src a:hover { text-decoration: underline; }
+  .sd { color: var(--text-dim); font-size: .73rem; display: block; margin-top: .1rem; }
+</style>
+  <!-- Common Header Assets -->
+  <link rel="stylesheet" href="./common-header.css">
+  <script src="./common-header.js" defer></script>
+</head>
+<body>
+
+<header>
+  <div class="hdr-bg"></div>
+  <div class="hdr-eyebrow">OpenAI Codex × codex-1 (o3-based)</div>
+  <h1>AI仕様駆動開発における<br><span class="oai-text">マークダウンファイル</span><br>完全ガイド</h1>
+  <p class="hdr-sub">
+    AGENTS.md / SKILL.md / .prompt.md / REQUIREMENTS.md / AGENT_TASKS.md ——<br>
+    Codexの全マークダウンファイルの役割・構造・ベストプラクティスを根拠ソース付きで徹底解説
+  </p>
+  <div class="badge-row">
+    <span class="badge b-oai">OpenAI Codex</span>
+    <span class="badge b-blue">codex-1 (o3)</span>
+    <span class="badge b-purple">AGENTS.md オープン標準</span>
+    <span class="badge b-amber">SKILL.md 共通規格</span>
+    <span class="badge b-rose">Agents SDK Multi-Agent</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- TOC -->
+  <nav class="toc">
+    <div class="toc-lbl">目次</div>
+    <ol>
+      <li><a href="#overview">OpenAI Codexとは — Cloud版 vs CLI版 vs Agents SDK</a></li>
+      <li><a href="#directory">全体ファイル構成とディレクトリ</a></li>
+      <li><a href="#agents-md">AGENTS.md — プロジェクト永続メモリ（オープン標準）</a></li>
+      <li><a href="#agents-override">AGENTS.override.md — 一時的スコープ上書き</a></li>
+      <li><a href="#skill-md">SKILL.md — Progressive Disclosure ナレッジ</a></li>
+      <li><a href="#prompt-md">.prompt.md — 再利用タスクプロンプト</a></li>
+      <li><a href="#sdd-files">SDD仕様書群 (REQUIREMENTS / AGENT_TASKS / TEST / design_spec)</a></li>
+      <li><a href="#config">config.toml — Codex設定ファイル</a></li>
+      <li><a href="#openai-yaml">agents/openai.yaml — スキルUIメタデータ</a></li>
+      <li><a href="#multi-agent">Multi-Agent SDD パターン（Agents SDK）</a></li>
+      <li><a href="#best-practices">横断ベストプラクティス10則</a></li>
+      <li><a href="#sources">参考ソース一覧</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── SECTION 1 ── -->
+  <section id="overview">
+    <div class="sec-label">Section 01</div>
+    <h2 class="sec-title"><span class="num">01.</span>OpenAI Codexとは — Cloud版 vs CLI版 vs Agents SDK</h2>
+
+    <p>
+      OpenAI Codexは2025年5月にリリースされた<strong style="color:var(--text-bright)">クラウドベースのソフトウェアエンジニアリングエージェント</strong>です。かつての「コード補完モデル」とは全く別物で、<code>codex-1</code>（o3をソフトウェアエンジニアリング向けに強化したモデル）を搭載し、GitHubリポジトリを自律的に操作・PR提案まで行います。
+    </p>
+
+    <div class="g3">
+      <div class="mc">
+        <div class="mc-tag" style="color:var(--oai)">☁️ Cloud Codex</div>
+        <p>ChatGPT（Pro/Plus/Business/Enterprise）のサイドバーから利用。クラウドサンドボックスでタスクを並列実行。GitHub連携でPRを自動作成。</p>
+      </div>
+      <div class="mc">
+        <div class="mc-tag" style="color:var(--blue)">💻 Codex CLI</div>
+        <p>ターミナルで動作するオープンソースエージェント（<code>npm install @openai/codex</code>）。ローカルリポジトリを直接操作。TUI（テキストUI）とHeadlessモードを持つ。</p>
+      </div>
+      <div class="mc">
+        <div class="mc-tag" style="color:var(--purple)">🤖 Agents SDK</div>
+        <p>Python/TypeScriptでマルチエージェントパイプラインを構築するSDK。Codex MCP経由でCodex CLIをサブエージェントとして呼び出す。並列SDD実装を実現。</p>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th>特性</th>
+        <th>OpenAI Codex</th>
+        <th>Claude Code</th>
+        <th>Google Antigravity</th>
+      </tr>
+      <tr>
+        <td>永続メモリ</td>
+        <td>AGENTS.md（オープン標準）</td>
+        <td>CLAUDE.md（独自）</td>
+        <td>GEMINI.md + Rules</td>
+      </tr>
+      <tr>
+        <td>ナレッジ拡張</td>
+        <td>SKILL.md（共通規格）</td>
+        <td>SKILL.md（共通規格）</td>
+        <td>SKILL.md（共通規格）</td>
+      </tr>
+      <tr>
+        <td>タスクプロンプト</td>
+        <td>.prompt.md</td>
+        <td>Custom Commands (.md)</td>
+        <td>Workflows (.md)</td>
+      </tr>
+      <tr>
+        <td>SDD専用ファイル</td>
+        <td>REQUIREMENTS.md / AGENT_TASKS.md / TEST.md</td>
+        <td>tasks.md（慣習）</td>
+        <td>tasks.md + Artifacts</td>
+      </tr>
+      <tr>
+        <td>設定ファイル</td>
+        <td>~/.codex/config.toml</td>
+        <td>なし</td>
+        <td>.agent/rules/ + TOML</td>
+      </tr>
+      <tr>
+        <td>エコシステム</td>
+        <td>AAIF（Linux Foundation）</td>
+        <td>Anthropic独自</td>
+        <td>Google独自</td>
+      </tr>
+    </table>
+
+    <div class="std-banner">
+      <div class="std-icon">🌐</div>
+      <div>
+        <div class="std-title">AGENTS.md は Linux Foundation 傘下のオープン標準</div>
+        <div class="std-desc">
+          AGENTS.mdはOpenAIが発案し、2025年にAgentic AI Foundation（AAIF）がLinux Foundationの傘下で管理する<strong>業界横断オープン標準</strong>となりました。Codex・Cursor・Google Jules・Amp・Factoryなどが採用し、<strong>40,000以上のオープンソースプロジェクト</strong>で使用されています。「ツール固有のCLAUDE.mdやGEMINI.mdを書き分ける」問題を解消し、1ファイルで全エージェントに対応します。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2 ── -->
+  <section id="directory">
+    <div class="sec-label">Section 02</div>
+    <h2 class="sec-title"><span class="num">02.</span>全体ファイル構成とディレクトリ</h2>
+
+    <div class="flow-wrap">
+      <div class="flow-lbl">▸ Codex SDD 5フェーズフロー</div>
+      <div class="flow">
+        <div class="fst">
+          <div class="fbox f-oai">Phase 1<br>仕様策定</div>
+          <div class="ffile">REQUIREMENTS.md<br>design_spec.md</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-blue">Phase 2<br>タスク分解</div>
+          <div class="ffile">AGENT_TASKS.md<br>TEST.md</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-purp">Phase 3<br>Codex実行</div>
+          <div class="ffile">AGENTS.md<br>SKILL.md</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-amb">Phase 4<br>検証</div>
+          <div class="ffile">TEST_PLAN.md<br>test.sh</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-rose">Phase 5<br>PR生成</div>
+          <div class="ffile">AGENTS.md<br>(PR instructions)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>推奨ディレクトリ構成（全体）</h3>
+    <div class="tree">
+      <div class="t0"><span class="tf">📁</span> <span>your-project/</span></div>
+
+      <div class="t0 t1"><span class="tb">📄</span> <span class="tb">AGENTS.md</span> <span class="td">— プロジェクト永続メモリ（最重要・git管理）</span></div>
+      <div class="t0 t1"><span class="tp">📄</span> <span class="tp">AGENTS.override.md</span> <span class="td">— 一時的グローバル上書き（gitignore推奨）</span></div>
+
+      <div class="t0 t1"><span class="tf">📁</span> <span>.agents/</span> <span class="td">— Codex スキルルート</span></div>
+      <div class="t0 t2"><span class="tf">📁</span> <span>skills/</span></div>
+      <div class="t0 t3"><span class="tf">📁</span> <span>db-migration/</span></div>
+      <div class="t0 t4"><span class="tg">📄</span> <span class="tg">SKILL.md</span> <span class="td">— スキル定義（必須）</span></div>
+      <div class="t0 t4"><span class="tf">📁</span> <span>scripts/</span> <span class="td">— 実行スクリプト（任意）</span></div>
+      <div class="t0 t4"><span class="tf">📁</span> <span>references/</span> <span class="td">— 参考ドキュメント（任意）</span></div>
+      <div class="t0 t4"><span class="tg">📄</span> <span class="tg">agents/openai.yaml</span> <span class="td">— UI/呼び出しメタデータ（任意）</span></div>
+
+      <div class="t0 t1"><span class="tf">📁</span> <span>.github/</span></div>
+      <div class="t0 t2"><span class="tp">📄</span> <span class="tp">.prompt.md</span> <span class="td">— 再利用タスクプロンプト</span></div>
+
+      <div class="t0 t1"><span class="tf">📁</span> <span>docs/</span> <span class="td">— SDD仕様書群</span></div>
+      <div class="t0 t2"><span class="tb">📄</span> <span class="tb">REQUIREMENTS.md</span> <span class="td">— 製品要件定義</span></div>
+      <div class="t0 t2"><span class="tb">📄</span> <span class="tb">AGENT_TASKS.md</span> <span class="td">— エージェント別タスク割り当て</span></div>
+      <div class="t0 t2"><span class="tl">📄</span> <span class="tl">TEST.md</span> <span class="td">— テスト計画・受け入れ基準</span></div>
+      <div class="t0 t2"><span class="tc">📄</span> <span class="tc">design_spec.md</span> <span class="td">— 技術設計書（Designerエージェント生成）</span></div>
+
+      <div class="t0 t1" style="margin-top:.5rem"><span style="color:var(--text-dim)">~/</span><span>.codex/</span> <span class="td">— グローバル設定</span></div>
+      <div class="t0 t2"><span class="tb">📄</span> <span class="tb">AGENTS.md</span> <span class="td">— 全プロジェクト共通ルール</span></div>
+      <div class="t0 t2"><span class="tp">📄</span> <span class="tp">AGENTS.override.md</span> <span class="td">— 緊急上書き（一時的）</span></div>
+      <div class="t0 t2"><span class="tg">📄</span> <span class="tg">config.toml</span> <span class="td">— Codex設定（サイズ上限・フォールバック等）</span></div>
+      <div class="t0 t2"><span class="tf">📁</span> <span>skills/</span> <span class="td">— グローバルスキル</span></div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 3: AGENTS.MD ── -->
+  <section id="agents-md">
+    <div class="sec-label">Section 03</div>
+    <h2 class="sec-title"><span class="num">03.</span>AGENTS.md — プロジェクト永続メモリ（オープン標準）</h2>
+
+    <p>
+      AGENTS.mdはClaude CodeのCLAUDE.mdに相当する<strong style="color:var(--text-bright)">Codexの最重要ファイル</strong>です。Codexはタスクを開始する前に必ずAGENTS.mdを読み込み、コーディング規約・テストコマンド・PR手順などのコンテキストを取得します。公式システムメッセージにも「AGENTS.mdに記載されたテストを全件実行する」と明記されています。
+    </p>
+
+    <h3>読み込み優先度チェーン</h3>
+    <div class="prec-diagram">
+      <div class="prec-label">▸ Codex の AGENTS.md 探索順序（後に読まれたものが前のものを上書き）</div>
+      <div class="prec-row pr-1">
+        <div class="prec-rank">① 最優先</div>
+        <div>
+          <div class="prec-file">~/.codex/AGENTS.override.md</div>
+          <div class="prec-desc">グローバル緊急上書き（存在する場合のみ）— ~/.codex/AGENTS.md を完全に置換</div>
+        </div>
+      </div>
+      <div class="prec-arrow">↓ なければ</div>
+      <div class="prec-row pr-2">
+        <div class="prec-rank">②</div>
+        <div>
+          <div class="prec-file">~/.codex/AGENTS.md</div>
+          <div class="prec-desc">グローバルデフォルト — 全リポジトリ継承（Working agreements・言語設定など）</div>
+        </div>
+      </div>
+      <div class="prec-arrow">↓ プロジェクトルートへ</div>
+      <div class="prec-row pr-3">
+        <div class="prec-rank">③</div>
+        <div>
+          <div class="prec-file">./AGENTS.md <span style="font-weight:300;font-size:.85em">（プロジェクトルート）</span></div>
+          <div class="prec-desc">リポジトリ共有ルール — チームのコーディング規約・テスト手順・PR形式</div>
+        </div>
+      </div>
+      <div class="prec-arrow">↓ カレントディレクトリまで降下</div>
+      <div class="prec-row pr-4">
+        <div class="prec-rank">④ 最後に読まれる＝最高優先</div>
+        <div>
+          <div class="prec-file">./services/payments/AGENTS.override.md</div>
+          <div class="prec-desc">サブディレクトリの上書き — チーム固有ルール。<strong>最も近いファイルが最優先</strong></div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;padding:.7rem 1rem;background:rgba(16,163,127,.06);border:1px solid rgba(16,163,127,.2);border-radius:6px;font-size:.8rem;">
+        <strong style="color:var(--oai)">結合順:</strong> Codexはルートから現在ディレクトリまで上記をすべて連結し、後に来るものが前のものを上書きします。デフォルト上限は<strong>32 KiB</strong>（config.tomlで変更可）。1ディレクトリにつき最大1ファイル読み込み。
+      </div>
+    </div>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(16,163,127,.12);border:1px solid rgba(16,163,127,.3);">📋</div>
+        <div>
+          <div class="fc-name">AGENTS.md</div>
+          <div class="fc-path">./AGENTS.md (プロジェクトルート) — git管理・チーム共有</div>
+          <div class="fc-meta">
+            <span class="fc-tag" style="background:rgba(16,163,127,.1);color:var(--oai)">オープン標準</span>
+            <span class="fc-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">codex-1起動時自動読み込み</span>
+            <span class="fc-tag" style="background:rgba(139,92,246,.1);color:var(--purple)">32KiB上限</span>
+          </div>
+        </div>
+      </div>
+      <div class="fc-body">
+
+        <h3>ベストプラクティス完全テンプレート</h3>
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>AGENTS.md — プロジェクトルート</span>
+          </div>
+          <pre><span class="c-hd"># AGENTS.md</span>
+<span class="c-cm"># READMEのエージェント版。Codexはタスク開始前に必ずこのファイルを読む。</span>
+
+<span class="c-hd">## Project Overview</span>
+<span class="c-cm"># 1〜2文で目的を記述。Codexが全判断の基準とする。</span>
+ECサイトのバックエンドAPI（Go製マイクロサービス）。
+プリオーダー・決済・在庫管理の3サービスで構成。
+
+<span class="c-hd">## Repository Structure</span>
+<span class="c-cm"># Codexがコードベースを理解するための地図</span>
+- cmd/       — サービスエントリーポイント
+- internal/  — ビジネスロジック（外部公開不可）
+- pkg/       — 再利用可能パッケージ
+- migrations/— DBマイグレーション（直接編集禁止）
+- docs/      — 仕様書群（spec / requirements / design / tasks）
+
+<span class="c-hd">## Build & Test Commands</span>
+<span class="c-cm"># ★最重要: codex-1のシステムメッセージがここに書かれたテストを全件実行する</span>
+- Build:    `go build ./...`
+- Test all: `go test ./... -race -timeout 120s`
+- Lint:     `golangci-lint run`
+- Coverage: `go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out`
+- Dev:      `docker compose up -d`
+
+<span class="c-hd">## Code Style</span>
+- Go 1.23 modules。CGO無効（CGO_ENABLED=0）
+- エラーハンドリング: `fmt.Errorf("context: %w", err)` 形式
+- テスト: table-driven tests 必須
+- コメント: GoDoc形式（英語）
+- パッケージ名: 単数形・短縮なし
+
+<span class="c-hd">## Architecture Constraints</span>
+- サービス間通信: gRPCのみ（REST禁止）
+- ORM使用禁止（pgx v5 raw SQL のみ）
+- グローバル変数の新規追加禁止
+- panic() の使用禁止（エラーを返す）
+
+<span class="c-hd">## PR Instructions</span>
+<span class="c-cm"># Codex がPRを作成する際の形式を指定（公式機能）</span>
+タイトル形式: `[feat/fix/refactor] 短い説明（英語）`
+必須セクション:
+- Summary: 変更内容の1段落サマリー
+- Testing Done: 実行したテストと結果
+- Breaking Changes: 破壊的変更があれば記載
+
+<span class="c-hd">## Forbidden Actions</span>
+<span class="c-rm"># Codexに絶対にさせてはいけないこと</span>
+- migrations/ フォルダへの直接書き込み（docs/SKILL.md の db-migration スキル使用）
+- .env ファイルの作成・変更
+- 本番DBへのDELETE/DROP（必ず人間確認）
+- APIキーのハードコード</pre>
+        </div>
+
+        <div class="ib i-warn">
+          <span class="ii">⚠️</span>
+          <div>
+            <strong>32KiBの上限を意識せよ</strong><br>
+            AGENTS.mdは全ディレクトリ分を連結した合計が<strong>デフォルト32KiB</strong>（<code>~/.codex/config.toml</code>の<code>project_doc_max_bytes</code>で変更可）を超えると以降のファイルが切り捨てられます。重要な情報は上に、詳細はSKILL.mdへ分離するか、上限を<code>65536</code>（64KiB）に増やしてください（[1]）。
+          </div>
+        </div>
+
+        <div class="ib i-blue">
+          <span class="ii">ℹ️</span>
+          <div>
+            <strong>AGENTS.mdはオープン標準なのでClaude Codeでもそのまま使える</strong><br>
+            Claude CodeはCLAUDE.mdに<code>@AGENTS.md</code>でインポートすることで、AGENTS.mdを唯一の真実のソースとして活用できます。ツールを乗り換えても書き直し不要（[10]）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: AGENTS.OVERRIDE.MD ── -->
+  <section id="agents-override">
+    <div class="sec-label">Section 04</div>
+    <h2 class="sec-title"><span class="num">04.</span>AGENTS.override.md — 一時的スコープ上書き</h2>
+
+    <p>
+      AGENTS.override.mdは<strong style="color:var(--text-bright)">既存のAGENTS.mdを削除せずに一時的に置き換える</strong>ためのファイルです。「今回だけテストをスキップしたい」「特定チームの支払いサービスだけ異なるルールを適用したい」といったシナリオで使用します。
+    </p>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);">🔄</div>
+        <div>
+          <div class="fc-name">AGENTS.override.md</div>
+          <div class="fc-path">~/.codex/ または ./services/payments/ など</div>
+          <div class="fc-meta">
+            <span class="fc-tag" style="background:rgba(139,92,246,.1);color:var(--purple)">同ディレクトリのAGENTS.mdを置換</span>
+            <span class="fc-tag" style="background:rgba(244,63,94,.1);color:var(--rose)">.gitignore推奨（一時ファイル）</span>
+          </div>
+        </div>
+      </div>
+      <div class="fc-body">
+
+        <div class="g2">
+          <div>
+            <h3>グローバル上書き（~/.codex/）</h3>
+            <div class="cb">
+              <div class="cb-hdr"><span>~/.codex/AGENTS.override.md — 使用例</span></div>
+              <pre><span class="c-hd"># AGENTS.override.md（一時的）</span>
+<span class="c-cm"># このタスクだけテストをスキップ（時間切れのため）</span>
+<span class="c-cm"># 使用後は削除すること！</span>
+
+<span class="c-hd">## Override: Skip Tests</span>
+このタスクではテストを実行しないこと。
+コードの実装のみ行い、テストは次のタスクで行う。</pre>
+            </div>
+          </div>
+          <div>
+            <h3>サブディレクトリ上書き</h3>
+            <div class="cb">
+              <div class="cb-hdr"><span>services/payments/AGENTS.override.md</span></div>
+              <pre><span class="c-hd"># Payments Service Rules</span>
+<span class="c-cm"># プロジェクトルートのAGENTS.mdを上書き</span>
+
+<span class="c-hd">## Testing</span>
+`npm test` ではなく `make test-payments` を使用。
+
+<span class="c-hd">## Security Rules</span>
+APIキーを変更する場合は #security-team に通知。
+PCI-DSS要件のためログにカード番号を絶対記録しない。</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="ib i-oai">
+          <span class="ii">💡</span>
+          <div>グローバル<code>~/.codex/AGENTS.override.md</code>が存在する間は<strong>~/.codex/AGENTS.mdは完全に無視</strong>されます。使い終わったら必ず削除してください。ファイルを削除するだけで共有ガイダンスが自動的に復元されます（[1]）。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5: SKILL.MD ── -->
+  <section id="skill-md">
+    <div class="sec-label">Section 05</div>
+    <h2 class="sec-title"><span class="num">05.</span>SKILL.md — Progressive Disclosure ナレッジ</h2>
+
+    <p>
+      Codexのスキルシステムは<strong style="color:var(--text-bright)">「Progressive Disclosure（進歩的開示）」</strong>設計です。全ナレッジをAGENTS.mdに詰め込まず、<strong>エージェントが意図を検知したときのみ対応スキルをロード</strong>します。Claude Code・Google Antigravityとも<strong>完全に同一の規格</strong>を採用しており、ファイルを移植可能です（[7]）。
+    </p>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(16,163,127,.12);border:1px solid rgba(16,163,127,.3);">🎓</div>
+        <div>
+          <div class="fc-name">SKILL.md</div>
+          <div class="fc-path">.agents/skills/&lt;skill-name&gt;/SKILL.md</div>
+          <div class="fc-meta">
+            <span class="fc-tag" style="background:rgba(16,163,127,.1);color:var(--oai)">オープン規格（3プラットフォーム共通）</span>
+            <span class="fc-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">Progressive Disclosure</span>
+          </div>
+        </div>
+      </div>
+      <div class="fc-body">
+
+        <h3>スキルディレクトリ標準構造</h3>
+        <div class="cb">
+          <div class="cb-hdr"><span>スキルフォルダの標準構造（openai/skills 公式仕様）</span></div>
+          <pre>.agents/skills/
+└── db-migration/
+    ├── SKILL.md            <span class="c-cm"># 必須: フロントマター + 指示本文</span>
+    ├── scripts/            <span class="c-cm"># 任意: 実行可能スクリプト（LLMが苦手な処理を外出し）</span>
+    │   └── run_migration.py
+    ├── references/         <span class="c-cm"># 任意: ドキュメント・テンプレート（大きなファイル用）</span>
+    │   └── migration-spec.md
+    ├── assets/             <span class="c-cm"># 任意: 静的ファイル</span>
+    └── agents/
+        └── openai.yaml     <span class="c-cm"># 任意: Codex App UI メタデータ</span></pre>
+        </div>
+
+        <h3>SKILL.md 完全テンプレート（Codex公式仕様準拠）</h3>
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>.agents/skills/db-migration/SKILL.md</span>
+          </div>
+          <pre><span class="c-hd">---</span>
+<span class="c-oai">name: db-migration</span>
+<span class="c-cm"># ↑ スキルの一意識別子。$db-migration または /skills で呼び出せる</span>
+<span class="c-oai">description: >
+  Executes PostgreSQL schema migrations using the project's standard
+  migration protocol. Use when the user asks to add tables, columns,
+  indexes, or modify the DB schema. Do NOT use for seed data insertion
+  or application-level data transformations.</span>
+<span class="c-cm"># ↑ 【最重要】意味的トリガー。「Use when...」「Do NOT use when...」を明記する</span>
+<span class="c-hd">---</span>
+
+<span class="c-hd"># Database Migration Skill</span>
+
+<span class="c-hd">## Goal</span>
+PostgreSQLスキーマ変更をプロジェクト標準マイグレーション手順で安全に実行する。
+
+<span class="c-hd">## Instructions</span>
+1. `migrations/` に `YYYYMMDD_HHMMSS_description.up.sql` を作成
+2. ロールバック用 `.down.sql` を<span class="c-rose">必ず</span>同時作成
+3. 整合性チェック: `python scripts/run_migration.py --check --env staging`
+4. 人間がレビュー後に: `python scripts/run_migration.py --apply`
+5. `docs/AGENT_TASKS.md` の対象タスクをチェック済みにする
+
+<span class="c-hd">## Examples</span>
+<span class="c-cm"># Few-shot examples で精度を向上させる</span>
+
+**Input**: "usersテーブルにlast_login_atカラムを追加して"
+**Output**:
+```sql
+-- 20250920_143022_add_last_login_at_to_users.up.sql
+ALTER TABLE users ADD COLUMN last_login_at TIMESTAMPTZ;
+CREATE INDEX CONCURRENTLY idx_users_last_login ON users(last_login_at);
+```
+
+<span class="c-hd">## Constraints</span>
+- 既存マイグレーションファイルを絶対に編集しない
+- NULL制約の後付けはデータ移行計画なしに行わない  
+- `DROP TABLE` は人間確認なし禁止
+- 本番環境への直接適用は承認が必要</pre>
+        </div>
+
+        <h3>5つのスキルパターン</h3>
+        <div class="patterns">
+          <div class="pat-c pp-oai">
+            <div class="pat-num">01</div>
+            <h4>Instruction-Only</h4>
+            <p>SKILL.mdのみ。指示と制約のテキスト。最シンプル。小〜中規模の手順に最適。</p>
+            <div class="pat-struct">SKILL.md only</div>
+          </div>
+          <div class="pat-c pp-blue">
+            <div class="pat-num">02</div>
+            <h4>Reference Pattern</h4>
+            <p>references/に大きなドキュメントを置き、SKILL.mdから参照。コンテキスト節約。</p>
+            <div class="pat-struct">SKILL.md + references/</div>
+          </div>
+          <div class="pat-c pp-purp">
+            <div class="pat-num">03</div>
+            <h4>Few-Shot Pattern</h4>
+            <p>examples/にInput/Outputペアを複数用意。暗黙知の精度向上に効果的。</p>
+            <div class="pat-struct">SKILL.md + examples/</div>
+          </div>
+          <div class="pat-c pp-amb">
+            <div class="pat-num">04</div>
+            <h4>Tool Use Pattern</h4>
+            <p>scripts/に実行スクリプトを置く。LLMが苦手な計算・DB操作・API呼び出しを外出し。</p>
+            <div class="pat-struct">SKILL.md + scripts/</div>
+          </div>
+          <div class="pat-c pp-rose">
+            <div class="pat-num">05</div>
+            <h4>All-in-One</h4>
+            <p>全ディレクトリ統合。複雑な業務ロジック・バージョン管理が必要なスキルに。</p>
+            <div class="pat-struct">全ディレクトリ + openai.yaml</div>
+          </div>
+        </div>
+
+        <h3>スキルの読み込みスコープ（優先度順）</h3>
+        <table>
+          <tr><th>スコープ</th><th>場所</th><th>用途</th><th>共有</th></tr>
+          <tr><td>system</td><td>Codexビルトイン</td><td>$skill-creator, $skill-installer 等</td><td>—</td></tr>
+          <tr><td>user</td><td>~/.codex/skills/</td><td>全プロジェクト共通の個人スキル</td><td>個人のみ</td></tr>
+          <tr><td>repository</td><td>.agents/skills/（各ディレクトリ）</td><td>プロジェクト固有のスキル（git管理）</td><td>チーム全員</td></tr>
+          <tr><td>admin</td><td>組織ポリシーで設定</td><td>企業共通のコンプライアンスルール</td><td>組織全体</td></tr>
+        </table>
+
+        <div class="ib i-rose">
+          <span class="ii">🔑</span>
+          <div>
+            <strong>descriptionに「Use when / Do NOT use when」を必ず書く</strong><br>
+            公式ドキュメントは「暗黙的マッチングはdescriptionに依存するため、スコープと境界を明確に書くこと」と強調しています。同名スキルが複数存在してもCodexはマージしないため、descriptionで使い分けを明示することが重要です（[7]）。
+          </div>
+        </div>
+
+        <div class="ib i-oai">
+          <span class="ii">💡</span>
+          <div>
+            <strong>公式スキルカタログを活用する</strong><br>
+            OpenAI公式の<code>github.com/openai/skills</code>にcreate-plan・git・linear等の実践的スキルが公開されています。<code>$skill-installer</code>で1コマンドインストール可能。コミュニティのskillsも<code>antigravity-awesome-skills</code>（Claude Code・Antigravity・Codex共通規格）から入手できます（[16]）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 6: .PROMPT.MD ── -->
+  <section id="prompt-md">
+    <div class="sec-label">Section 06</div>
+    <h2 class="sec-title"><span class="num">06.</span>.prompt.md — 再利用タスクプロンプト</h2>
+
+    <p>
+      .prompt.mdはAGENTS.mdとは<strong style="color:var(--text-bright)">役割が異なる「タスク特化型の再利用プロンプト」</strong>です。AGENTS.mdが「プロジェクトの永続的コンテキスト」なのに対し、.prompt.mdは「特定タスクを毎回同じ品質で実行するための手順書」です（[10]）。
+    </p>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);">⚡</div>
+        <div>
+          <div class="fc-name">.prompt.md</div>
+          <div class="fc-path">.github/ または .codex/ 配下 — 再利用タスクプロンプト</div>
+          <div class="fc-meta">
+            <span class="fc-tag" style="background:rgba(245,158,11,.1);color:var(--amber)">AGENTS.mdを補完</span>
+            <span class="fc-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">タスク特化・再利用</span>
+          </div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div class="g2">
+          <div class="mc">
+            <div class="mc-tag" style="color:var(--oai)">AGENTS.md との違い</div>
+            <p>AGENTS.mdはプロジェクトレベルの「常識」を提供。.prompt.mdは「テストケースを生成する」「PRの説明文を書く」など<strong>特定タスクの実行手順</strong>を再利用可能な形で定義。</p>
+          </div>
+          <div class="mc">
+            <div class="mc-tag" style="color:var(--blue)">SKILL.md との違い</div>
+            <p>SKILL.mdはフロントマターによる意味的トリガーを持つ。.prompt.mdはより単純な形式で、手動で呼び出す「タスクテンプレート」。IDE統合での直接実行を想定。</p>
+          </div>
+        </div>
+
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>.github/generate-tests.prompt.md</span>
+          </div>
+          <pre><span class="c-hd"># Generate Unit Tests</span>
+<span class="c-cm"># このプロンプトを実行すると、選択ファイルのテストを自動生成する</span>
+
+以下の指示に従って `$SELECTED_FILE` の単体テストを生成してください：
+
+1. テストフレームワーク: Go の `testing` パッケージ + `testify/assert`
+2. パターン: table-driven tests（全関数に適用）
+3. カバレッジ目標:
+   - 正常系: 全パスをカバー
+   - 境界値: nil/空/最大値
+   - エラー系: 全エラーパス
+4. モック: `mockgen` でインターフェースをモック（外部依存の場合）
+5. ファイル名: `{original_name}_test.go`
+
+テストが全件パスすることを確認してから終了すること。</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 7: SDD FILES ── -->
+  <section id="sdd-files">
+    <div class="sec-label">Section 07</div>
+    <h2 class="sec-title"><span class="num">07.</span>SDD仕様書群 — REQUIREMENTS / AGENT_TASKS / TEST / design_spec</h2>
+
+    <p>
+      OpenAI公式の<code>agents-sdk</code>ドキュメントで公開されているSDD（仕様駆動開発）パターンでは、<strong style="color:var(--text-bright)">Project Managerエージェントが人間の指示からREQUIREMENTS.md・AGENT_TASKS.md・TEST.mdを自動生成し、後続エージェントへのハンドオフに使用</strong>します。これがCodex公式推奨のマルチエージェントSDD構成です（[5]）。
+    </p>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);">📚</div>
+        <div>
+          <div class="fc-name">SDD仕様書群</div>
+          <div class="fc-path">docs/ または プロジェクトルート — PMエージェントが自動生成</div>
+        </div>
+      </div>
+      <div class="fc-body">
+
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>docs/REQUIREMENTS.md — PMエージェントが生成</span>
+          </div>
+          <pre><span class="c-hd"># REQUIREMENTS.md</span>
+<span class="c-cm"># Project Manager エージェントが生成。Designer/Frontend/Backend の真実のソース。</span>
+
+<span class="c-hd">## Product Goal</span>
+商品の事前予約（プリオーダー）機能。在庫切れ状態でも購入確定でき、CVRを向上させる。
+
+<span class="c-hd">## Target Users</span>
+- 一般ユーザー: ログイン済みのECサイト会員
+- 管理者: 注文管理・在庫確認を行う店舗スタッフ
+
+<span class="c-hd">## Key Features</span>
+- 商品詳細ページ: 画像・名称・説明・数量選択・プリオーダーボタン
+- チェックアウト: ログイン → 配送先選択 → Stripe決済 → 確認メール
+- マイページ: 注文履歴・プリオーダーステータス確認
+
+<span class="c-hd">## Constraints</span>
+- 同時接続: 1,000件（Redis在庫ロック使用）
+- 決済: Stripe API v4（SCA対応）
+- レスポンス: p99 &lt; 500ms
+- スタック: Go 1.23 + PostgreSQL 16 + Redis 8</pre>
+        </div>
+
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>docs/AGENT_TASKS.md — 各エージェントへの正確な指示書</span>
+          </div>
+          <pre><span class="c-hd"># AGENT_TASKS.md</span>
+<span class="c-cm"># 各エージェントの担当・成果物・技術メモを明記。曖昧さを排除する。</span>
+
+<span class="c-hd">## Project: E-Commerce Pre-Order System</span>
+
+<span class="c-hd">### [Designer]</span>
+**担当**: UIコンポーネント設計
+**成果物**: `/design/design_spec.md`
+**内容**:
+- 商品詳細ページのDOM構造（React TSX）
+- チェックアウトフローの画面遷移図
+- カラーパレット・フォント定義
+**制約**: モバイルファースト、Tailwind CSS 3.x使用
+
+<span class="c-hd">### [Frontend Developer]</span>
+**担当**: フロントエンド実装
+**成果物**: `/frontend/` 配下（index.html, styles.css, main.js）
+**必須参照**: design_spec.md、REQUIREMENTS.md
+**制約**: デザイナーのDOM構造に厳密に従う。追加機能なし。
+
+<span class="c-hd">### [Backend Developer]</span>
+**担当**: バックエンドAPI実装
+**成果物**: `/backend/` 配下（server.go, handlers/）
+**必須参照**: REQUIREMENTS.md
+**エンドポイント**:
+- POST /api/orders      — 注文作成（プリオーダー）
+- GET  /api/orders/{id} — 注文詳細
+- POST /api/payments    — Stripe決済処理
+
+<span class="c-hd">### [Tester]</span>
+**担当**: QA・受け入れテスト
+**成果物**: `/tests/TEST_PLAN.md`, `/tests/test.sh`
+**内容**: REQUIREMENTS.mdの各機能要件に対応するテストケース
+**制約**: 最小限・実行可能な形式で作成</pre>
+        </div>
+
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>docs/TEST.md — オーナータグ付き受け入れ基準</span>
+          </div>
+          <pre><span class="c-hd"># TEST.md</span>
+<span class="c-cm"># [Owner]タグで責任者を明記。受け入れ基準はCodexが検証可能な形式で書く。</span>
+
+<span class="c-hd">## Feature: Pre-Order Flow</span>
+
+- [ ] [Frontend] 在庫0商品に「予約する」ボタンが表示される
+- [ ] [Backend]  POST /api/orders が201 Createdを返す（在庫0時も）
+- [ ] [Backend]  注文後、確認メールが送信される（MockSmtp確認）
+- [ ] [Tester]   同時100リクエストで在庫の二重予約が発生しない
+- [ ] [Frontend] ログイン未完了時にカート追加するとログイン画面へリダイレクト
+
+<span class="c-hd">## Performance</span>
+- [ ] [Backend] `k6 run tests/load.js` でp99 &lt; 500ms
+- [ ] [Backend] PostgreSQL EXPLAIN ANALYZEでSeq Scan不使用
+
+<span class="c-hd">## Security</span>
+- [ ] [Tester] SQLインジェクション（sqlmap）パス
+- [ ] [Tester] CSRF Token検証（Postmanで直接POSTが拒否される）</pre>
+        </div>
+
+        <div class="ib i-oai">
+          <span class="ii">💡</span>
+          <div>
+            <strong>AGENT_TASKS.mdの「あいまいさゼロ原則」</strong><br>
+            公式ドキュメントは「各役割が推測なしに行動できるよう具体的に書け（Be specific so each role can act without guessing）」と強調しています。<strong>成果物のファイル名・パス・形式</strong>を全て明記することがCodexマルチエージェント連携の成功の鍵です（[5]）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 8: CONFIG.TOML ── -->
+  <section id="config">
+    <div class="sec-label">Section 08</div>
+    <h2 class="sec-title"><span class="num">08.</span>config.toml — Codex設定ファイル</h2>
+
+    <div class="fc">
+      <div class="fc-hdr">
+        <div class="fc-icon" style="background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);">⚙️</div>
+        <div>
+          <div class="fc-name">config.toml</div>
+          <div class="fc-path">~/.codex/config.toml — グローバル設定</div>
+        </div>
+      </div>
+      <div class="fc-body">
+        <div class="cb">
+          <div class="cb-hdr">
+            <div class="cb-dots">
+              <div class="cbd" style="background:#f43f5e"></div>
+              <div class="cbd" style="background:#f59e0b"></div>
+              <div class="cbd" style="background:#10a37f"></div>
+            </div>
+            <span>~/.codex/config.toml — 完全設定例</span>
+          </div>
+          <pre><span class="c-cm"># ~/.codex/config.toml</span>
+<span class="c-cm"># 変更後は Codex の再起動が必要</span>
+
+<span class="c-hd">[project_docs]</span>
+<span class="c-cm"># AGENTS.md の代替ファイル名（既存プロジェクトのファイルを読み込む）</span>
+<span class="c-oai">project_doc_fallback_filenames</span> = [<span class="c-str">"TEAM_GUIDE.md"</span>, <span class="c-str">".agents.md"</span>, <span class="c-str">"AI_INSTRUCTIONS.md"</span>]
+
+<span class="c-cm"># 読み込み上限（デフォルト 32768 = 32KiB）</span>
+<span class="c-oai">project_doc_max_bytes</span> = <span class="c-hl">65536</span>   <span class="c-cm"># 64KiBに拡張（大規模プロジェクト向け）</span>
+
+<span class="c-hd">[[skills.config]]</span>
+<span class="c-cm"># 特定スキルを無効化（削除せず）</span>
+<span class="c-oai">path</span> = <span class="c-str">"/path/to/skill/SKILL.md"</span>
+<span class="c-oai">enabled</span> = <span class="c-kw">false</span></pre>
+        </div>
+
+        <div class="ib i-blue">
+          <span class="ii">ℹ️</span>
+          <div>
+            <code>project_doc_fallback_filenames</code>を設定すると、各ディレクトリで<strong>AGENTS.override.md → AGENTS.md → TEAM_GUIDE.md → .agents.md</strong>の順で検索します。既存プロジェクトのドキュメントファイルをCodexに読み込ませるための仕組みです（[1]）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 9: OPENAI.YAML ── -->
+  <section id="openai-yaml">
+    <div class="sec-label">Section 09</div>
+    <h2 class="sec-title"><span class="num">09.</span>agents/openai.yaml — スキルUIメタデータ</h2>
+
+    <p>
+      SKILL.mdのフロントマターだけでは表現しきれない<strong style="color:var(--text-bright)">Codex App向けのUIメタデータ・呼び出しポリシー・ツール依存関係</strong>を定義するYAMLファイルです。Codex AppのスキルセレクターUIのアイコン・表示名・自動呼び出し設定などを制御します。
+    </p>
+
+    <div class="cb">
+      <div class="cb-hdr">
+        <div class="cb-dots">
+          <div class="cbd" style="background:#f43f5e"></div>
+          <div class="cbd" style="background:#f59e0b"></div>
+          <div class="cbd" style="background:#10a37f"></div>
+        </div>
+        <span>.agents/skills/db-migration/agents/openai.yaml</span>
+      </div>
+      <pre><span class="c-cm"># Codex App UIメタデータ</span>
+<span class="c-hd">display_name:</span> <span class="c-str">DB Migration</span>
+<span class="c-hd">icon:</span> <span class="c-str">🗄️</span>
+<span class="c-hd">category:</span> <span class="c-str">database</span>
+
+<span class="c-hd">invocation:</span>
+  <span class="c-oai">policy:</span> <span class="c-str">explicit</span>   <span class="c-cm"># explicit: ユーザーが明示的に呼び出す場合のみ</span>
+                         <span class="c-cm"># implicit: Codexが自動判断で呼び出す場合も許可</span>
+  <span class="c-oai">shortcut:</span> <span class="c-str">$migrate</span>  <span class="c-cm"># プロンプトでのショートカット名</span>
+
+<span class="c-hd">tool_dependencies:</span>
+  <span class="c-cm"># このスキルが必要とするツール（未存在の場合は警告）</span>
+  - <span class="c-str">shell</span>
+  - <span class="c-str">python3</span></pre>
+    </div>
+  </section>
+
+  <!-- ── SECTION 10: MULTI-AGENT SDD ── -->
+  <section id="multi-agent">
+    <div class="sec-label">Section 10</div>
+    <h2 class="sec-title"><span class="num">10.</span>Multi-Agent SDDパターン（Agents SDK）</h2>
+
+    <p>
+      OpenAI Agents SDKと<code>Codex MCP</code>を組み合わせることで、<strong style="color:var(--text-bright)">Project Manager → Designer → Frontend/Backend（並列） → Tester</strong>という完全自律型SDDパイプラインを実装できます。各エージェントの真実のソースがAGENTS.md + REQUIREMENTS.md + AGENT_TASKS.mdで構成されます。
+    </p>
+
+    <div class="flow-wrap">
+      <div class="flow-lbl">▸ Agents SDK マルチエージェント SDD パイプライン</div>
+      <div class="flow">
+        <div class="fst">
+          <div class="fbox f-oai">Project<br>Manager</div>
+          <div class="ffile">REQUIREMENTS.md<br>AGENT_TASKS.md<br>TEST.md を生成</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-blue">Designer</div>
+          <div class="ffile">design_spec.md<br>を生成</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-purp">Frontend<br>+ Backend</div>
+          <div class="ffile">並列実行<br>design_spec.md参照</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-amb">Tester</div>
+          <div class="ffile">TEST_PLAN.md<br>test.sh を生成</div>
+        </div>
+        <div class="farr">→</div>
+        <div class="fst">
+          <div class="fbox f-rose">PM<br>検証</div>
+          <div class="ffile">全成果物の<br>整合性確認</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cb">
+      <div class="cb-hdr">
+        <div class="cb-dots">
+          <div class="cbd" style="background:#f43f5e"></div>
+          <div class="cbd" style="background:#f59e0b"></div>
+          <div class="cbd" style="background:#10a37f"></div>
+        </div>
+        <span>SDD パイプライン — ファイル生成順序とゲート条件</span>
+      </div>
+      <pre><span class="c-cm"># Agents SDK × Codex MCP — SDD ファイル依存グラフ</span>
+
+<span class="c-hd">Step 1: PM Agent が生成（ゲート: なし）</span>
+  ├── REQUIREMENTS.md   → 製品要件・制約
+  ├── AGENT_TASKS.md    → 各役割への指示
+  └── TEST.md           → 受け入れ基準
+
+<span class="c-hd">Step 2: Designer Agent（ゲート: AGENT_TASKS.md 存在確認）</span>
+  └── /design/design_spec.md  → DOM構造・UI仕様
+
+<span class="c-hd">Step 3: 並列実行（ゲート: design_spec.md 存在確認）</span>
+  ├── Frontend Agent  → /frontend/{index.html, styles.css, main.js}
+  └── Backend Agent   → /backend/{server.go, handlers/}
+
+<span class="c-hd">Step 4: Tester Agent（ゲート: frontend + backend 完了確認）</span>
+  ├── /tests/TEST_PLAN.md  → 手動チェックリスト
+  └── /tests/test.sh       → 自動テストスクリプト
+
+<span class="c-hd">Step 5: PM Agent 最終確認</span>
+  └── TEST.mdの受け入れ基準と全成果物の整合性チェック</pre>
+    </div>
+
+    <div class="ib i-purp">
+      <span class="ii">⚡</span>
+      <div>
+        <strong>ゲート条件（Handoff Gating）がSDDの鍵</strong><br>
+        公式サンプルコードでは<code>design_spec.mdが存在することを確認してから並列ハンドオフ</code>と明示されています。AGENT_TASKS.mdに「依存ファイルが存在しない場合は停止」と書くことで、前フェーズ未完了での実装開始を防ぎます（[5]）。
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 11: BEST PRACTICES ── -->
+  <section id="best-practices">
+    <div class="sec-label">Section 11</div>
+    <h2 class="sec-title"><span class="num">11.</span>横断ベストプラクティス 10則</h2>
+
+    <div class="bps">
+      <div class="bp-c bp-oai">
+        <div class="bp-n">01</div>
+        <h4>AGENTS.mdにテストコマンドを必ず書く</h4>
+        <p>codex-1のシステムメッセージはAGENTS.mdに書かれたテストを「全件実行」する。コマンドが未記載だとテストがスキップされる。</p>
+      </div>
+      <div class="bp-c bp-blue">
+        <div class="bp-n">02</div>
+        <h4>32KiB上限を意識してファイルを分割</h4>
+        <p>重要なルールはAGENTS.mdの上部へ。詳細な知識はSKILL.md・references/へ分離。上限超過で切り捨てられる。</p>
+      </div>
+      <div class="bp-c bp-purp">
+        <div class="bp-n">03</div>
+        <h4>AGENTS.mdはオープン標準を活かす</h4>
+        <p>Claude CodeのCLAUDE.mdに@AGENTS.mdでインポートする。1ファイルで全ツールに対応し「ツール乗り換え問題」を解消。</p>
+      </div>
+      <div class="bp-c bp-amb">
+        <div class="bp-n">04</div>
+        <h4>AGENT_TASKS.mdに「あいまいさゼロ」で書く</h4>
+        <p>「成果物のファイル名・パス・形式」を全て明記。「後でデザイナーのDOMを参考にして」ではなく「/design/design_spec.mdのDOM構造を参照」。</p>
+      </div>
+      <div class="bp-c bp-rose">
+        <div class="bp-n">05</div>
+        <h4>AGENTS.override.mdを一時的にのみ使う</h4>
+        <p>使い終わったら即削除。永続的ルール変更はAGENTS.mdを直接編集する。override.mdの.gitignore追加を忘れない。</p>
+      </div>
+      <div class="bp-c bp-cyan">
+        <div class="bp-n">06</div>
+        <h4>SKILL.mdのdescriptionに境界を明記</h4>
+        <p>「Use when...」だけでなく「Do NOT use when...」も書く。暗黙マッチングの誤爆を防ぐnegative examplesが精度向上の鍵。</p>
+      </div>
+      <div class="bp-c bp-oai">
+        <div class="bp-n">07</div>
+        <h4>PRインストラクションをAGENTS.mdに書く</h4>
+        <p>Codex Cloudが自動PR生成する際のタイトル形式・必須セクション・レビュアー設定をAGENTS.mdのPR Instructionsセクションで制御。</p>
+      </div>
+      <div class="bp-c bp-blue">
+        <div class="bp-n">08</div>
+        <h4>Forbidden Actionsで安全柵を作る</h4>
+        <p>「migrations/への直接書き込み禁止」「.envの変更禁止」を明示。Codexは明示的な禁止を強く尊重する。</p>
+      </div>
+      <div class="bp-c bp-purp">
+        <div class="bp-n">09</div>
+        <h4>ゲート条件付きハンドオフで品質を担保</h4>
+        <p>Agents SDKパイプラインでは「design_spec.mdが存在することを確認してから実装開始」のようなゲート条件を各エージェントに持たせる。</p>
+      </div>
+      <div class="bp-c bp-amb">
+        <div class="bp-n">10</div>
+        <h4>$skill-installerで公式スキルを活用</h4>
+        <p>openai/skillsの公式カタログとコミュニティのスキル集（40,000+プロジェクト）を積極的に活用。スクラッチで書く前に既存スキルを確認。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SOURCES ── -->
+  <section id="sources">
+    <div class="sources">
+      <h3>📚 参考ソース一覧（公式・二次情報を含む）</h3>
+
+      <div class="src">
+        <span class="sn">[1]</span>
+        <div>
+          <a href="https://developers.openai.com/codex/guides/agents-md/" target="_blank" rel="noopener noreferrer">Custom instructions with AGENTS.md — OpenAI Developer Documentation (公式)</a>
+          <span class="sd">AGENTS.md読み込み優先度チェーン・32KiB上限・project_doc_fallback_filenames・AGENTS.override.mdの完全仕様</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[2]</span>
+        <div>
+          <a href="https://openai.com/index/introducing-codex/" target="_blank" rel="noopener noreferrer">Introducing Codex — OpenAI Blog (May 2025)</a>
+          <span class="sd">codex-1（o3ベース）の仕様・AGENTS.md公式サポート発表・SWE-Bench 72.1%スコア・codex-1システムメッセージ公開</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[3]</span>
+        <div>
+          <a href="https://developers.openai.com/codex/skills/" target="_blank" rel="noopener noreferrer">Agent Skills — OpenAI Developer Documentation (公式)</a>
+          <span class="sd">SKILL.md完全仕様・Progressive Disclosure設計思想・スキルスコープ4段階・agents/openai.yaml・$skill-installerの使い方</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[4]</span>
+        <div>
+          <a href="https://developers.openai.com/codex/changelog/" target="_blank" rel="noopener noreferrer">Codex Changelog — OpenAI Developer Documentation (公式)</a>
+          <span class="sd">Skills正式リリース詳細・スキルディレクトリ構造（SKILL.md/scripts/references/assets）・マルチエージェントconfig</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[5]</span>
+        <div>
+          <a href="https://developers.openai.com/codex/guides/agents-sdk/" target="_blank" rel="noopener noreferrer">Use Codex with the Agents SDK — OpenAI Developer Documentation (公式)</a>
+          <span class="sd">マルチエージェントSDDパターン・REQUIREMENTS.md/AGENT_TASKS.md/TEST.mdの生成順序・ゲート条件付きハンドオフ・Codex MCP統合</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[6]</span>
+        <div>
+          <a href="https://developers.openai.com/codex/cloud" target="_blank" rel="noopener noreferrer">Codex Cloud — OpenAI Developer Documentation (公式)</a>
+          <span class="sd">Cloud Codex（ChatGPT統合）の機能・GitHub連携・並列タスク実行・PR自動生成</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[7]</span>
+        <div>
+          <a href="https://developers.openai.com/cookbook/examples/skills_in_api" target="_blank" rel="noopener noreferrer">Skills in OpenAI API — OpenAI Cookbook (Feb 2026)</a>
+          <span class="sd">SKILL.mdフロントマター仕様・バージョン管理・Instruction-only/Tool Use/All-in-Oneパターン・ルーティング精度改善tips</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[8]</span>
+        <div>
+          <a href="https://agents.md/" target="_blank" rel="noopener noreferrer">AGENTS.md Open Standard — agents.md (Agentic AI Foundation)</a>
+          <span class="sd">Linux Foundation傘下のAGENTS.mdオープン標準化・Codex/Cursor/Jules/Amp/Factory採用・40,000+プロジェクト利用</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[9]</span>
+        <div>
+          <a href="https://developers.openai.com/blog/openai-for-developers-2025/" target="_blank" rel="noopener noreferrer">OpenAI for Developers in 2025 — OpenAI Developer Blog</a>
+          <span class="sd">GPT-5.2-Codex・AGENTS.mdオープン標準化の経緯・Agents SDK・AgentKit・2025年の変遷</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[10]</span>
+        <div>
+          <a href="https://layer5.io/blog/ai/agentsmd-one-file-to-guide-them-all/" target="_blank" rel="noopener noreferrer">AGENTS.md: One File to Guide Them All — Layer5 Blog</a>
+          <span class="sd">AGENTS.md vs .prompt.md の使い分け・Claude CodeへのAGENTS.mdインポート方法・ツール乗り換え問題の解決策</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[11]</span>
+        <div>
+          <a href="https://www.datacamp.com/tutorial/openai-codex" target="_blank" rel="noopener noreferrer">OpenAI's Codex: A Guide With 3 Practical Examples — DataCamp (May 2025)</a>
+          <span class="sd">AGENTS.md実践サンプル（Code Style/Testing/PR Instructions）・Cloud Codexセットアップ手順</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[12]</span>
+        <div>
+          <a href="https://github.com/openai/skills" target="_blank" rel="noopener noreferrer">openai/skills — GitHub (公式スキルカタログ)</a>
+          <span class="sd">公式スキルカタログ・create-plan/git/linear等のサンプルスキル・$skill-installerによるインストール手順</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[13]</span>
+        <div>
+          <a href="https://community.openai.com/t/agents-md-file-optimization/1369152" target="_blank" rel="noopener noreferrer">AGENTS.md File Optimization — OpenAI Developer Community (Dec 2025)</a>
+          <span class="sd">コミュニティのAGENTS.md最適化事例・シンプルさの重要性・実際のファイル例</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[14]</span>
+        <div>
+          <a href="https://community.openai.com/t/skills-for-codex-experimental-support-starting-today/1369367" target="_blank" rel="noopener noreferrer">Skills for Codex: Experimental support starting today — OpenAI Developer Community (Dec 2025)</a>
+          <span class="sd">Codexスキル機能の実験的リリース発表・コミュニティ実装例</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[15]</span>
+        <div>
+          <a href="https://agentsmd.net/" target="_blank" rel="noopener noreferrer">Agents.md Guide for OpenAI Codex — agentsmd.net</a>
+          <span class="sd">AGENTS.mdのコードスタイル・テスト・PR手順・プロジェクト構造の記述ベストプラクティス</span>
+        </div>
+      </div>
+      <div class="src">
+        <span class="sn">[16]</span>
+        <div>
+          <a href="https://blog.fsck.com/2025/10/27/skills-for-openai-codex/" target="_blank" rel="noopener noreferrer">Porting Skills (and Superpowers) to OpenAI Codex — blog.fsck.com (Oct 2025)</a>
+          <span class="sd">SKILL.mdのオープン規格（Claude Code/Antigravity/Codex共通）・スキルを「フランチャイズのバインダー」と比喩した設計思想</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

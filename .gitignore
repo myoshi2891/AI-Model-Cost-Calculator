@@ -56,8 +56,8 @@ pnpm-debug.log*
 
 # Data / Generated Assets (Root)
 # Set these if you want to keep generated assets out of Git
-index.html
-pricing.json
+/index.html
+/pricing.json
 
 # Backup/Temp
 *.tmp
