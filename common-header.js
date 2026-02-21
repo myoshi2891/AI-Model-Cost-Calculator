@@ -115,18 +115,33 @@
 
   container.appendChild(linksList);
 
+  /**
+   * Close the navigation menu when the Escape key is pressed.
+   * @param {KeyboardEvent} e - The keydown event to inspect for the Escape key.
+   */
   function handleKeyDown(e) {
     if (e.key === 'Escape') {
       closeMenu();
     }
   }
 
+  /**
+   * Close the navigation menu when the user clicks outside the menu list and hamburger control.
+   * @param {Event} e - The click event to evaluate; if its target is not inside the menu or hamburger, the menu is closed.
+   */
   function handleOutsideClick(e) {
     if (!linksList.contains(e.target) && !hamburger.contains(e.target)) {
       closeMenu();
     }
   }
 
+  /**
+   * Open the collapsible navigation menu and enable outside-click and Escape-to-close behavior.
+   *
+   * Adds the open state to menu and hamburger controls and sets the hamburger's `aria-expanded`
+   * attribute to `true`, then attaches document-level `keydown` and `click` listeners to handle
+   * closing the menu via the Escape key or clicks outside the menu.
+   */
   function openMenu() {
     linksList.classList.add('ch-open');
     hamburger.classList.add('ch-open');
@@ -135,6 +150,13 @@
     document.addEventListener('click', handleOutsideClick);
   }
 
+  /**
+   * Close the collapsible navigation menu and restore its closed state.
+   *
+   * Removes the open CSS class from the menu and hamburger, sets the hamburger's
+   * `aria-expanded` attribute to `"false"`, and detaches the menu-related
+   * keyboard and outside-click event listeners.
+   */
   function closeMenu() {
     linksList.classList.remove('ch-open');
     hamburger.classList.remove('ch-open');

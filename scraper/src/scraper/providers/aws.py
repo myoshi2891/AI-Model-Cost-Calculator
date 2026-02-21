@@ -51,7 +51,17 @@ _AWS_KEYWORDS: dict[str, list[str]] = {
 
 
 def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
-    """AWS Bedrock の価格を Pricing API から取得。"""
+    """
+    Fetches AWS Bedrock on-demand prices from the AWS Pricing API and returns normalized ApiModel entries.
+    
+    If provided, `existing` models from the AWS provider are used to seed fallback prices; built-in fallbacks fill any remaining missing models. Prices are converted to USD per 1,000,000 tokens (with recognition of per-1K unit descriptions) and selection prefers standard token usage tiers for the us-east-1 region. If the Pricing API call or parsing fails, all models fall back to the prepared fallback prices.
+    
+    Parameters:
+        existing (list[ApiModel] | None): Optional list of previously scraped ApiModel objects whose AWS entries are used as higher-priority fallback prices.
+    
+    Returns:
+        list[ApiModel]: List of ApiModel objects for each known model, each populated with provider="AWS", name, display metadata, computed price_in and price_out (USD per 1M tokens), and a scrape_status indicating whether the price was scraped or came from a fallback.
+    """
     logger.info("AWS: Pricing API から取得開始")
 
     fallback_map: dict[str, tuple[float, float]] = {}
