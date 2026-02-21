@@ -354,6 +354,16 @@
   .src a { color: var(--oai); text-decoration: none; word-break: break-all; }
   .src a:hover { text-decoration: underline; }
   .sd { color: var(--text-dim); font-size: .73rem; display: block; margin-top: .1rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
   <!-- Common Header Assets -->
   <link rel="stylesheet" href="./common-header.css">

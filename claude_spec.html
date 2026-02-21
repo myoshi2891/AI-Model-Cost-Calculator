@@ -440,6 +440,16 @@
   }
   .principle h4 { font-size: 0.88rem; font-weight: 500; color: var(--text-bright); margin-bottom: 0.4rem; }
   .principle p { font-size: 0.78rem; color: var(--text-dim); margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
   <!-- Common Header Assets -->
   <link rel="stylesheet" href="./common-header.css">
@@ -1212,7 +1222,7 @@ CREATE INDEX idx_products_preorder ON products(is_preorder) WHERE is_preorder = 
   <!-- ── SOURCES ── -->
   <section id="sources">
     <div class="sources">
-      <h3>📚 参考ソース一覧</h3>
+      <h3>📚 参考ソース一覧（公式・二次情報を含む）</h3>
       <div class="source-item">
         <span class="source-num">[1]</span>
         <div>
