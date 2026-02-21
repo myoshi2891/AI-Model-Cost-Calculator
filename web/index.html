@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>web</title>
+    <!-- Common Header Runtime Injection -->
+    <script>
+      (function() {
+        var isDev = window.location.port !== '';
+        var prefix = isDev ? '../' : './';
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = prefix + 'common-header.css';
+        document.head.appendChild(css);
+        var js = document.createElement('script');
+        js.src = prefix + 'common-header.js';
+        js.defer = true;
+        document.head.appendChild(js);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
