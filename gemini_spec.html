@@ -299,6 +299,16 @@
   .src a { color: var(--g-blue); text-decoration: none; word-break: break-all; }
   .src a:hover { text-decoration: underline; }
   .sdesc { color: var(--text-dim); font-size: 0.74rem; display: block; margin-top: 0.1rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
   <!-- Common Header Assets -->
   <link rel="stylesheet" href="./common-header.css">
@@ -404,7 +414,7 @@
 
     <div class="info-box i-note">
       <span class="ii">ℹ️</span>
-      <div><strong>SKILL.mdは共通規格</strong>です。AntigravityとClaude Codeは同一のSKILL.md形式を採用しており、ファイルを両プラットフォーム間でほぼそのまま移植できます（<a href="https://github.com/sickn33/antigravity-awesome-skills" style="color:var(--g-blue)">antigravity-awesome-skills</a>参照）。</div>
+      <div><strong>SKILL.mdは共通規格</strong>です。AntigravityとClaude Codeは同一のSKILL.md形式を採用しており、ファイルを両プラットフォーム間でほぼそのまま移植できます（<a href="https://github.com/sickn33/antigravity-awesome-skills" target="_blank" rel="noopener noreferrer" style="color:var(--g-blue)">antigravity-awesome-skills</a>参照）。</div>
     </div>
   </section>
 
@@ -1121,7 +1131,7 @@ CREATE INDEX idx_users_last_login ON users(last_login_at);
   <!-- ── SOURCES ── -->
   <section id="sources">
     <div class="sources">
-      <h3>📚 参考ソース一覧</h3>
+      <h3>📚 参考ソース一覧（公式・二次情報を含む）</h3>
 
       <div class="src">
         <span class="snum">[1]</span>
