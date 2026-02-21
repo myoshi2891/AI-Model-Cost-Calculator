@@ -6,6 +6,11 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 // 単一ポータブル HTML ファイルとして出力する
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
+  server: {
+    fs: {
+      allow: ['..'],
+    },
+  },
   build: {
     // アセットをインライン化するしきい値を上限に設定
     assetsInlineLimit: 100_000_000,

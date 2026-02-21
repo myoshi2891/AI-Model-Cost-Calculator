@@ -19,13 +19,13 @@ update.sh  ← オーケストレーター (スクレイプ → ビルド → �
 │       ├── providers/        API プロバイダー別スクレイパー (anthropic, openai, google, aws, deepseek, xai)
 │       └── tools/            コーディングツール別スクレイパー (cursor, github_copilot, windsurf, claude_code 等)
 ├── web/              React 19 + TypeScript + Vite 7 (bun)
-    └── src/
-        ├── App.tsx           メインコンポーネント (タブ切替・シナリオ選択)
-        ├── types/pricing.ts  JSON スキーマ型定義 (Python models.py と同期が必要)
-        ├── lib/cost.ts       コスト計算ロジック (calcApiCost / calcSubCost)
-        ├── i18n.ts           JA/EN 翻訳定義
-        ├── data/pricing.json ビルド時に埋め込まれる価格データ
-        └── components/       UI コンポーネント群
+│   └── src/
+│       ├── App.tsx           メインコンポーネント (タブ切替・シナリオ選択)
+│       ├── types/pricing.ts  JSON スキーマ型定義 (Python models.py と同期が必要)
+│       ├── lib/cost.ts       コスト計算ロジック (calcApiCost / calcSubCost)
+│       ├── i18n.ts           JA/EN 翻訳定義
+│       ├── data/pricing.json ビルド時に埋め込まれる価格データ
+│       └── components/       UI コンポーネント群
 ├── common-header.js  共通ヘッダーDOM構築・注入スクリプト (全HTMLで動的読み込み)
 ├── common-header.css 共通ヘッダー用スタイリング
 └── *_spec.html       各ツール向け静的仕様書ファイル群 (claude, codex, gemini, copilot)
