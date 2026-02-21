@@ -7,8 +7,8 @@
   --ch-height: 60px;
 }
 
-body {
-  margin-top: calc(var(--ch-height) + 10px) !important;
+body.has-common-header {
+  margin-top: calc(var(--ch-height) + 10px);
 }
 
 .ch-nav {
@@ -122,12 +122,16 @@ body {
     padding: 1rem 0;
     gap: 0;
     clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
-    transition: clip-path 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: clip-path 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .ch-links.ch-open {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .ch-links li {

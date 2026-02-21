@@ -20,6 +20,7 @@
 
   const hamburger = document.createElement('button');
   hamburger.className = 'ch-hamburger';
+  hamburger.setAttribute('aria-controls', 'ch-menu');
   hamburger.setAttribute('aria-label', 'Toggle menu');
   hamburger.setAttribute('aria-expanded', 'false');
   hamburger.innerHTML = `
@@ -30,6 +31,7 @@
   container.appendChild(hamburger);
 
   const linksList = document.createElement('ul');
+  linksList.id = 'ch-menu';
   linksList.className = 'ch-links';
   
   const links = [
@@ -46,7 +48,7 @@
     a.href = link.href;
     a.textContent = link.name;
     const linkPath = link.href.replace('./', '');
-    if (currentPath === linkPath || (currentPath === '' && linkPath === 'index.html')) {
+    if (currentPath === linkPath) {
       a.className = 'ch-active';
       a.setAttribute('aria-current', 'page');
     }
@@ -68,9 +70,10 @@
   hamburger.addEventListener('click', () => {
     const isOpen = linksList.classList.toggle('ch-open');
     hamburger.classList.toggle('ch-open');
-    hamburger.setAttribute('aria-expanded', isOpen);
+    hamburger.setAttribute('aria-expanded', String(isOpen));
   });
 
   // Inject as the first child of body to avoid overlapping where possible depending on context
   document.body.insertBefore(nav, document.body.firstChild);
+  document.body.classList.add('has-common-header');
 })();

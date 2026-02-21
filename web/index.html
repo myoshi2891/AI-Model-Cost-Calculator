@@ -4,22 +4,10 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>web</title>
-    <!-- Common Header Runtime Injection -->
-    <script>
-      (function() {
-        var isDev = window.location.port !== '';
-        var prefix = isDev ? '../' : './';
-        var css = document.createElement('link');
-        css.rel = 'stylesheet';
-        css.href = prefix + 'common-header.css';
-        document.head.appendChild(css);
-        var js = document.createElement('script');
-        js.src = prefix + 'common-header.js';
-        js.defer = true;
-        document.head.appendChild(js);
-      })();
-    </script>
+    <title>AI Model Pricing Calculator</title>
+    <!-- Common Header Static Assets for Vite Bundler -->
+    <link rel="stylesheet" href="../common-header.css" />
+    <script type="module" src="../common-header.js"></script>
   </head>
   <body>
     <div id="root"></div>
