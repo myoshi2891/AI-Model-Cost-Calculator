@@ -75,6 +75,8 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
         for model_name, keywords in _AWS_KEYWORDS.items():
             in_price: float | None = None
             out_price: float | None = None
+            found_use1_in = False
+            found_use1_out = False
             fb_in, fb_out = fallback_map[model_name]
 
             for sku, product in products.items():
@@ -95,7 +97,7 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
 
                         # Skip non-standard tiers (batch, flex, etc.)
                         # Standard format: [Region]-Nova[Size]-[input|output]-tokens
-                        if not (usage_type_lower.endswith("-input-tokens") or usage_type_lower.endswith("-output-tokens")):
+                        if not usage_type_lower.endswith(("-input-tokens", "-output-tokens")):
                             continue
 
                         # Skip specific keywords in usage type
@@ -104,7 +106,14 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
 
                         # USD per unit -> USD per 1M tokens
                         # AWS Bedrock is typically per 1,000 tokens
-                        multiplier = 1000 if "1k" in desc_lower else 1_000_000
+                        if "1k" in desc_lower:
+                            multiplier = 1000
+                            logger.debug(
+                                "AWS/%s: 1K単位の価格検出 (usage=%s, desc=%s, usd=%.6f, price_1m=%.4f)",
+                                model_name, usage_type, desc_lower, usd_per_unit, usd_per_unit * multiplier,
+                            )
+                        else:
+                            multiplier = 1_000_000
                         price_1m = usd_per_unit * multiplier
 
                         # Prefer us-east-1 (USE1) for price consistency
@@ -112,11 +121,17 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
                         is_use1 = "use1" in usage_type_lower
                         
                         if "input" in usage_type_lower or "input" in desc_lower:
-                            if in_price is None or (is_use1 and usage_type_lower.count("-") <= 3):
+                            if in_price is None:
                                 in_price = price_1m
+                            elif is_use1 and not found_use1_in and usage_type_lower.count("-") <= 3:
+                                in_price = price_1m
+                                found_use1_in = True
                         elif "output" in usage_type_lower or "output" in desc_lower:
-                            if out_price is None or (is_use1 and usage_type_lower.count("-") <= 3):
+                            if out_price is None:
                                 out_price = price_1m
+                            elif is_use1 and not found_use1_out and usage_type_lower.count("-") <= 3:
+                                out_price = price_1m
+                                found_use1_out = True
 
             pi, si = sanity_check(in_price, f"AWS/{model_name}/in", fb_in)
             po, so = sanity_check(out_price, f"AWS/{model_name}/out", fb_out)

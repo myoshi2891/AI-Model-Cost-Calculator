@@ -1,6 +1,9 @@
 (async function() {
   if (document.getElementById('common-header')) return;
 
+  // await 後は document.currentScript が null になるため事前キャプチャ
+  const selfScript = document.currentScript;
+
   const currentPath = window.location.pathname.split('/').pop() || 'index.html';
 
   const nav = document.createElement('nav');
@@ -43,11 +46,25 @@
     { name: 'Copilot', href: './copilot_spec.html' },
   ];
 
+  // href が安全なプロトコルかを検証（javascript: 等を排除）
+  const isSafeHref = (href) => {
+    if (typeof href !== 'string') return false;
+    if (href.startsWith('/') || href.startsWith('./')) return true;
+    try {
+      const url = new URL(href, window.location.origin);
+      return url.protocol === 'https:' || url.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  };
+
+  const isValidLink = (l) => l && l.name && l.href && isSafeHref(l.href);
+
   try {
     const res = await fetch('/nav-links.json');
     if (res.ok) {
       const parsed = await res.json();
-      if (Array.isArray(parsed) && parsed.every(l => l && l.name && l.href)) {
+      if (Array.isArray(parsed) && parsed.every(isValidLink)) {
         links = parsed;
       }
     }
@@ -56,11 +73,11 @@
   }
 
   if (links.length === 0) {
-    const dataLinks = document.currentScript ? document.currentScript.getAttribute('data-links') : null;
+    const dataLinks = selfScript ? selfScript.getAttribute('data-links') : null;
     if (dataLinks) {
       try {
         const parsed = JSON.parse(dataLinks);
-        if (Array.isArray(parsed) && parsed.every(l => l && l.name && l.href)) {
+        if (Array.isArray(parsed) && parsed.every(isValidLink)) {
           links = parsed;
         }
       } catch (e) {
@@ -124,6 +141,7 @@
     hamburger.setAttribute('aria-expanded', 'false');
     document.removeEventListener('keydown', handleKeyDown);
     document.removeEventListener('click', handleOutsideClick);
+    hamburger.focus();
   }
 
   hamburger.addEventListener('click', (e) => {
