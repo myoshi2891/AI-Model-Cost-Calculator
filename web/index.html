@@ -4,11 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' http: https: ws: wss: *;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; connect-src 'self' https:;" />
     <title>AI Model Pricing Calculator</title>
     <!-- Common Header Static Assets for Vite Bundler -->
-    <link rel="stylesheet" href="../common-header.css" />
-    <script type="module" src="../common-header.js"></script>
+    <script type="module">
+      const isDev = import.meta.env.DEV || window.location.protocol === 'file:';
+      const prefix = isDev ? '../' : './';
+      
+      // Dynamic injection of common header assets
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = prefix + 'common-header.css';
+      document.head.appendChild(link);
+      
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = prefix + 'common-header.js';
+      document.head.appendChild(script);
+    </script>
   </head>
   <body>
     <div id="root"></div>

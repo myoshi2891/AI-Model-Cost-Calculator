@@ -75,6 +75,17 @@ header {
 }
 @keyframes scan { 0%,100%{opacity:0;transform:translateY(0)} 30%{opacity:1} 50%{transform:translateY(280px);opacity:.4} 80%{opacity:0} }
 
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .hdr-mesh::after { animation: none !important; }
+}
+
 .eyebrow {
   display: inline-flex; align-items: center; gap: .5rem;
   font-family: 'JetBrains Mono', monospace;
@@ -1471,7 +1482,7 @@ KPI: 在庫ミス率90%削減・セットアップ10分以内
 <!-- SOURCES -->
 <section id="sources">
   <div class="sources">
-    <div class="src-ttl">📚 参考ソース一覧（全て公式一次情報）</div>
+    <div class="src-ttl">📚 参考ソース一覧（公式・二次情報を含む）</div>
 
     <div class="src">
       <span class="sn">[1]</span>

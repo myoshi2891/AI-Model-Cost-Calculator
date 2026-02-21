@@ -1,4 +1,4 @@
-(function() {
+(async function() {
   if (document.getElementById('common-header')) return;
 
   const currentPath = window.location.pathname.split('/').pop() || 'index.html';
@@ -34,13 +34,44 @@
   linksList.id = 'ch-menu';
   linksList.className = 'ch-links';
   
-  const links = [
+  let links = [];
+  const defaultLinks = [
     { name: 'Home', href: './index.html' },
     { name: 'Claude', href: './claude_spec.html' },
     { name: 'Codex', href: './codex_spec.html' },
     { name: 'Gemini', href: './gemini_spec.html' },
     { name: 'Copilot', href: './copilot_spec.html' },
   ];
+
+  try {
+    const res = await fetch('/nav-links.json');
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed) && parsed.every(l => l && l.name && l.href)) {
+        links = parsed;
+      }
+    }
+  } catch (e) {
+    // ignore fetch/parse errors
+  }
+
+  if (links.length === 0) {
+    const dataLinks = document.currentScript ? document.currentScript.getAttribute('data-links') : null;
+    if (dataLinks) {
+      try {
+        const parsed = JSON.parse(dataLinks);
+        if (Array.isArray(parsed) && parsed.every(l => l && l.name && l.href)) {
+          links = parsed;
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+    }
+  }
+
+  if (links.length === 0) {
+    links = defaultLinks;
+  }
 
   links.forEach(link => {
     const li = document.createElement('li');
@@ -67,10 +98,42 @@
 
   container.appendChild(linksList);
 
-  hamburger.addEventListener('click', () => {
-    const isOpen = linksList.classList.toggle('ch-open');
-    hamburger.classList.toggle('ch-open');
-    hamburger.setAttribute('aria-expanded', String(isOpen));
+  function handleKeyDown(e) {
+    if (e.key === 'Escape') {
+      closeMenu();
+    }
+  }
+
+  function handleOutsideClick(e) {
+    if (!linksList.contains(e.target) && !hamburger.contains(e.target)) {
+      closeMenu();
+    }
+  }
+
+  function openMenu() {
+    linksList.classList.add('ch-open');
+    hamburger.classList.add('ch-open');
+    hamburger.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('click', handleOutsideClick);
+  }
+
+  function closeMenu() {
+    linksList.classList.remove('ch-open');
+    hamburger.classList.remove('ch-open');
+    hamburger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', handleKeyDown);
+    document.removeEventListener('click', handleOutsideClick);
+  }
+
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent outside click from immediately firing
+    const isOpen = linksList.classList.contains('ch-open');
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
   });
 
   // Inject as the first child of body to avoid overlapping where possible depending on context

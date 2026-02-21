@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-21T03:56:48.725649+00:00",
+  "generated_at": "2026-02-21T12:41:54.227617+00:00",
   "jpy_rate": 155.21,
   "jpy_rate_date": "2026-02-20",
   "api_models": [
@@ -283,19 +283,19 @@
       "name": "Amazon Nova Pro",
       "tag": "Nova",
       "cls": "tag-bal",
-      "price_in": 525.0,
+      "price_in": 0.8,
       "price_out": 3.2,
       "sub_ja": "マルチモーダル / 300K ctx",
       "sub_en": "Multimodal / 300K ctx",
-      "scrape_status": "fallback"
+      "scrape_status": "success"
     },
     {
       "provider": "AWS",
       "name": "Amazon Nova Micro",
       "tag": "Cheapest",
       "cls": "tag-mini",
-      "price_in": 22.0,
-      "price_out": 164.0,
+      "price_in": 0.034999999999999996,
+      "price_out": 0.13999999999999999,
       "sub_ja": "Bedrock最安モデル",
       "sub_en": "Lowest-cost Bedrock model",
       "scrape_status": "success"

@@ -73,4 +73,4 @@ export default defineConfig([
 
 ## Common Header Integration
 
-Note: The `index.html` file in this directory contains a runtime script injection that dynamically loads `common-header.js` and `common-header.css` from the project's root directory. This ensures that the React app shares an identical responsive navigation header as the static specification files (e.g., `claude_spec.html`) without duplicating code or interfering with the `vite-plugin-singlefile` build process.
+Note: The `index.html` file in this directory uses static `<link rel="stylesheet">` and `<script type="module">` references to `common-header.css` and `common-header.js` which are resolved at parse/build time. This ensures that the React app shares an identical responsive navigation header as the static specification files (e.g., `claude_spec.html`) without duplicating code or interfering with the `vite-plugin-singlefile` build process.
