@@ -1,0 +1,15 @@
+[build]
+  # webディレクトリ内でBunを使用して依存関係を解決・ビルドし、
+  # 必要な成果物（index.html, pricing.json）をプロジェクトルート（パブリッシュディレクトリ）にコピーします。
+  command = "cd web && bun install && bun run build && cp dist/index.html ../index.html && cp src/data/pricing.json ../pricing.json || true"
+  publish = "."
+
+[build.environment]
+  # Netlify環境でBunを使用するためのバージョン指定
+  BUN_VERSION = "1.1.27"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # 開発環境や拡張機能のAPI通信をブロックしないための緩やかなCSP設定
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' http: https: ws: wss: *;"
