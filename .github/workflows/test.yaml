@@ -25,8 +25,6 @@ jobs:
               - 'scraper/**'
             web:
               - 'web/**'
-              - 'package.json'
-              - 'bun.lockb'
 
   # -------------------------
   # WEB TEST（変更時のみ）
@@ -50,13 +48,15 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+            web/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('web/bun.lockb') }}
 
       - name: Install deps
+        working-directory: web
         run: bun install --frozen-lockfile
 
       - name: Test web
+        working-directory: web
         run: bun test || true
 
   # -------------------------
