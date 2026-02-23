@@ -14,11 +14,11 @@ from scraper.tools import (
 
 class TestSmoke(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         logging.disable(logging.CRITICAL)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
         logging.disable(logging.NOTSET)
 
     def test_fetch_jpy_rate(self):
@@ -61,7 +61,7 @@ class TestSmoke(unittest.TestCase):
             (scrape_xai, "scraper.providers.xai.get_page_text"),
         ]
         for func, target in providers_browser:
-            with self.subTest(provider=func.__module__):
+            with self.subTest(provider=func.__name__):
                 with patch(target) as mock_get:
                     mock_get.return_value = "<html>Mock</html>"
                     res = func()
@@ -90,7 +90,7 @@ class TestSmoke(unittest.TestCase):
             (scrape_antigravity, "scraper.tools.antigravity.get_page_text"),
         ]
         for func, target in tools:
-            with self.subTest(tool=func.__module__):
+            with self.subTest(tool=func.__name__):
                 with patch(target) as mock_get:
                     mock_get.return_value = "<html>Mock</html>"
                     res = func()
