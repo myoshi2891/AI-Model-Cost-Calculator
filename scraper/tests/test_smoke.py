@@ -2,9 +2,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 import logging
 
-# Disable logging during tests
-logging.basicConfig(level=logging.CRITICAL)
-
 from scraper.main import main
 from scraper.exchange import fetch_jpy_rate
 from scraper.providers import (
@@ -16,6 +13,14 @@ from scraper.tools import (
 )
 
 class TestSmoke(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        logging.disable(logging.CRITICAL)
+
+    @classmethod
+    def tearDownClass(cls):
+        logging.disable(logging.NOTSET)
+
     def test_fetch_jpy_rate(self):
         """Minimal smoke test for exchange rate fetcher (mocked)."""
         with patch("scraper.exchange.httpx.get") as mock_get:
@@ -59,11 +64,8 @@ class TestSmoke(unittest.TestCase):
             with self.subTest(provider=func.__module__):
                 with patch(target) as mock_get:
                     mock_get.return_value = "<html>Mock</html>"
-                    try:
-                        res = func()
-                        self.assertIsInstance(res, list)
-                    except Exception as e:
-                        self.fail(f"{func.__module__} failed: {e}")
+                    res = func()
+                    self.assertIsInstance(res, list)
 
         # AWS uses httpx
         with self.subTest(provider="scraper.providers.aws"):
@@ -88,14 +90,11 @@ class TestSmoke(unittest.TestCase):
             (scrape_antigravity, "scraper.tools.antigravity.get_page_text"),
         ]
         for func, target in tools:
-             with self.subTest(tool=func.__module__):
+            with self.subTest(tool=func.__module__):
                 with patch(target) as mock_get:
                     mock_get.return_value = "<html>Mock</html>"
-                    try:
-                        res = func()
-                        self.assertIsInstance(res, list)
-                    except Exception as e:
-                         self.fail(f"{func.__module__} failed: {e}")
+                    res = func()
+                    self.assertIsInstance(res, list)
 
 if __name__ == "__main__":
     unittest.main()
