@@ -131,8 +131,8 @@ DO NOT:
 ALWAYS:
 
 - run bun run build before committing
-- ensure bun run test passes
-- ensure pytest passes
+- ensure bun run test passes (if configured)
+- ensure pytest passes (if configured)
 - prefer minimal edits
 
 ## CI definition
