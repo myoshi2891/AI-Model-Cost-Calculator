@@ -111,3 +111,50 @@ bun run preview    # ビルド結果プレビュー
 - Python 3.12+, uv (パッケージマネージャー)
 - Playwright ブラウザ (`uv run playwright install chromium`)
 - Bun (フロントエンドビルド)
+
+## AI Modification Rules
+
+This repository uses:
+
+- Bun + Vite + TypeScript in /web
+- Python + uv in /scraper
+
+## Critical Rules
+
+DO NOT:
+
+- modify vite config unless build fails
+- change dependency versions
+- move files across web/scraper boundaries
+- rewrite working code for style
+
+ALWAYS:
+
+- run bun run build before committing
+- ensure bun run test passes
+- ensure pytest passes
+- prefer minimal edits
+
+## CI definition
+
+Frontend test command:
+bun run test
+
+Backend test command:
+pytest
+
+Build command:
+cd web && bun run build
+
+## Allowed changes
+
+- tests
+- imports
+- CI fixes
+- small type fixes
+
+## Forbidden changes
+
+- architecture refactor
+- dependency upgrades
+- large rewrites
