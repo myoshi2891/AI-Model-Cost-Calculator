@@ -16,27 +16,19 @@ class TestSmoke(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
-        Disable CRITICAL-level logging for the test suite.
-        
-        This class-level setup runs before any tests in the class and suppresses logging at the CRITICAL level to keep test output clean.
+        Disable all logging for the test class by suppressing log records at CRITICAL level and below.
         """
         logging.disable(logging.CRITICAL)
 
     @classmethod
     def tearDownClass(cls) -> None:
         """
-        Re-enable logging for all levels after the test class has finished.
-        
-        This is called once after all tests in the class to restore logging so subsequent code can emit logs.
+        Restore global logging to NOTSET, re-enabling all logging after tests complete.
         """
         logging.disable(logging.NOTSET)
 
     def test_fetch_jpy_rate(self):
-        """
-        Smoke test that verifies fetch_jpy_rate returns the expected JPY rate and date when the external API returns a known payload.
-        
-        Patches the HTTP client to provide a fixed JSON response and asserts the returned rate is 150.0 and the date is "2024-01-01".
-        """
+        """Minimal smoke test for exchange rate fetcher (mocked)."""
         with patch("scraper.exchange.httpx.get") as mock_get:
             mock_resp = MagicMock()
             mock_resp.json.return_value = {"rates": {"JPY": 150.0}, "date": "2024-01-01"}
@@ -48,7 +40,11 @@ class TestSmoke(unittest.TestCase):
             self.assertEqual(date, "2024-01-01")
 
     def test_main(self):
-        """Minimal smoke test for CLI entry point (mocked)."""
+        """
+        Smoke test for the CLI entry point that verifies main([]) triggers a full scrape and writes output when external calls are mocked.
+        
+        Asserts that main([]) returns 0 and that _scrape_all and _write_output are each called exactly once while fetch_jpy_rate and _load_existing are patched.
+        """
         with patch("scraper.main.fetch_jpy_rate") as mock_rate, \
              patch("scraper.main._scrape_all") as mock_scrape, \
              patch("scraper.main._write_output") as mock_write, \
@@ -65,11 +61,7 @@ class TestSmoke(unittest.TestCase):
             mock_write.assert_called_once()
 
     def test_providers(self):
-        """
-        Smoke-test provider scrapers to verify they produce a list when external I/O is mocked.
-        
-        Patches each browser-based provider's `get_page_text` to return mock HTML and asserts the provider returns a list; patches `scraper.providers.aws.httpx.get` to return a mock JSON response and asserts `scrape_aws()` returns a list.
-        """
+        """Smoke test for all provider scrapers (mocked)."""
         # Providers using get_page_text
         providers_browser = [
             (scrape_anthropic, "scraper.providers.anthropic.get_page_text"),
