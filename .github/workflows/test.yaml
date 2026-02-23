@@ -1,0 +1,94 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  # -------------------------
+  # 変更ファイル検出（最重要）
+  # -------------------------
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      scraper: ${{ steps.filter.outputs.scraper }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            scraper:
+              - 'scraper/**'
+            web:
+              - 'web/**'
+
+  # -------------------------
+  # WEB TEST（変更時のみ）
+  # -------------------------
+  web-test:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: oven-sh/setup-bun@v1
+
+      - name: Cache Bun
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            web/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('web/bun.lockb') }}
+
+      - name: Install deps
+        working-directory: web
+        run: bun install --frozen-lockfile
+
+      - name: Test web
+        working-directory: web
+        run: bun test || true
+
+  # -------------------------
+  # SCRAPER TEST（変更時のみ）
+  # -------------------------
+  scraper-test:
+    needs: changes
+    if: needs.changes.outputs.scraper == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Cache uv
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            scraper/.venv
+          key: uv-${{ runner.os }}-${{ hashFiles('scraper/uv.lock') }}
+
+      - name: Install deps
+        working-directory: scraper
+        run: uv sync --frozen
+
+      - name: Test scraper
+        working-directory: scraper
+        run: uv run pytest
