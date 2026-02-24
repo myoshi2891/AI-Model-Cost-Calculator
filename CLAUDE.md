@@ -82,7 +82,10 @@ bun run preview    # ビルド結果プレビュー
 
 ### テスト
 
-テストは未整備。pytest / vitest ともに設定なし。
+```bash
+cd web && bun test           # フロントエンド (vitest)
+cd scraper && uv run pytest  # バックエンド (pytest)
+```
 
 ## 重要な設計判断
 
@@ -112,49 +115,66 @@ bun run preview    # ビルド結果プレビュー
 - Playwright ブラウザ (`uv run playwright install chromium`)
 - Bun (フロントエンドビルド)
 
-## AI Modification Rules
+## AI 変更ルール
 
-This repository uses:
+このリポジトリは AI アシスト対象。全 AI エージェント (Jules, Claude, Copilot 等) は以下を厳守すること。
 
-- Bun + Vite + TypeScript in /web
-- Python + uv in /scraper
+### 禁止事項
 
-## Critical Rules
+- ファイル全体の書き直し（明示的な指示がない限り）
+- 依存関係のアップグレード
+- CI ワークフロー構造の変更（明示的な指示がない限り。ただしユーザー指示による追加・修正は許容される。例: `.github/workflows/auto-fix.yml`）
+- ビルドツール設定の変更 (vite, bun, pytest, tsconfig)
+- ディレクトリのリネーム・ファイルの `web/` ↔ `scraper/` 間移動
+- リポジトリ全体の自動フォーマット
+- 新しいフレームワークの導入
+- 環境変数・Netlify 設定の変更
+- スタイル目的のリライト
 
-DO NOT:
+### 許可される変更
 
-- modify vite config unless build fails
-- change dependency versions
-- move files across web/scraper boundaries
-- rewrite working code for style
+- テスト追加（既存テストファイルがある場合、またはユーザー指示）
+- import 修正
+- CI 修正
+- 小規模な型修正
 
-ALWAYS:
+### テストポリシー
 
-- run bun run build before committing
-- ensure bun run test passes (if configured)
-- ensure pytest passes (if configured)
-- prefer minimal edits
+許可: import スモークテスト、純粋関数テスト、決定論的コンポーネントレンダリングテスト
 
-## CI definition
+禁止: スナップショットテスト、ブラウザ自動化テスト、ネットワークテスト、重い結合テスト
 
-Frontend test command:
-bun run test
+### インポート安全性
 
-Backend test command:
-pytest
+モジュールの動的クロスディレクトリインポート禁止。`scraper/` → `scraper/` のみ、`web/` → `web/` のみ。
 
-Build command:
-cd web && bun run build
+### CI 定義
 
-## Allowed changes
+```text
+Frontend: bun run test
+Backend:  pytest
+Build:    cd web && bun run build
+```
 
-- tests
-- imports
-- CI fixes
-- small type fixes
+### コミット前チェック
 
-## Forbidden changes
+以下を全て確認してからコミットすること：
 
-- architecture refactor
-- dependency upgrades
-- large rewrites
+1. `cd web && bun run build` が成功
+2. `cd web && bun test` が成功
+3. `cd scraper && uv run pytest` が成功
+4. import が有効
+5. 設定ファイルが意図せず変更されていない
+
+いずれか失敗 → **停止してユーザーに確認**。
+
+### CI 失敗時の対応
+
+1. 失敗しているエラーのみ修正
+2. リファクタリング禁止
+3. 依存関係変更禁止
+4. テスト書き直しは壊れている場合のみ
+
+### パッチ戦略
+
+small diff > medium diff > large diff — 常に最小の差分を選択。
