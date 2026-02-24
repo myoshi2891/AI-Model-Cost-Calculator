@@ -161,8 +161,8 @@ Build:    cd web && bun run build
 以下を全て確認してからコミットすること：
 
 1. `cd web && bun run build` が成功
-2. `bun run test` が成功
-3. `pytest` が成功
+2. `cd web && bun test` が成功
+3. `cd scraper && uv run pytest` が成功
 4. import が有効
 5. 設定ファイルが意図せず変更されていない
 

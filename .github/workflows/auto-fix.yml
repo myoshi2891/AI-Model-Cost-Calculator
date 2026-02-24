@@ -18,29 +18,12 @@ jobs:
     steps:
       - run: gh --version || (sudo apt-get update && sudo apt-get install gh -y)
 
-      - name: Auth gh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "$GH_TOKEN" | gh auth login --with-token
-
-      - name: Download logs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          for i in 1 2 3; do
-            gh run view ${{ github.event.workflow_run.id }} --log-failed > ci.log 2>&1 && break
-            sleep 10
-          done
-          if [ ! -s ci.log ]; then
-            echo "Failed to download logs after 3 attempts: gh run view returned an error" > ci.log
-          fi
-
       - name: Check if issue already exists
         id: check_issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          COUNT=$(gh issue list --state open --json title \
+          COUNT=$(gh issue list --state open --limit 100 --json title \
           --jq '[.[] | select(.title=="CI Failure — Auto Fix Needed")] | length')
           if [ "$COUNT" -gt 0 ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
