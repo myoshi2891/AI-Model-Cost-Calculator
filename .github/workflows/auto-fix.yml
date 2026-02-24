@@ -1,0 +1,77 @@
+name: AI Auto Fix
+
+on:
+  workflow_run:
+    workflows: ["test"]
+    types: [completed]
+
+jobs:
+  auto_fix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt < 3 }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+
+    steps:
+      - run: gh --version || (sudo apt-get update && sudo apt-get install gh -y)
+
+      - name: Auth gh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GH_TOKEN" | gh auth login --with-token
+
+      - name: Download logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in 1 2 3; do
+            gh run view ${{ github.event.workflow_run.id }} --log-failed > ci.log 2>&1 && break
+            sleep 10
+          done
+
+      - name: Check if issue already exists
+        id: check_issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COUNT=$(gh issue list --state open --json title \
+          --jq '[.[] | select(.title=="CI Failure — Auto Fix Needed")] | length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Fix Issue
+        if: steps.check_issue.outputs.exists != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let log = "No log captured";
+
+            if (fs.existsSync('ci.log')) {
+              log = fs.readFileSync('ci.log','utf8');
+            }
+
+            const body = [
+              'CI failed.',
+              '',
+              'Fix only the failing tests.',
+              'Do not refactor.',
+              'Do not upgrade dependencies.',
+              '',
+              'Logs (last 8000 chars):',
+              '',
+              '```',
+              log.slice(-8000),
+              '```',
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "CI Failure — Auto Fix Needed",
+              body
+            });
