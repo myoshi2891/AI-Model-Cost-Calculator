@@ -107,8 +107,8 @@ bun run preview    # ビルド結果プレビュー
 
 ### テスト
 
-テストは未整備。pytest / vitest ともに設定なし。
-CI（`.github/workflows/test.yaml`）は `bun test` と `pytest` を実行するが、現状テストケースはない。
+フロントエンド（vitest）およびバックエンド（pytest）ともに基本的なスモークテストが実装されています。
+CI（`.github/workflows/test.yaml`）で自動化されています。
 
 ## ランタイム要件
 

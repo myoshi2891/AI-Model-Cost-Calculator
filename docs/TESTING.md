@@ -6,8 +6,8 @@
 
 | 領域 | フレームワーク | 状態 | コマンド |
 | ------ | --------------- | ------ | ---------- |
-| フロントエンド (web/) | vitest + @testing-library/react | 基本テストあり | `cd web && bun test` |
-| スクレイパー (scraper/) | pytest | 設定済み・テストなし | `cd scraper && uv run pytest` |
+| フロントエンド (web/) | vitest + @testing-library/react | 基本スモークテストあり | `cd web && bun test` |
+| スクレイパー (scraper/) | pytest | 基本スモークテストあり | `cd scraper && uv run pytest` |
 
 ## テスト実行
 
@@ -33,6 +33,8 @@ web/src/App.test.tsx
   - App コンポーネントの基本レンダリングテスト
   - "AI Cost Simulator" テキストの存在確認
   - "USD + JPY" テキストの存在確認
+web/tests/smoke/smoke.test.tsx
+  - ヘッダー注入スクリプトなど、ビルド成果物の基本的な動作確認
 ```
 
 ### スクレイパー
@@ -47,7 +49,7 @@ uv run pytest -k "test_"   # パターンマッチ
 **設定:**
 
 - `pyproject.toml` の `[dependency-groups]` dev に `pytest>=9.0.2`
-- テストファイルは現時点で未作成
+- 単純なインポート検証 (`test_imports.py`) および基本的なスモークテスト (`tests/smoke/`) が設定されています。
 
 ## CI での実行
 

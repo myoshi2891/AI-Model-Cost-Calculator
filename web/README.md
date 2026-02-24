@@ -1,76 +1,38 @@
-# React + TypeScript + Vite
+# Web (React Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the React 19 frontend for the AI Model Pricing Calculator. It is designed to be built into a **single, portable HTML file** (`index.html`) using Vite and `vite-plugin-singlefile`.
 
-Currently, two official plugins are available:
+## Technical Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 7 + Bun
+- **Styling**: Tailwind CSS
+- **Test Runner**: Vitest + `@testing-library/react` (Basic smoke testing implemented)
 
-## React Compiler
+## Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Single-File Output**: All CSS, JS, and data are inlined into a single HTML file during the build process (`assetsInlineLimit: 100_000_000`). This ensures maximum portability and no reliance on external assets.
+- **Dynamic Pricing Data**: Evaluates and displays data fetched statically from `src/data/pricing.json`. This JSON is automatically copied over by the Python scraper process.
+- **Common Header Integration**: The built application automatically resolves and injects `common-header.js` and `common-header.css` from the project root. This ensures that the primary calculator and statical specification files (like `claude_spec.html`) share identical and consistent responsive navigation.
+- **Bilingual Interface**: Full support for English and Japanese text using a lightweight custom hook based on `src/i18n.ts`.
 
-## Expanding the ESLint configuration
+## Setup & Scripts
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Make sure you have [Bun](https://bun.sh/) installed.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Install dependencies
+bun install
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Start development server
+bun run dev
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Run unit tests and smoke tests
+bun test
+
+# Build for production (outputs to ../index.html via the root update.sh script)
+bun run build
+
+# Run ESLint validation
+bun run lint
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-```
-
-## Common Header Integration
-
-Note: The `index.html` file in this directory uses an inline `<script type="module">` that dynamically creates and injects `<link rel="stylesheet">` and `<script type="module">` elements for `common-header.css` and `common-header.js` at runtime via `document.createElement`. The prefix (`../` in dev, `./` in production) is determined by `import.meta.env.DEV`. This runtime injection approach ensures the React app shares an identical responsive navigation header with the static specification files (e.g., `claude_spec.html`) without interfering with the `vite-plugin-singlefile` single-file build process.
