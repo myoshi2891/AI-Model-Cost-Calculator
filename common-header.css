@@ -71,6 +71,91 @@ body.has-common-header {
   color: var(--ch-text-hover);
 }
 
+/* ── Dropdown ── */
+.ch-dropdown {
+  position: relative;
+}
+
+.ch-dropdown-toggle {
+  background: transparent;
+  border: none;
+  color: var(--ch-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ch-dropdown-toggle:hover,
+.ch-dropdown-toggle.ch-active {
+  color: var(--ch-text-hover);
+}
+
+.ch-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.ch-dropdown-open .ch-arrow {
+  transform: rotate(180deg);
+}
+
+.ch-submenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--ch-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ch-border);
+  border-radius: 8px;
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0;
+  min-width: 120px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100000;
+}
+
+.ch-submenu li {
+  width: 100%;
+}
+
+.ch-submenu a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--ch-text);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ch-submenu a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--ch-text-hover);
+}
+
+.ch-submenu a.ch-active {
+  color: var(--ch-text-hover);
+}
+
+/* デスクトップ: hover で表示 */
+@media (min-width: 769px) {
+  .ch-dropdown:hover .ch-submenu,
+  .ch-dropdown-open .ch-submenu {
+    display: block;
+  }
+}
+
 .ch-hamburger {
   display: none;
   background: transparent;
@@ -148,5 +233,42 @@ body.has-common-header {
   
   .ch-links li:last-child a {
     border-bottom: none;
+  }
+
+  /* モバイル: ドロップダウンをアコーディオン形式に */
+  .ch-dropdown {
+    width: 100%;
+  }
+
+  .ch-dropdown-toggle {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.05rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .ch-submenu {
+    position: static;
+    transform: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: rgba(0, 0, 0, 0.2);
+    margin: 0;
+    padding: 0;
+    min-width: unset;
+  }
+
+  .ch-dropdown-open .ch-submenu {
+    display: block;
+  }
+
+  .ch-submenu a {
+    padding: 0.75rem 2rem;
+    font-size: 0.95rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   }
 }
