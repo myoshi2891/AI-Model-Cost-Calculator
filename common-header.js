@@ -4,7 +4,16 @@
   // await 後は document.currentScript が null になるため事前キャプチャ
   const selfScript = document.currentScript;
 
-  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const pathname = window.location.pathname;
+
+  // 絶対パスの末尾でアクティブページを判定
+  const isActivePath = (href) => pathname.endsWith(href) || pathname === href;
+
+  // ドロップダウン親がアクティブか判定（子のいずれかがアクティブなら親もアクティブ）
+  const isParentActive = (item) => {
+    if (!item.children) return false;
+    return item.children.some((child) => isActivePath(child.href));
+  };
 
   const nav = document.createElement('nav');
   nav.id = 'common-header';
@@ -17,7 +26,7 @@
 
   const brand = document.createElement('a');
   brand.className = 'ch-brand';
-  brand.href = './index.html';
+  brand.href = '/index.html';
   brand.textContent = 'AI Model Pricing';
   container.appendChild(brand);
 
@@ -26,24 +35,37 @@
   hamburger.setAttribute('aria-controls', 'ch-menu');
   hamburger.setAttribute('aria-label', 'Toggle menu');
   hamburger.setAttribute('aria-expanded', 'false');
-  hamburger.innerHTML = `
-    <span class="ch-bar"></span>
-    <span class="ch-bar"></span>
-    <span class="ch-bar"></span>
-  `;
+  // DOM メソッドでハンバーガーバーを構築（XSS 安全）
+  for (let i = 0; i < 3; i++) {
+    const bar = document.createElement('span');
+    bar.className = 'ch-bar';
+    hamburger.appendChild(bar);
+  }
   container.appendChild(hamburger);
 
   const linksList = document.createElement('ul');
   linksList.id = 'ch-menu';
   linksList.className = 'ch-links';
-  
+
   let links = [];
   const defaultLinks = [
-    { name: 'Home', href: './index.html' },
-    { name: 'Claude', href: './claude_spec.html' },
-    { name: 'Codex', href: './codex_spec.html' },
-    { name: 'Gemini', href: './gemini_spec.html' },
-    { name: 'Copilot', href: './copilot_spec.html' },
+    { name: 'Home', href: '/index.html' },
+    { name: 'Claude', children: [
+      { name: 'Skill', href: '/claude/skill.html' },
+      { name: 'Agent', href: '/claude/agent.html' },
+    ]},
+    { name: 'Gemini', children: [
+      { name: 'Skill', href: '/gemini/skill.html' },
+      { name: 'Agent', href: '/gemini/agent.html' },
+    ]},
+    { name: 'Codex', children: [
+      { name: 'Skill', href: '/codex/skill.html' },
+      { name: 'Agent', href: '/codex/agent.html' },
+    ]},
+    { name: 'Copilot', children: [
+      { name: 'Skill', href: '/copilot/skill.html' },
+      { name: 'Agent', href: '/copilot/agent.html' },
+    ]},
   ];
 
   // href が安全なプロトコルかを検証（javascript: 等を排除）
@@ -58,7 +80,14 @@
     }
   };
 
-  const isValidLink = (l) => l && l.name && l.href && isSafeHref(l.href);
+  // フラットリンクとドロップダウン（children付き）の両方をバリデーション
+  const isValidLink = (l) => {
+    if (!l || !l.name) return false;
+    if (l.children) {
+      return Array.isArray(l.children) && l.children.every((c) => c && c.name && c.href && isSafeHref(c.href));
+    }
+    return l.href && isSafeHref(l.href);
+  };
 
   try {
     const res = await fetch('/nav-links.json');
@@ -90,17 +119,81 @@
     links = defaultLinks;
   }
 
-  links.forEach(link => {
+  // 全ドロップダウンを閉じるユーティリティ
+  function closeAllDropdowns() {
+    linksList.querySelectorAll('.ch-dropdown-open').forEach((el) => {
+      el.classList.remove('ch-dropdown-open');
+      const toggle = el.querySelector('.ch-dropdown-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  links.forEach((link) => {
     const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = link.href;
-    a.textContent = link.name;
-    const linkPath = link.href.replace('./', '');
-    if (currentPath === linkPath) {
-      a.className = 'ch-active';
-      a.setAttribute('aria-current', 'page');
+
+    if (link.children) {
+      // ドロップダウン付きリンク
+      li.className = 'ch-dropdown';
+
+      const toggle = document.createElement('button');
+      toggle.className = 'ch-dropdown-toggle';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-haspopup', 'true');
+
+      const label = document.createElement('span');
+      label.textContent = link.name;
+      toggle.appendChild(label);
+
+      const arrow = document.createElement('span');
+      arrow.className = 'ch-arrow';
+      arrow.textContent = ' \u25BE';
+      toggle.appendChild(arrow);
+
+      if (isParentActive(link)) {
+        toggle.classList.add('ch-active');
+      }
+
+      const submenu = document.createElement('ul');
+      submenu.className = 'ch-submenu';
+
+      link.children.forEach((child) => {
+        const subLi = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = child.href;
+        a.textContent = child.name;
+        if (isActivePath(child.href)) {
+          a.className = 'ch-active';
+          a.setAttribute('aria-current', 'page');
+        }
+        subLi.appendChild(a);
+        submenu.appendChild(subLi);
+      });
+
+      // モバイル: click トグルでドロップダウン開閉
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = li.classList.contains('ch-dropdown-open');
+        closeAllDropdowns();
+        if (!isOpen) {
+          li.classList.add('ch-dropdown-open');
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+
+      li.appendChild(toggle);
+      li.appendChild(submenu);
+    } else {
+      // 通常のフラットリンク (Home)
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.textContent = link.name;
+      if (isActivePath(link.href)) {
+        a.className = 'ch-active';
+        a.setAttribute('aria-current', 'page');
+      }
+      li.appendChild(a);
     }
-    li.appendChild(a);
+
     linksList.appendChild(li);
   });
 
@@ -109,7 +202,7 @@
   ghA.href = 'https://github.com/myoshi2891/AI-Model-Cost-Calculator';
   ghA.target = '_blank';
   ghA.rel = 'noopener noreferrer';
-  ghA.textContent = 'GitHub ↗';
+  ghA.textContent = 'GitHub \u2197';
   ghLi.appendChild(ghA);
   linksList.appendChild(ghLi);
 
@@ -121,6 +214,7 @@
    */
   function handleKeyDown(e) {
     if (e.key === 'Escape') {
+      closeAllDropdowns();
       closeMenu();
     }
   }
@@ -131,16 +225,13 @@
    */
   function handleOutsideClick(e) {
     if (!linksList.contains(e.target) && !hamburger.contains(e.target)) {
+      closeAllDropdowns();
       closeMenu();
     }
   }
 
   /**
    * Open the collapsible navigation menu and enable outside-click and Escape-to-close behavior.
-   *
-   * Adds the open state to menu and hamburger controls and sets the hamburger's `aria-expanded`
-   * attribute to `true`, then attaches document-level `keydown` and `click` listeners to handle
-   * closing the menu via the Escape key or clicks outside the menu.
    */
   function openMenu() {
     linksList.classList.add('ch-open');
@@ -152,10 +243,6 @@
 
   /**
    * Close the collapsible navigation menu and restore its closed state.
-   *
-   * Removes the open CSS class from the menu and hamburger, sets the hamburger's
-   * `aria-expanded` attribute to `"false"`, and detaches the menu-related
-   * keyboard and outside-click event listeners.
    */
   function closeMenu() {
     linksList.classList.remove('ch-open');
