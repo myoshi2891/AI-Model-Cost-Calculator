@@ -42,7 +42,7 @@ bash update.sh
     - `Vite` + `vite-plugin-singlefile` により、ポータブルな単一HTMLを生成。
     - `index.html` 内でルートディレクトリの `common-header.js` および `common-header.css` を動的に読み込み、共通ナビゲーションを提供。
 3. **共通ヘッダー & 仕様書 (Root)**:
-    - `common-header.*` により、Reactアプリと静的な各種仕様書（`claude_spec.html` など）間で共通のレスポンシブなナビゲーションヘッダーを実現。
+    - `common-header.*` により、Reactアプリと静的な各種ドキュメント（`claude/skill.html` など）間で共通のレスポンシブなナビゲーションヘッダー（ドロップダウンメニュー付き）を実現。
 
 ## 開発者向けガイド
 
