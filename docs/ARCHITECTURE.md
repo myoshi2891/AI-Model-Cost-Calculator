@@ -96,9 +96,12 @@ flowchart TD
 ├── netlify.toml                 # Netlify デプロイ設定 (ビルドのみ、スクレイプなし)
 ├── index.html                   # ビルド成果物 (単一ポータブル HTML)
 ├── pricing.json                 # ルートの価格データコピー
-├── common-header.js             # 静的 HTML 用共通ヘッダー注入スクリプト
+├── common-header.js             # 静的 HTML 用共通ヘッダー注入スクリプト (ドロップダウンナビゲーション)
 ├── common-header.css            # 共通ヘッダースタイル
-├── *_spec.html                  # 各ツール仕様書 (静的 HTML)
+├── claude/                      # Claude ドキュメント (skill.html / agent.html)
+├── gemini/                      # Gemini ドキュメント (skill.html / agent.html)
+├── codex/                       # Codex ドキュメント (skill.html / agent.html)
+├── copilot/                     # Copilot ドキュメント (skill.html / agent.html)
 ├── CLAUDE.md                    # Claude Code 向けプロジェクト指示書
 └── AGENTS.md                    # AI エージェント向けガイドライン
 ```

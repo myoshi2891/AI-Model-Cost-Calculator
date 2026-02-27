@@ -27,9 +27,12 @@ update.sh  ← オーケストレーター (スクレイプ → ビルド → �
 │       ├── data/pricing.json ビルド時に埋め込まれる価格データ
 │       └── components/       UI コンポーネント群
 ├── netlify.toml      Netlify デプロイ設定（スクレイパーなし、既存 pricing.json でビルドのみ）
-├── common-header.js  共通ヘッダーDOM構築・注入スクリプト (全HTMLで動的読み込み)
+├── common-header.js  共通ヘッダーDOM構築・注入スクリプト (ドロップダウンナビゲーション)
 ├── common-header.css 共通ヘッダー用スタイリング
-└── *_spec.html       各ツール向け静的仕様書ファイル群
+├── claude/           Claude ドキュメント (skill.html / agent.html)
+├── gemini/           Gemini ドキュメント (skill.html / agent.html)
+├── codex/            Codex ドキュメント (skill.html / agent.html)
+├── copilot/          Copilot ドキュメント (skill.html / agent.html)
 ```
 
 ## データフロー

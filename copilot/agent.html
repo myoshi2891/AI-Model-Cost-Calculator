@@ -49,6 +49,9 @@
     display: flex; align-items: center; gap: 16px;
     border-bottom: 1px solid #30363d;
   }
+  body.has-common-header .nav {
+    top: var(--ch-height);
+  }
   .nav-octocat { font-size: 22px; }
   .nav-title { font-size: 14px; font-weight: 600; color: #ffffff; }
   .nav-sep { color: #484f58; font-size: 16px; }
@@ -300,6 +303,9 @@
   a { color: var(--gh-blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
 </style>
+  <!-- Common Header Assets -->
+  <link rel="stylesheet" href="../common-header.css">
+  <script src="../common-header.js" defer></script>
 </head>
 <body>
 
