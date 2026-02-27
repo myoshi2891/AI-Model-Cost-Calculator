@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Copilot サブエージェント Markdownファイル ベストプラクティス</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&family=Cascadia+Code:wght@400;600&display=swap');
+
+  :root {
+    --bg:       #f3f4f6;
+    --surface:  #ffffff;
+    --surface2: #f9fafb;
+    --surface3: #f1f3f5;
+    --border:   #d0d7de;
+    --border2:  #e1e4e8;
+    --gh:       #1f883d;      /* GitHub Green */
+    --gh-dark:  #196c2e;
+    --gh-glow:  rgba(31,136,61,0.15);
+    --gh-blue:  #0969da;
+    --gh-purple:#8250df;
+    --gh-amber: #bf8700;
+    --gh-red:   #cf222e;
+    --gh-teal:  #0a7a5c;
+    --ms-blue:  #0078d4;      /* Microsoft Blue */
+    --text:     #24292f;
+    --text2:    #57606a;
+    --text3:    #8c959f;
+    --shadow:   0 1px 3px rgba(27,31,36,0.12), 0 8px 24px rgba(66,74,83,0.06);
+    --shadow-sm:0 1px 0 rgba(27,31,36,0.04), 0 1px 3px rgba(66,74,83,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── TOP NAV ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: #24292f;
+    padding: 0 32px;
+    height: 52px;
+    display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid #30363d;
+  }
+  .nav-octocat { font-size: 22px; }
+  .nav-title { font-size: 14px; font-weight: 600; color: #ffffff; }
+  .nav-sep { color: #484f58; font-size: 16px; }
+  .nav-sub  { font-size: 12px; color: #8b949e; }
+  .nav-right { margin-left: auto; display: flex; gap: 8px; }
+  .nav-pill {
+    background: #30363d; border: 1px solid #484f58;
+    border-radius: 20px; padding: 3px 12px;
+    font-size: 11px; color: #8b949e; font-weight: 500;
+  }
+  .nav-pill.green { background: rgba(31,136,61,0.2); border-color: rgba(31,136,61,0.4); color: #3fb950; }
+
+  /* ── Wrapper ── */
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #24292f 0%, #1c2128 60%, #161b22 100%);
+    border-radius: 12px;
+    border: 1px solid #30363d;
+    padding: 52px 48px;
+    margin-bottom: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -80px; right: -60px;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(31,136,61,0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; bottom: -60px; left: 15%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(9,105,218,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(31,136,61,0.15);
+    border: 1px solid rgba(31,136,61,0.35);
+    border-radius: 24px; padding: 5px 16px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #3fb950;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: 2.6rem; font-weight: 700; line-height: 1.12;
+    margin-bottom: 18px; color: #ffffff; letter-spacing: -0.015em;
+  }
+  .hero h1 em { font-style: normal; color: #3fb950; }
+  .hero p { color: #8b949e; font-size: 1.02rem; max-width: 640px; line-height: 1.75; }
+  .hero-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 24px; }
+  .hero-chip {
+    background: rgba(255,255,255,0.06); border: 1px solid #30363d;
+    border-radius: 16px; padding: 4px 14px;
+    font-size: 12px; color: #8b949e; font-weight: 500;
+  }
+
+  /* ── Section ── */
+  .sec { margin-bottom: 60px; }
+  .sec-head {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sec-num {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--gh);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: white; flex-shrink: 0;
+    box-shadow: 0 0 12px var(--gh-glow);
+  }
+  .sec-head h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+  .sec-head .note { font-size: 12px; color: var(--text3); font-weight: 400; margin-left: 8px; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .card p { color: var(--text2); margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ── Priority matrix (load order) ── */
+  .matrix {
+    background: #24292f;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 28px 24px;
+    margin: 20px 0;
+  }
+  .matrix-title { text-align: center; color: #484f58; font-size: 11px; text-transform: uppercase; letter-spacing: .13em; margin-bottom: 24px; }
+  .matrix-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .mx-box {
+    flex: 1; min-width: 140px; max-width: 200px;
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 12px; font-weight: 600; text-align: center;
+  }
+  .mx-box small { display: block; font-weight: 400; font-family: 'Cascadia Code', monospace; font-size: 10.5px; margin-top: 3px; opacity: 0.7; }
+  .mx-org   { background: rgba(9,105,218,0.15); border: 1.5px solid rgba(9,105,218,0.4); color: #58a6ff; }
+  .mx-repo  { background: rgba(31,136,61,0.15); border: 1.5px solid rgba(31,136,61,0.4); color: #3fb950; }
+  .mx-path  { background: rgba(130,80,223,0.15); border: 1.5px solid rgba(130,80,223,0.4); color: #bc8cff; }
+  .mx-skill { background: rgba(191,135,0,0.15);  border: 1.5px solid rgba(191,135,0,0.4);  color: #d29922; }
+  .mx-arrow { color: #30363d; font-size: 22px; flex-shrink: 0; }
+  .matrix-note { text-align: center; color: #484f58; font-size: 11.5px; margin-top: 16px; }
+
+  /* ── File Tree SVG ── */
+  .filetree-outer {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .filetree-bar {
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    padding: 10px 18px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .fb-dot { width: 11px; height: 11px; border-radius: 50%; }
+
+  /* ── Code blocks ── */
+  .code-wrap {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .code-bar {
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    padding: 9px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: #8b949e;
+  }
+  .code-lang { color: #bc8cff; font-weight: 700; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+  .code-body {
+    padding: 20px 22px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; line-height: 1.85;
+    overflow-x: auto; white-space: pre;
+    color: #c9d1d9;
+  }
+  .ck { color: #ff7b72; }
+  .cs { color: #a5d6ff; }
+  .cv { color: #79c0ff; }
+  .cc { color: #3b4750; font-style: italic; }
+  .ch { color: #f0883e; font-weight: 700; }
+  .cm { color: #7ee787; font-weight: 600; }
+  .cw { color: #d29922; }
+  .ce { color: #bc8cff; }
+  .cg { color: #3fb950; }
+
+  /* ── mono ── */
+  .mono { font-family: 'Cascadia Code','Consolas',monospace; background: var(--surface3); border: 1px solid var(--border2); border-radius: 4px; padding: 1px 6px; font-size: 12.5px; color: var(--gh-blue); }
+
+  /* ── badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+  .b-green  { background: rgba(31,136,61,0.1);  color: var(--gh);      border: 1px solid rgba(31,136,61,0.3); }
+  .b-blue   { background: rgba(9,105,218,0.1);   color: var(--gh-blue); border: 1px solid rgba(9,105,218,0.3); }
+  .b-purple { background: rgba(130,80,223,0.1);  color: var(--gh-purple); border: 1px solid rgba(130,80,223,0.3); }
+  .b-amber  { background: rgba(191,135,0,0.1);   color: var(--gh-amber); border: 1px solid rgba(191,135,0,0.3); }
+  .b-red    { background: rgba(207,34,46,0.1);   color: var(--gh-red);  border: 1px solid rgba(207,34,46,0.3); }
+  .b-teal   { background: rgba(10,122,92,0.1);   color: var(--gh-teal); border: 1px solid rgba(10,122,92,0.3); }
+  .b-ms     { background: rgba(0,120,212,0.1);   color: var(--ms-blue); border: 1px solid rgba(0,120,212,0.3); }
+
+  /* ── alerts ── */
+  .alert { border-radius: 8px; padding: 14px 18px; margin: 14px 0; display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; }
+  .alert-icon { font-size: 17px; flex-shrink: 0; }
+  .ai  { background: #ddf4ff; border: 1px solid #b6e3ff; border-left: 3px solid var(--gh-blue); }
+  .aw  { background: #fff8c5; border: 1px solid #f5e68e; border-left: 3px solid var(--gh-amber); }
+  .ae  { background: #FFEBE9; border: 1px solid #ffcecb; border-left: 3px solid var(--gh-red); }
+  .ag  { background: #dafbe1; border: 1px solid #aceebb; border-left: 3px solid var(--gh); }
+  .alert-body strong { display: block; margin-bottom: 4px; color: var(--text); }
+  .alert-body { color: var(--text2); }
+
+  /* ── Best / Anti ── */
+  .pat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  @media(max-width:640px) { .pat-grid { grid-template-columns: 1fr; } }
+  .pat { border-radius: 10px; padding: 16px 18px; }
+  .pat-ok { background: #dafbe1; border: 1px solid #aceebb; }
+  .pat-ng { background: #FFEBE9; border: 1px solid #ffcecb; }
+  .pat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .pat-ok .pat-label { color: var(--gh); }
+  .pat-ng .pat-label { color: var(--gh-red); }
+  .pat ul { list-style: none; }
+  .pat ul li { font-size: 13.5px; color: var(--text2); padding: 3px 0; padding-left: 20px; position: relative; }
+  .pat-ok ul li::before { content: '✓'; position: absolute; left: 0; color: var(--gh); font-weight: 700; }
+  .pat-ng ul li::before { content: '✗'; position: absolute; left: 0; color: var(--gh-red); font-weight: 700; }
+
+  /* ── Comparison table ── */
+  .tbl-wrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--border); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--surface); }
+  thead th { background: var(--surface2); color: var(--text3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+  tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border2); color: var(--text2); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+  td code { background: var(--surface3); border: 1px solid var(--border2); border-radius: 4px; padding: 1px 6px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 12px; color: var(--gh-blue); }
+
+  /* ── Agent role grid ── */
+  .role-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 14px 0; }
+  @media(max-width:640px) { .role-grid { grid-template-columns: 1fr; } }
+  .role-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; transition: border-color .2s, box-shadow .2s; box-shadow: var(--shadow-sm); }
+  .role-card:hover { border-color: var(--gh); box-shadow: 0 0 0 3px rgba(31,136,61,0.1); }
+  .role-icon { font-size: 26px; margin-bottom: 10px; }
+  .role-name { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .role-tag  { display: inline-block; background: var(--surface3); border: 1px solid var(--border2); border-radius: 4px; padding: 1px 7px; font-size: 11px; font-family: monospace; color: var(--gh-blue); margin-bottom: 8px; }
+  .role-desc { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+  .role-ex { margin-top: 10px; font-size: 11px; color: var(--text3); background: var(--surface2); border-radius: 6px; padding: 6px 10px; font-family: monospace; border: 1px solid var(--border2); }
+
+  /* ── Decision flow ── */
+  .dflow { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin: 18px 0; }
+  .dflow-title { text-align: center; color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 24px; font-weight: 600; }
+  .dflow-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+  .dn-q  { background: #ddf4ff; border: 1px solid #b6e3ff; border-radius: 8px; padding: 9px 16px; font-weight: 600; color: var(--gh-blue); font-size: 13px; }
+  .dn-y  { background: #dafbe1; border: 1px solid #aceebb; border-radius: 8px; padding: 9px 16px; font-weight: 600; color: var(--gh); font-size: 13px; }
+  .dn-n  { background: #FFEBE9; border: 1px solid #ffcecb; border-radius: 8px; padding: 9px 16px; font-weight: 600; color: var(--gh-red); font-size: 13px; }
+  .dn-arr { color: var(--text3); font-size: 18px; }
+  .dn-in  { border-left: 2px solid var(--border2); padding-left: 22px; margin-left: 18px; }
+
+  /* ── Compatibility matrix ── */
+  .compat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0; }
+  @media(max-width:700px) { .compat-grid { grid-template-columns: repeat(2,1fr); } }
+  .compat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; box-shadow: var(--shadow-sm); }
+  .compat-icon { font-size: 22px; margin-bottom: 6px; }
+  .compat-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+  .compat-file { font-size: 10.5px; color: var(--text3); font-family: monospace; background: var(--surface2); border-radius: 4px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+
+  /* ── Source grid ── */
+  .src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px,1fr)); gap: 12px; margin-top: 14px; }
+  .src-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow-sm); }
+  .src-icon { font-size: 20px; margin-bottom: 8px; }
+  .src-title { font-size: 13px; font-weight: 700; color: var(--gh-blue); margin-bottom: 4px; }
+  .src-url { font-size: 11px; color: var(--text3); word-break: break-all; font-family: monospace; margin-bottom: 6px; }
+  .src-desc { font-size: 12px; color: var(--text2); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 52px 0; }
+  a { color: var(--gh-blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-octocat">🐙</span>
+  <span class="nav-title">GitHub Copilot Agent Dev Guide</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-sub">Copilot Coding Agent · VS Code · CLI · Agentic Workflows · 2025–2026</span>
+  <div class="nav-right">
+    <span class="nav-pill green">● GA</span>
+    <span class="nav-pill">Feb 2026</span>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🐙 GitHub Copilot 完全ガイド</div>
+    <h1>サブエージェント開発における<br><em>Markdownファイル</em><br>ベストプラクティス</h1>
+    <p>copilot-instructions.md・*.instructions.md・*.agent.md・SKILL.md・*.prompt.md・*.chatmode.md・AGENTS.md ── GitHub Copilot エコシステム固有の7種類のファイル体系と、マルチエージェント設計のベストプラクティスを体系的に解説します。</p>
+    <div class="hero-chips">
+      <span class="hero-chip">Copilot Coding Agent</span>
+      <span class="hero-chip">VS Code Agent Mode</span>
+      <span class="hero-chip">Copilot CLI (GA 2026)</span>
+      <span class="hero-chip">Agent Skills (Open Standard)</span>
+      <span class="hero-chip">Custom Agents (.agent.md)</span>
+      <span class="hero-chip">Agentic Workflows (Actions)</span>
+      <span class="hero-chip">MCP Integration</span>
+    </div>
+  </div>
+
+  <!-- 1. OVERVIEW & ARCHITECTURE -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">1</span>
+      <h2>全体アーキテクチャと各ファイルの位置づけ</h2>
+    </div>
+
+    <div class="card">
+      <p>GitHub Copilot は他のツールと比較して<strong>最も多様なMarkdownファイル体系</strong>を持ちます。「常時ロード型」「パスマッチ型」「オンデマンド型」「エージェント定義型」の4カテゴリが存在し、それぞれ役割が明確に分かれています。さらに <strong>AGENTS.md</strong> によって Claude Code・Gemini CLI・Codex とのクロスツール互換性も確保されています。</p>
+    </div>
+
+    <!-- Priority matrix -->
+    <div class="matrix">
+      <div class="matrix-title">カスタム指示の読み込み優先度 — 組織 → リポジトリ → パス → スキル（後が優先）</div>
+      <div class="matrix-row">
+        <div class="mx-box mx-org">
+          🏢 Organization<br>
+          <small>org-level instructions</small>
+        </div>
+        <span class="mx-arrow">→</span>
+        <div class="mx-box mx-repo">
+          📁 Repository<br>
+          <small>copilot-instructions.md<br>AGENTS.md</small>
+        </div>
+        <span class="mx-arrow">→</span>
+        <div class="mx-box mx-path">
+          📂 Path-specific<br>
+          <small>*.instructions.md<br>(applyTo)</small>
+        </div>
+        <span class="mx-arrow">→</span>
+        <div class="mx-box mx-skill">
+          ⚡ On-demand<br>
+          <small>SKILL.md<br>(遅延ロード)</small>
+        </div>
+      </div>
+      <div class="matrix-note">
+        Coding Agent の優先度: <strong>リポジトリ指示 → 組織指示</strong>（リポジトリが最優先）<br>
+        <code>excludeAgent</code> プロパティで指示ファイルを特定エージェントから除外可能（2025年11月〜）
+      </div>
+    </div>
+
+    <!-- File tree SVG -->
+    <div class="filetree-outer">
+      <div class="filetree-bar">
+        <span class="fb-dot" style="background:#ff6057;"></span>
+        <span class="fb-dot" style="background:#ffbd2e;"></span>
+        <span class="fb-dot" style="background:#27c93f;"></span>
+        <span style="margin-left:10px;color:#8b949e;font-size:12px;font-family:'Cascadia Code','Consolas',monospace;">project-root/ — GitHub Copilot エコシステム ファイル構造</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 880" width="100%" style="display:block;" font-family="'Cascadia Code','Consolas',monospace">
+        <defs>
+          <linearGradient id="gh1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#1f883d"/><stop offset="100%" style="stop-color:#3fb950"/></linearGradient>
+          <linearGradient id="gh2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0969da"/><stop offset="100%" style="stop-color:#58a6ff"/></linearGradient>
+          <linearGradient id="gh3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#8250df"/><stop offset="100%" style="stop-color:#bc8cff"/></linearGradient>
+          <linearGradient id="gh4" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#bf8700"/><stop offset="100%" style="stop-color:#d29922"/></linearGradient>
+          <linearGradient id="gh5" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#cf222e"/><stop offset="100%" style="stop-color:#f85149"/></linearGradient>
+          <linearGradient id="gh6" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0a7a5c"/><stop offset="100%" style="stop-color:#2da672"/></linearGradient>
+          <linearGradient id="gh7" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0078d4"/><stop offset="100%" style="stop-color:#58a6ff"/></linearGradient>
+        </defs>
+        <rect width="1000" height="880" fill="#0d1117"/>
+
+        <!-- LEGEND -->
+        <rect x="668" y="16" width="316" height="304" rx="10" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+        <text x="826" y="38" text-anchor="middle" fill="#484f58" font-size="11" letter-spacing="1.5">LEGEND</text>
+        <!-- entries -->
+        <rect x="684" y="50" width="22" height="22" rx="5" fill="url(#gh1)"/>
+        <text x="695" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="700">①</text>
+        <text x="714" y="65" font-size="12" fill="#c9d1d9">copilot-instructions.md（常時ロード）</text>
+        <rect x="684" y="82" width="22" height="22" rx="5" fill="url(#gh2)"/>
+        <text x="695" y="97" text-anchor="middle" fill="white" font-size="12" font-weight="700">②</text>
+        <text x="714" y="97" font-size="12" fill="#c9d1d9">*.instructions.md（パスマッチ型）</text>
+        <rect x="684" y="114" width="22" height="22" rx="5" fill="url(#gh3)"/>
+        <text x="695" y="129" text-anchor="middle" fill="white" font-size="12" font-weight="700">③</text>
+        <text x="714" y="129" font-size="12" fill="#c9d1d9">*.agent.md（エージェント定義）</text>
+        <rect x="684" y="146" width="22" height="22" rx="5" fill="url(#gh4)"/>
+        <text x="695" y="161" text-anchor="middle" fill="white" font-size="12" font-weight="700">④</text>
+        <text x="714" y="161" font-size="12" fill="#c9d1d9">SKILL.md（遅延ロード型スキル）</text>
+        <rect x="684" y="178" width="22" height="22" rx="5" fill="url(#gh5)"/>
+        <text x="695" y="193" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑤</text>
+        <text x="714" y="193" font-size="12" fill="#c9d1d9">*.prompt.md（再利用可能プロンプト）</text>
+        <rect x="684" y="210" width="22" height="22" rx="5" fill="url(#gh6)"/>
+        <text x="695" y="225" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑥</text>
+        <text x="714" y="225" font-size="12" fill="#c9d1d9">*.chatmode.md（カスタムチャットモード）</text>
+        <rect x="684" y="242" width="22" height="22" rx="5" fill="url(#gh7)"/>
+        <text x="695" y="257" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑦</text>
+        <text x="714" y="257" font-size="12" fill="#c9d1d9">AGENTS.md（クロスツール共通）</text>
+        <rect x="684" y="274" width="52" height="22" rx="5" fill="#1c2128"/>
+        <text x="710" y="289" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">📁 DIR</text>
+        <text x="744" y="289" font-size="12" fill="#484f58">ディレクトリ</text>
+
+        <!-- TREE LINES -->
+        <line x1="44" y1="50" x2="44" y2="846" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="44" y1="52"  x2="70" y2="52"  stroke="#21262d" stroke-width="1.5"/>
+        <line x1="44" y1="100" x2="70" y2="100" stroke="#21262d" stroke-width="1.5"/>
+        <!-- .github/ -->
+        <line x1="86" y1="100" x2="86" y2="670" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="86" y1="132" x2="112" y2="132" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="86" y1="170" x2="112" y2="170" stroke="#21262d" stroke-width="1.5"/>
+        <!-- instructions/ -->
+        <line x1="128" y1="170" x2="128" y2="238" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="202" x2="154" y2="202" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="236" x2="154" y2="236" stroke="#21262d" stroke-width="1.5"/>
+        <!-- agents/ dir -->
+        <line x1="86" y1="278" x2="112" y2="278" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="278" x2="128" y2="384" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="310" x2="154" y2="310" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="348" x2="154" y2="348" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="386" x2="154" y2="386" stroke="#21262d" stroke-width="1.5"/>
+        <!-- skills/ dir -->
+        <line x1="86" y1="428" x2="112" y2="428" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="428" x2="128" y2="502" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="460" x2="154" y2="460" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="170" y1="460" x2="170" y2="500" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="170" y1="498" x2="196" y2="498" stroke="#21262d" stroke-width="1.5"/>
+        <!-- prompts/ -->
+        <line x1="86" y1="548" x2="112" y2="548" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="548" x2="128" y2="584" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="582" x2="154" y2="582" stroke="#21262d" stroke-width="1.5"/>
+        <!-- chatmodes/ -->
+        <line x1="86" y1="626" x2="112" y2="626" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="626" x2="128" y2="660" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="128" y1="658" x2="154" y2="658" stroke="#21262d" stroke-width="1.5"/>
+        <!-- AGENTS.md root -->
+        <line x1="44" y1="718" x2="70" y2="718" stroke="#21262d" stroke-width="1.5"/>
+        <!-- README.md root -->
+        <line x1="44" y1="846" x2="70" y2="846" stroke="#21262d" stroke-width="1.5"/>
+
+        <!-- ROOT -->
+        <text x="20" y="30" font-size="16" fill="#3fb950">📁</text>
+        <text x="42" y="30" font-size="14" font-weight="700" fill="#3fb950">  project-root/</text>
+
+        <!-- ROW 1: copilot-instructions.md -->
+        <text x="78" y="58" font-size="14" fill="#7ee787">📄</text>
+        <text x="98" y="58" font-size="13.5" font-weight="700" fill="#7ee787">AGENTS.md</text>
+        <rect x="198" y="43" width="22" height="22" rx="5" fill="url(#gh7)"/>
+        <text x="209" y="58" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑦</text>
+        <text x="228" y="58" font-size="12" fill="#6e7681">クロスツール共通指示（Claude / Gemini / Codex と共有）</text>
+        <text x="228" y="74" font-size="11" fill="#2d3a4a">  ※ Coding Agent が CLAUDE.md / GEMINI.md も自動認識</text>
+
+        <!-- ROW 2: .github/ dir -->
+        <text x="78" y="106" font-size="14" fill="#58a6ff">📁</text>
+        <text x="98" y="106" font-size="14" font-weight="700" fill="#58a6ff">.github/</text>
+
+        <!-- copilot-instructions.md -->
+        <text x="120" y="138" font-size="14" fill="#7ee787">📄</text>
+        <text x="140" y="138" font-size="13.5" font-weight="700" fill="#7ee787">copilot-instructions.md</text>
+        <rect x="334" y="123" width="22" height="22" rx="5" fill="url(#gh1)"/>
+        <text x="345" y="138" text-anchor="middle" fill="white" font-size="12" font-weight="700">①</text>
+        <text x="364" y="138" font-size="12" fill="#6e7681">常時ロード：プロジェクト全体の共通指示</text>
+
+        <!-- instructions/ -->
+        <text x="120" y="176" font-size="14" fill="#58a6ff">📂</text>
+        <text x="140" y="176" font-size="13.5" font-weight="700" fill="#58a6ff">instructions/</text>
+        <!-- frontend.instructions.md -->
+        <text x="162" y="208" font-size="13" fill="#79c0ff">📄</text>
+        <text x="182" y="208" font-size="13" fill="#79c0ff">frontend.instructions.md</text>
+        <rect x="370" y="193" width="22" height="22" rx="5" fill="url(#gh2)"/>
+        <text x="381" y="208" text-anchor="middle" fill="white" font-size="12" font-weight="700">②</text>
+        <text x="400" y="208" font-size="12" fill="#6e7681">applyTo: "src/components/**" でパスマッチ</text>
+        <!-- testing.instructions.md -->
+        <text x="162" y="242" font-size="13" fill="#79c0ff">📄</text>
+        <text x="182" y="242" font-size="13" fill="#79c0ff">testing.instructions.md</text>
+        <rect x="356" y="227" width="22" height="22" rx="5" fill="url(#gh2)" opacity="0.8"/>
+        <text x="367" y="242" text-anchor="middle" fill="white" font-size="12" font-weight="700">②</text>
+        <text x="386" y="242" font-size="12" fill="#6e7681">applyTo: "**/*.test.*" / excludeAgent: "code-review"</text>
+
+        <!-- agents/ -->
+        <text x="120" y="284" font-size="14" fill="#58a6ff">📂</text>
+        <text x="140" y="284" font-size="13.5" font-weight="700" fill="#58a6ff">agents/</text>
+        <!-- test-agent.agent.md -->
+        <text x="162" y="316" font-size="13" fill="#bc8cff">📝</text>
+        <text x="182" y="316" font-size="13" fill="#bc8cff">test-agent.agent.md</text>
+        <rect x="348" y="301" width="22" height="22" rx="5" fill="url(#gh3)"/>
+        <text x="359" y="316" text-anchor="middle" fill="white" font-size="12" font-weight="700">③</text>
+        <text x="378" y="316" font-size="12" fill="#6e7681">@test-agent として呼び出せるQAエージェント</text>
+        <!-- docs-agent.agent.md -->
+        <text x="162" y="354" font-size="13" fill="#bc8cff">📝</text>
+        <text x="182" y="354" font-size="13" fill="#bc8cff">docs-agent.agent.md</text>
+        <rect x="348" y="339" width="22" height="22" rx="5" fill="url(#gh3)" opacity="0.8"/>
+        <text x="359" y="354" text-anchor="middle" fill="white" font-size="12" font-weight="700">③</text>
+        <text x="378" y="354" font-size="12" fill="#6e7681">@docs-agent：ドキュメント生成専門</text>
+        <!-- security-agent.agent.md -->
+        <text x="162" y="392" font-size="13" fill="#bc8cff">📝</text>
+        <text x="182" y="392" font-size="13" fill="#bc8cff">security-agent.agent.md</text>
+        <rect x="360" y="377" width="22" height="22" rx="5" fill="url(#gh3)" opacity="0.7"/>
+        <text x="371" y="392" text-anchor="middle" fill="white" font-size="12" font-weight="700">③</text>
+        <text x="390" y="392" font-size="12" fill="#6e7681">@security-agent：セキュリティ監査専門</text>
+
+        <!-- skills/ -->
+        <text x="120" y="434" font-size="14" fill="#58a6ff">📂</text>
+        <text x="140" y="434" font-size="13.5" font-weight="700" fill="#58a6ff">skills/</text>
+        <text x="220" y="434" font-size="12" fill="#2d3a4a">  ← anthropics/skills と共通フォーマット</text>
+        <!-- webapp-testing/ -->
+        <text x="162" y="466" font-size="13" fill="#58a6ff">📂</text>
+        <text x="182" y="466" font-size="13" font-weight="700" fill="#58a6ff">webapp-testing/</text>
+        <text x="204" y="504" font-size="13" fill="#d29922">📝</text>
+        <text x="224" y="504" font-size="13" fill="#d29922">SKILL.md</text>
+        <rect x="304" y="489" width="22" height="22" rx="5" fill="url(#gh4)"/>
+        <text x="315" y="504" text-anchor="middle" fill="white" font-size="12" font-weight="700">④</text>
+        <text x="334" y="504" font-size="12" fill="#6e7681">遅延ロード：Playwright テストスキル（マッチ時のみ）</text>
+
+        <!-- prompts/ -->
+        <text x="120" y="554" font-size="14" fill="#58a6ff">📂</text>
+        <text x="140" y="554" font-size="13.5" font-weight="700" fill="#58a6ff">prompts/</text>
+        <text x="162" y="588" font-size="13" fill="#f85149">📄</text>
+        <text x="182" y="588" font-size="13" fill="#f85149">my-pull-requests.prompt.md</text>
+        <rect x="390" y="573" width="22" height="22" rx="5" fill="url(#gh5)"/>
+        <text x="401" y="588" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑤</text>
+        <text x="420" y="588" font-size="12" fill="#6e7681">再利用プロンプト（/my-pull-requests で実行）</text>
+
+        <!-- chatmodes/ -->
+        <text x="120" y="632" font-size="14" fill="#58a6ff">📂</text>
+        <text x="140" y="632" font-size="13.5" font-weight="700" fill="#58a6ff">chatmodes/</text>
+        <text x="162" y="664" font-size="13" fill="#2da672">📄</text>
+        <text x="182" y="664" font-size="13" fill="#2da672">databaseadmin.chatmode.md</text>
+        <rect x="386" y="649" width="22" height="22" rx="5" fill="url(#gh6)"/>
+        <text x="397" y="664" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑥</text>
+        <text x="416" y="664" font-size="12" fill="#6e7681">DBA ペルソナ（ツール + 指示セット）</text>
+
+        <!-- AGENTS.md -->
+        <text x="78" y="724" font-size="14" fill="#7ee787">📄</text>
+        <text x="98" y="724" font-size="13.5" font-weight="700" fill="#58a6ff">copilot-instructions.md</text>
+        <rect x="302" y="709" width="22" height="22" rx="5" fill="url(#gh1)" opacity="0.75"/>
+        <text x="313" y="724" text-anchor="middle" fill="white" font-size="12" font-weight="700">①</text>
+        <text x="332" y="724" font-size="12" fill="#6e7681">（ルートの .github/ 内に配置）</text>
+
+        <!-- Services breakdown -->
+        <line x1="44" y1="760" x2="70" y2="760" stroke="#21262d" stroke-width="1.5"/>
+        <text x="78" y="766" font-size="14" fill="#58a6ff">📁</text>
+        <text x="98" y="766" font-size="14" font-weight="700" fill="#58a6ff">src/</text>
+        <line x1="86" y1="766" x2="86" y2="802" stroke="#21262d" stroke-width="1.5"/>
+        <line x1="86" y1="800" x2="112" y2="800" stroke="#21262d" stroke-width="1.5"/>
+        <text x="120" y="806" font-size="13" fill="#58a6ff">📂</text>
+        <text x="140" y="806" font-size="13" font-weight="700" fill="#58a6ff">components/</text>
+        <text x="240" y="806" font-size="12" fill="#2d3a4a">  ← frontend.instructions.md の applyTo 対象</text>
+
+        <!-- README.md -->
+        <text x="78" y="852" font-size="14" fill="#58a6ff">📘</text>
+        <text x="98" y="852" font-size="14" font-weight="700" fill="#2da672">README.md</text>
+        <rect x="204" y="837" width="22" height="22" rx="5" fill="url(#gh6)"/>
+        <text x="215" y="852" text-anchor="middle" fill="white" font-size="12" font-weight="700">⑥</text>
+        <text x="234" y="852" font-size="12" fill="#6e7681">人間向け：エージェント構成・セットアップ手順</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 2. copilot-instructions.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">2</span>
+      <h2><span class="mono">.github/copilot-instructions.md</span> — 常時ロード型グローバル指示</h2>
+    </div>
+
+    <div class="alert ai">
+      <span class="alert-icon">ℹ️</span>
+      <div class="alert-body">
+        <strong>必ず <code>.github/</code> 直下に配置する</strong>
+        <code>copilot-instructions.md</code> はワークスペースルートの <code>.github/</code> フォルダ内に置く必要があります。他の場所に置いても読み込まれません。この1ファイルが Chat・Agent Mode・Code Review・Copilot Coding Agent のすべてで常時ロードされます。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 copilot-instructions.md に書くべきこと / 書かないべきこと</div>
+      <div class="pat-grid">
+        <div class="pat pat-ok">
+          <div class="pat-label">✅ 書くべき内容</div>
+          <ul>
+            <li>プロジェクト概要・目的（2〜3文）</li>
+            <li>技術スタック・主要バージョン</li>
+            <li>ビルド・テスト・Lint コマンド</li>
+            <li>コーディング規約（コンパクトに）</li>
+            <li>PR メッセージのフォーマット</li>
+            <li>サブエージェント委譲ルール</li>
+            <li>禁止操作・危険コマンドの明示</li>
+            <li>ペルソナの定義（「新人開発者向けに」等）</li>
+          </ul>
+        </div>
+        <div class="pat pat-ng">
+          <div class="pat-label">✗ 書かないべき内容</div>
+          <ul>
+            <li>特定パスにしか使わない詳細ルール（*.instructions.md に分離）</li>
+            <li>専門的な手順（SKILL.md に分離）</li>
+            <li>長大なコードスニペット（コンテキスト浪費）</li>
+            <li>機密情報・API キー</li>
+            <li>修正履歴・変更ログ</li>
+            <li>ツール設定（MCP は別ファイルへ）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/copilot-instructions.md</span><span class="code-lang">Markdown</span></div>
+      <div class="code-body"><span class="ch"># PROJECT: my-saas-app</span>
+
+<span class="cm">## Overview</span>
+Next.js 15 App Router + Supabase + Stripe のマルチテナント SaaS。
+本番: Vercel Edge Runtime / DB: Supabase (PostgreSQL) / AI: GitHub Models。
+
+<span class="cm">## Tech Stack</span>
+- Frontend: Next.js 15 (App Router), TypeScript 5.x, Tailwind CSS
+- Backend:  Supabase Edge Functions (Deno 2.x)
+- Auth:     Supabase Auth + RLS (Row Level Security)
+- Payment:  Stripe Checkout / Webhooks
+- Testing:  Vitest (unit) + Playwright (E2E)
+
+<span class="cm">## Persona</span>
+シニアフルスタックエンジニアとして振る舞うこと。
+コードを変更する前に必ず計画を要約すること。
+
+<span class="cm">## Build & Test (CRITICAL: run after every change)</span>
+- Build:    <span class="cs">`pnpm build`</span>
+- Test:     <span class="cs">`pnpm test`</span>  — <span class="cw">変更後は必ず実行すること</span>
+- E2E:      <span class="cs">`pnpm test:e2e`</span> (Playwright)
+- Lint:     <span class="cs">`pnpm lint`</span>    — <span class="cw">PR前に必ず実行すること</span>
+
+<span class="cm">## Coding Standards</span>
+- TypeScript strict モード必須
+- エラーは Result<T,E> 型でラップ（throw 禁止）
+- Supabase クエリは必要カラムのみ .select('col1, col2')
+- React Server Components を優先し 'use client' を最小化
+
+<span class="cm">## Sub-Agent Dispatch (for Copilot Coding Agent)</span>
+<span class="cw">@test-agent</span>  → テスト作成・実行・失敗分析
+<span class="cw">@docs-agent</span>  → ドキュメント生成・更新 (docs/ のみ)
+<span class="cw">@security-agent</span> → セキュリティ監査（コード変更なし）
+
+<span class="cm">## PR Message Format</span>
+<span class="cs">```
+## Summary
+[2〜3文の概要]
+
+## Changes
+- [変更点]
+
+## Tests
+- [テスト内容]
+```</span>
+
+<span class="cm">## Forbidden Operations</span>
+- <span class="cw">`supabase db reset`</span> は絶対に実行しない
+- <span class="cw">`.env.production`</span> の読み書き禁止</div>
+    </div>
+  </div>
+
+  <!-- 3. *.instructions.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">3</span>
+      <h2><span class="mono">.github/instructions/*.instructions.md</span> — パスマッチ型指示</h2>
+      <span class="note">2025年7月〜 GA</span>
+    </div>
+
+    <div class="card">
+      <p><code>*.instructions.md</code> は YAML フロントマターの <code>applyTo</code> でパスグロブを指定することで、<strong>特定のファイル・ディレクトリを操作しているときのみ自動適用</strong>されます。さらに <code>excludeAgent</code> プロパティで特定のエージェント（coding-agent・code-review）から除外できます。</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/instructions/frontend.instructions.md</span><span class="code-lang">Markdown + YAML</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">applyTo</span>: <span class="cv">"src/components/**,src/app/**"</span>
+<span class="cc"># この指示は src/components/ と src/app/ への変更時のみ適用される</span>
+<span class="cc"># excludeAgent: "code-review"  # コードレビューから除外する場合</span>
+<span class="cs">---</span>
+
+<span class="ch">## Frontend Development Rules</span>
+
+<span class="cm">### Component Structure</span>
+- React Server Components (RSC) を優先し、'use client' は最小限に
+- コンポーネントは 150行以下に収める
+- Props は明示的な TypeScript インターフェースを定義する
+- CSS は Tailwind ユーティリティクラスのみ（インラインスタイル禁止）
+
+<span class="cm">### Naming Conventions</span>
+- コンポーネントファイル: PascalCase.tsx (例: UserCard.tsx)
+- ページファイル: page.tsx (Next.js App Router 規約)
+- フック: use プレフィックス (例: useUserProfile)
+
+<span class="cm">### DO THIS / NOT THIS</span>
+✅ 良い例:
+<span class="cs">```tsx
+// Server Component（デフォルト）
+export default async function UserList() {
+  const users = await getUsers()
+  return <ul>{users.map(u => <UserItem key={u.id} user={u} />)}</ul>
+}
+```</span>
+
+❌ 悪い例:
+<span class="cs">```tsx
+// 不要な 'use client' の使用
+'use client'
+export default function UserList() { ... } // fetchをuseEffectで行っている
+```</span></div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/instructions/testing.instructions.md</span><span class="code-lang">Markdown + YAML</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">applyTo</span>: <span class="cv">"**/*.test.ts,**/*.test.tsx,**/*.spec.ts,tests/**"</span>
+<span class="cm">excludeAgent</span>: <span class="cv">"code-review"</span>
+<span class="cc"># Copilot code review はこの指示を読まない（テスト専用ルールを汚染しない）</span>
+<span class="cs">---</span>
+
+<span class="ch">## Testing Standards</span>
+
+<span class="cm">### Unit Tests (Vitest)</span>
+- テストは AAA (Arrange / Act / Assert) 形式で記述
+- モックは vi.mock() を使用、過剰なモックは避ける
+- テスト名は「[条件] [状態] [期待結果]」形式
+
+<span class="cm">### E2E Tests (Playwright)</span>
+- ページオブジェクトパターンを使用 (tests/pages/ に配置)
+- data-testid 属性でセレクタを指定（クラス名ベースは禁止）
+- 各テストは独立して実行できること（beforeEach で状態をリセット）</div>
+    </div>
+
+    <div class="alert ag">
+      <span class="alert-icon">💡</span>
+      <div class="alert-body">
+        <strong>excludeAgent で指示の適用先をコントロールする（2025年11月〜）</strong>
+        <code>excludeAgent: "code-review"</code> を設定するとコードレビューに、<code>excludeAgent: "coding-agent"</code> を設定すると Copilot Coding Agent に指示が適用されなくなります。レビュー専用・実装専用の指示を分離するのに有効です。
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. *.agent.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">4</span>
+      <h2><span class="mono">.github/agents/*.agent.md</span> — カスタムエージェント定義</h2>
+      <span class="note">2025年11月〜 GA · 2,500以上のリポジトリで採用</span>
+    </div>
+
+    <div class="card">
+      <p><code>*.agent.md</code> は <strong>特定のペルソナ・ツールセット・指示を持つ専門エージェント</strong>を定義します。定義したエージェントは <code>@test-agent</code>・<code>@docs-agent</code> のように <code>@</code> プレフィックスで呼び出せます。YAML フロントマターで <strong>使用ツール・MCP サーバー・モデル</strong>を設定できます。</p>
+    </div>
+
+    <!-- Agent roles -->
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-icon">🧪</div>
+        <div class="role-name">test-agent</div>
+        <div class="role-tag">@test-agent</div>
+        <div class="role-desc">テスト作成・実行・失敗分析の専門家。tests/ ディレクトリのみ書き込み。ソースコード変更不可。</div>
+        <div class="role-ex">tools: [run_tests, read_file]<br>Write: /tests/ のみ</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">📖</div>
+        <div class="role-name">docs-agent</div>
+        <div class="role-tag">@docs-agent</div>
+        <div class="role-desc">技術文書の生成・更新専門。src/ を読み取り docs/ のみに書き込む。コードの変更は行わない。</div>
+        <div class="role-ex">tools: [read_file, create_file]<br>Write: /docs/ のみ</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">🔒</div>
+        <div class="role-name">security-agent</div>
+        <div class="role-tag">@security-agent</div>
+        <div class="role-desc">セキュリティ監査専門。コードを読んでレポートのみ出力。コードの変更は一切行わない。</div>
+        <div class="role-ex">tools: [read_file, grep]<br>Write: なし（Read-only）</div>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/agents/test-agent.agent.md</span><span class="code-lang">Markdown + YAML</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">name</span>: <span class="cv">test-agent</span>
+<span class="cm">description</span>: <span class="cv">|
+  QAエンジニアペルソナ。以下の場合に呼び出す:
+  - 新機能のテストを作成する
+  - テストを実行して失敗を分析する
+  - テストカバレッジを向上させる
+  
+  以下の場合は呼び出さない:
+  - ソースコードの実装
+  - ドキュメントの作成</span>
+<span class="cm">model</span>: <span class="cv">gpt-5</span>
+<span class="cm">tools</span>:
+  - <span class="cv">read_file</span>
+  - <span class="cv">create_file</span>
+  - <span class="cv">run_terminal_command</span>
+  - <span class="cv">grep_search</span>
+<span class="cc"># mcpServers:            # MCP サーバーも個別に設定可能</span>
+<span class="cc">#   playwright:          # Playwright MCP でブラウザテスト</span>
+<span class="cc">#     type: npm          # </span>
+<span class="cm">instructions</span>: |
+  <span class="cw">制約: /tests/ ディレクトリのみに書き込むこと。ソースコードは変更しない。</span>
+<span class="cs">---</span>
+
+<span class="ch">## Role</span>
+あなたは経験豊富な QA ソフトウェアエンジニアです。
+このリポジトリのテストを作成・実行・分析します。
+
+<span class="ch">## Testing Standards</span>
+- テストフレームワーク: Vitest（ユニット）+ Playwright（E2E）
+- テストは AAA（Arrange / Act / Assert）形式で記述
+- data-testid でセレクタを指定（クラス名ベースは禁止）
+- 各テストは独立して実行可能であること
+
+<span class="ch">## File Boundaries</span>
+- 書き込み: <span class="cw">/tests/</span> ディレクトリのみ
+- 読み取り: プロジェクト全体
+- <span class="cw">ソースコードの変更は絶対に行わない</span>
+- <span class="cw">失敗しているテストを削除しない</span>
+
+<span class="ch">## Commands</span>
+- テスト実行: <span class="cs">`pnpm test`</span>
+- E2E 実行:   <span class="cs">`pnpm test:e2e`</span>
+- カバレッジ: <span class="cs">`pnpm test:coverage`</span>
+
+<span class="ch">## Output Format</span>
+テスト完了後は以下の形式で報告:
+- 作成したテストファイル一覧
+- 実行結果（Pass/Fail 件数）
+- カバレッジ変化</div>
+    </div>
+
+    <div class="alert aw">
+      <span class="alert-icon">⚠️</span>
+      <div class="alert-body">
+        <strong>description が「いつ@エージェントを呼ぶか」の唯一の判断材料</strong>
+        Copilot が「このエージェントを使うべきか」を判断するのは <code>description</code> の内容だけです。「いつ使う・いつ使わない」の境界を具体的に記述してください。2,500以上のリポジトリ分析から、description が明確なエージェントほど誤呼び出しが少ないことが分かっています。
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. SKILL.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">5</span>
+      <h2><span class="mono">.github/skills/*/SKILL.md</span> — 遅延ロード型スキル（Open Standard）</h2>
+      <span class="note">2025年12月〜 · VS Code + Copilot CLI + Coding Agent 対応</span>
+    </div>
+
+    <div class="card">
+      <p>Agent Skills は <strong>プロンプトに関連する場合のみ自動ロードされる「専門知識パッケージ」</strong>です。<code>copilot-instructions.md</code> が常時ロードされるのに対して、SKILL.md はタスクマッチ時のみロードされます（プログレッシブ・ディスクロージャー）。<strong>Anthropic の Claude Code と同じフォーマット</strong>のオープンスタンダードであり、<code>anthropics/skills</code> リポジトリのスキルをそのまま使えます。</p>
+    </div>
+
+    <div class="alert ag">
+      <span class="alert-icon">✅</span>
+      <div class="alert-body">
+        <strong>Claude Code の .claude/skills/ と互換性あり</strong>
+        <code>.claude/skills/</code> に配置したスキルは GitHub Copilot が自動的に認識します。スキルはクロスツールで動作するオープンスタンダードです。<code>github/awesome-copilot</code> や <code>anthropics/skills</code> リポジトリのコミュニティスキルも利用できます。
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/skills/playwright-testing/SKILL.md</span><span class="code-lang">Markdown + YAML frontmatter</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">name</span>: <span class="cv">playwright-testing</span>
+<span class="cm">description</span>: <span class="cv">|
+  Playwright を使った E2E テストを作成・実行するスキル。
+  以下の場合にトリガーする:
+  - ブラウザベースのテストを作成してほしい
+  - E2E テストを実行・デバッグしてほしい
+  - Playwright の設定・セットアップが必要
+  
+  以下の場合はトリガーしない:
+  - ユニットテスト（Vitest）の作成
+  - API テスト（supabase functions test）</span>
+<span class="cs">---</span>
+
+<span class="ch"># Playwright E2E Testing</span>
+
+<span class="cm">## Setup</span>
+インストール: <span class="cs">`pnpm add -D @playwright/test`</span>
+設定: playwright.config.ts（プロジェクトルート）
+ブラウザインストール: <span class="cs">`pnpm playwright install chromium`</span>
+
+<span class="cm">## Page Object Pattern</span>
+すべての E2E テストはページオブジェクトパターンを使用する:
+
+<span class="cs">```typescript
+// tests/pages/LoginPage.ts
+export class LoginPage {
+  constructor(private page: Page) {}
+  
+  async login(email: string, password: string) {
+    await this.page.getByTestId('email').fill(email)
+    await this.page.getByTestId('password').fill(password)
+    await this.page.getByTestId('submit').click()
+  }
+}
+```</span>
+
+<span class="cm">## Commands</span>
+- 全 E2E 実行: <span class="cs">`pnpm playwright test`</span>
+- UI モード:   <span class="cs">`pnpm playwright test --ui`</span>
+- トレース記録: <span class="cs">`pnpm playwright test --trace on`</span>
+
+<span class="cm">## Test Structure Rules</span>
+- <span class="cs">data-testid</span> 属性でセレクタを指定（クラス名は変わりやすいため禁止）
+- <span class="cs">beforeEach</span> でテスト状態をリセット
+- 各テストは独立して実行可能なこと（テスト間の依存禁止）
+
+<span class="cc"># スキルディレクトリには追加リソースも含められる</span>
+<span class="cc"># ./test-template.ts  — テストテンプレート（参照可能）</span>
+<span class="cc"># ./setup-guide.md    — 詳細セットアップガイド</span></div>
+    </div>
+  </div>
+
+  <!-- 6. *.prompt.md / *.chatmode.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">6</span>
+      <h2><span class="mono">*.prompt.md</span> / <span class="mono">*.chatmode.md</span> — 再利用プロンプトとチャットモード</h2>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/prompts/my-pull-requests.prompt.md</span><span class="code-lang">Markdown + YAML（再利用プロンプト）</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">mode</span>: <span class="cv">agent</span>
+<span class="cm">tools</span>: [<span class="cs">'githubRepo'</span>, <span class="cs">'list_pull_requests'</span>, <span class="cs">'get_pull_request'</span>, <span class="cs">'request_copilot_review'</span>]
+<span class="cm">description</span>: <span class="cv">"現在のリポジトリの自分のPR一覧を取得して状態を確認する"</span>
+<span class="cs">---</span>
+
+現在のリポジトリ（<span class="cw">#githubRepo</span> でリポジトリ情報を取得）で、
+自分にアサインされた PR を <span class="cw">#list_pull_requests</span> で取得してください。
+
+各 PR について以下を報告:
+- PR の目的・変更内容の概要
+- レビュー待ちの場合はそれを強調
+- CI チェックが失敗している場合は原因と修正案
+- Copilot レビューが未実施の場合は <span class="cw">#request_copilot_review</span> を提案
+
+<span class="cc"># 使い方: /my-pull-requests コマンドで実行</span></div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-bar"><span>.github/chatmodes/databaseadmin.chatmode.md</span><span class="code-lang">Markdown + YAML（カスタムチャットモード）</span></div>
+      <div class="code-body"><span class="cs">---</span>
+<span class="cm">name</span>: <span class="cv">Database Admin</span>
+<span class="cm">description</span>: <span class="cv">PostgreSQL DBA の専門家としてデータベース管理を支援する</span>
+<span class="cm">tools</span>: [<span class="cs">'pgsql_connect'</span>, <span class="cs">'pgsql_query'</span>, <span class="cs">'read_file'</span>]
+<span class="cm">icon</span>: <span class="cv">database</span>
+<span class="cs">---</span>
+
+あなたは経験豊富な PostgreSQL DBA です。
+
+<span class="ch">## Your Expertise</span>
+- クエリの最適化（EXPLAIN ANALYZE の読み方・インデックス設計）
+- スキーマ設計（正規化・非正規化の判断）
+- Supabase Row Level Security (RLS) ポリシー
+- マイグレーション計画（ゼロダウンタイム移行）
+
+<span class="ch">## Tools Available</span>
+- <span class="cw">pgsql_connect</span>: データベースへの接続
+- <span class="cw">pgsql_query</span>:   SQL クエリの実行・確認
+
+<span class="ch">## Safety Rules</span>
+- <span class="cw">DROP / TRUNCATE は必ず確認してから実行</span>
+- 本番 DB への書き込みは提案するが自動実行しない
+- <span class="cw">すべてのマイグレーションは --dry-run で確認してから適用</span></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ファイル種別</th><th>配置場所</th><th>呼び出し方</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>*.prompt.md</code></td><td><code>.github/prompts/</code></td><td><code>/コマンド名</code></td><td>繰り返し使うタスクを再利用プロンプトとして定義</td></tr>
+          <tr><td><code>*.chatmode.md</code></td><td><code>.github/chatmodes/</code></td><td>モード切替 UI</td><td>特定の DBA・セキュリティ等のペルソナモード定義</td></tr>
+          <tr><td><code>*.agent.md</code></td><td><code>.github/agents/</code></td><td><code>@エージェント名</code></td><td>ツール・MCP・指示を持つ専門エージェント定義</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 7. Cross-tool AGENTS.md -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">7</span>
+      <h2><span class="mono">AGENTS.md</span> — クロスツール互換戦略</h2>
+    </div>
+
+    <div class="card">
+      <p>Copilot Coding Agent は 2025年8月から <code>AGENTS.md</code> をサポートし、さらに <strong>CLAUDE.md・GEMINI.md</strong> も自動認識します。チームで複数のAIツールを使う場合、<code>AGENTS.md</code> を共通エントリポイントにして、ツール固有の設定は別ファイルに分離する戦略が推奨されています。</p>
+    </div>
+
+    <div class="compat-grid">
+      <div class="compat-card">
+        <div class="compat-icon">🐙</div>
+        <div class="compat-name">Copilot Coding Agent</div>
+        <div class="compat-file">copilot-instructions.md</div>
+        <div class="compat-file">AGENTS.md</div>
+        <div class="compat-file">CLAUDE.md</div>
+        <div class="compat-file">GEMINI.md</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-icon">🤖</div>
+        <div class="compat-name">Claude Code</div>
+        <div class="compat-file">CLAUDE.md</div>
+        <div class="compat-file">AGENTS.md</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-icon">♊</div>
+        <div class="compat-name">Gemini CLI</div>
+        <div class="compat-file">GEMINI.md</div>
+        <div class="compat-file">AGENTS.md</div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-icon">⚙️</div>
+        <div class="compat-name">Codex CLI</div>
+        <div class="compat-file">AGENTS.md</div>
+      </div>
+    </div>
+
+    <div class="alert ai">
+      <span class="alert-icon">💡</span>
+      <div class="alert-body">
+        <strong>Agentic Workflows（GitHub Actions 統合）</strong>
+        2026年より、AGENTS.md を使った GitHub Actions のマルチエージェントワークフロー（コードトリアージ・ドキュメント自動更新・品質チェック）が Technical Preview として利用可能になります。Issues のラベル付けを <code>@triage-agent</code> に、PR のドキュメント更新を <code>@docs-agent</code> に自動委譲できます。
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Decision flow -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">8</span>
+      <h2>ファイル選択の意思決定ツリー</h2>
+    </div>
+
+    <div class="dflow">
+      <div class="dflow-title">どのMarkdownファイルを使うべきか — 決定フロー</div>
+
+      <div class="dflow-row">
+        <div class="dn-q">すべてのファイル・コンテキストに<br>常時適用したい指示？</div>
+        <div class="dn-arr">→ YES →</div>
+        <div class="dn-y">copilot-instructions.md<br><small>.github/ 直下に配置</small></div>
+      </div>
+      <div class="dn-in" style="margin-top:12px;">
+        <div class="dflow-row">
+          <span style="color:var(--text3);font-size:13px;">↓ NO</span>
+        </div>
+        <div class="dflow-row">
+          <div class="dn-q">特定のパス・ファイル種別にのみ<br>適用したい？（例: src/components/）</div>
+          <div class="dn-arr">→ YES →</div>
+          <div class="dn-y">*.instructions.md<br><small>applyTo + excludeAgent</small></div>
+        </div>
+        <div class="dn-in" style="margin-top:12px;">
+          <div class="dflow-row">
+            <span style="color:var(--text3);font-size:13px;">↓ NO</span>
+          </div>
+          <div class="dflow-row">
+            <div class="dn-q">専門的なペルソナ・ツールセット<br>を持つエージェントを定義したい？</div>
+            <div class="dn-arr">→ YES →</div>
+            <div class="dn-y">*.agent.md<br><small>@エージェント名で呼び出し</small></div>
+          </div>
+          <div class="dn-in" style="margin-top:12px;">
+            <div class="dflow-row">
+              <span style="color:var(--text3);font-size:13px;">↓ NO</span>
+            </div>
+            <div class="dflow-row">
+              <div class="dn-q">マッチ時のみロードされる<br>専門知識（手順・コマンド等）？</div>
+              <div class="dn-arr">→ YES →</div>
+              <div class="dn-y">SKILL.md<br><small>.github/skills/*/SKILL.md</small></div>
+            </div>
+            <div class="dn-in" style="margin-top:12px;">
+              <div class="dflow-row">
+                <span style="color:var(--text3);font-size:13px;">↓ NO</span>
+              </div>
+              <div class="dflow-row">
+                <div class="dn-q">繰り返し実行するタスク<br>を /コマンドで呼びたい？</div>
+                <div class="dn-arr">→ YES →</div>
+                <div class="dn-y">*.prompt.md<br><small>.github/prompts/</small></div>
+              </div>
+              <div class="dn-in" style="margin-top:12px;">
+                <div class="dflow-row">
+                  <span style="color:var(--text3);font-size:13px;">↓ NO</span>
+                </div>
+                <div class="dflow-row">
+                  <div class="dn-y">*.chatmode.md<br><small>カスタムペルソナモード</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Anti-Patterns -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">9</span>
+      <h2>絶対に避けるべき Anti-Patterns</h2>
+    </div>
+
+    <div class="pat-grid">
+      <div class="pat pat-ng">
+        <div class="pat-label">✗ copilot-instructions.md</div>
+        <ul>
+          <li>ファイルを .github/ 以外の場所に置く（読み込まれない）</li>
+          <li>特定パス専用ルールを記述（*.instructions.md へ）</li>
+          <li>専門手順・コマンドを詰め込む（SKILL.md へ）</li>
+          <li>長大なコードスニペット（コンテキスト圧迫）</li>
+          <li>機密情報・API キーの記述</li>
+          <li>指示が互いに矛盾する記述</li>
+        </ul>
+      </div>
+      <div class="pat pat-ng">
+        <div class="pat-label">✗ *.agent.md / SKILL.md</div>
+        <ul>
+          <li>description が曖昧（「何でもやります」エージェント）</li>
+          <li>ファイル境界を設定しないエージェント（無制限書き込み）</li>
+          <li>SKILL.md で applyTo なしに常時ロード状態にする</li>
+          <li>*.agent.md を .github/agents/ 以外に置く</li>
+          <li>excludeAgent を設定せず指示が混在する</li>
+          <li>agent.md ファイル名に許可外文字（スペース等）を使う</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Summary table -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">10</span>
+      <h2>まとめ：各ファイルの役割と設計原則</h2>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>ファイル</th><th>配置場所</th><th>ロード方式</th><th>設計原則</th><th>アンチパターン</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>copilot-instructions.md</code></td>
+            <td><code>.github/</code> 直下（必須）</td>
+            <td><span class="badge b-green">常時</span></td>
+            <td>普遍的なルールのみ。プロジェクト概要・スタック・禁止操作</td>
+            <td>パス固有ルール・専門手順の混在</td>
+          </tr>
+          <tr>
+            <td><code>*.instructions.md</code></td>
+            <td><code>.github/instructions/</code></td>
+            <td><span class="badge b-blue">applyTo</span></td>
+            <td>applyTo でパスを絞る。excludeAgent でエージェント除外</td>
+            <td>applyTo なしの全体適用</td>
+          </tr>
+          <tr>
+            <td><code>*.agent.md</code></td>
+            <td><code>.github/agents/</code></td>
+            <td><span class="badge b-purple">@呼び出し</span></td>
+            <td>description 明確化・ツール最小化・境界（書き込み先）を明示</td>
+            <td>曖昧なdescription・書き込み先無制限</td>
+          </tr>
+          <tr>
+            <td><code>SKILL.md</code></td>
+            <td><code>.github/skills/*/</code></td>
+            <td><span class="badge b-amber">遅延ロード</span></td>
+            <td>description で「いつ使う/使わない」を明確に記述</td>
+            <td>description が曖昧・常時ロード設定</td>
+          </tr>
+          <tr>
+            <td><code>*.prompt.md</code></td>
+            <td><code>.github/prompts/</code></td>
+            <td><span class="badge b-red">/コマンド</span></td>
+            <td>繰り返しタスクの再利用化。mode と tools を明示</td>
+            <td>1回しか使わないタスクを定義</td>
+          </tr>
+          <tr>
+            <td><code>*.chatmode.md</code></td>
+            <td><code>.github/chatmodes/</code></td>
+            <td><span class="badge b-teal">モード切替</span></td>
+            <td>特定ペルソナ（DBA・セキュリティ等）のツールセット定義</td>
+            <td>過剰なツール許可</td>
+          </tr>
+          <tr>
+            <td><code>AGENTS.md</code></td>
+            <td>プロジェクトルート</td>
+            <td><span class="badge b-ms">クロスツール</span></td>
+            <td>Claude/Gemini/Codex と共通の普遍ルール。ツール固有は別ファイル</td>
+            <td>ツール固有構文の混在</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Sources -->
+  <div class="sec">
+    <div class="sec-head">
+      <span class="sec-num">📚</span>
+      <h2>参考ソース（公式・一次情報優先）</h2>
+    </div>
+    <div class="src-grid">
+      <div class="src-card">
+        <div class="src-icon">🐙</div>
+        <div class="src-title">GitHub Docs: Best practices for Copilot coding agent</div>
+        <div class="src-url"><a href="https://docs.github.com/copilot/how-tos/agents/copilot-coding-agent/best-practices-for-using-copilot-to-work-on-tasks" target="_blank">docs.github.com/…/best-practices-for-using-copilot-to-work-on-tasks</a></div>
+        <div class="src-desc">copilot-instructions.md・AGENTS.md・カスタムエージェント設定の公式ベストプラクティス</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">📖</div>
+        <div class="src-title">VS Code Docs: Custom instructions</div>
+        <div class="src-url"><a href="https://code.visualstudio.com/docs/copilot/customization/custom-instructions" target="_blank">code.visualstudio.com/docs/copilot/customization/custom-instructions</a></div>
+        <div class="src-desc">applyTo・excludeAgent・/init コマンド・AGENTS.md 対応の公式リファレンス</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">⚡</div>
+        <div class="src-title">VS Code Docs: Agent Skills</div>
+        <div class="src-url"><a href="https://code.visualstudio.com/docs/copilot/customization/agent-skills" target="_blank">code.visualstudio.com/docs/copilot/customization/agent-skills</a></div>
+        <div class="src-desc">SKILL.md 仕様・プログレッシブディスクロージャー・anthropics/skills との互換性</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🤖</div>
+        <div class="src-title">GitHub Docs: Creating custom agents</div>
+        <div class="src-url"><a href="https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents" target="_blank">docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents</a></div>
+        <div class="src-desc">*.agent.md の YAML frontmatter・ツール設定・MCP サーバー設定の公式ドキュメント</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">📝</div>
+        <div class="src-title">GitHub Blog: How to write a great agents.md (2,500リポジトリ分析)</div>
+        <div class="src-url"><a href="https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/" target="_blank">github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/</a></div>
+        <div class="src-desc">2,500以上のリポジトリ分析から得た agents.md 設計の知見・テンプレート集</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🔔</div>
+        <div class="src-title">GitHub Changelog: Copilot coding agent supports AGENTS.md</div>
+        <div class="src-url"><a href="https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions/" target="_blank">github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions/</a></div>
+        <div class="src-desc">AGENTS.md サポート・CLAUDE.md / GEMINI.md 自動認識の公式アナウンス（2025年8月）</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🔔</div>
+        <div class="src-title">GitHub Changelog: Agent-specific instructions (excludeAgent)</div>
+        <div class="src-url"><a href="https://github.blog/changelog/2025-11-12-copilot-code-review-and-coding-agent-now-support-agent-specific-instructions/" target="_blank">github.blog/changelog/2025-11-12-copilot-code-review-and-coding-agent-now-support-agent-specific-instructions/</a></div>
+        <div class="src-desc">excludeAgent プロパティ・coding-agent / code-review 別制御（2025年11月）</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🔔</div>
+        <div class="src-title">GitHub Changelog: Agent Skills support (Dec 2025)</div>
+        <div class="src-url"><a href="https://github.blog/changelog/2025-12-18-github-copilot-now-supports-agent-skills/" target="_blank">github.blog/changelog/2025-12-18-github-copilot-now-supports-agent-skills/</a></div>
+        <div class="src-desc">Agent Skills 正式サポート・anthropics/skills 互換性・claude skills 自動認識</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🚀</div>
+        <div class="src-title">GitHub Changelog: Copilot CLI is now generally available (Feb 2026)</div>
+        <div class="src-url"><a href="https://github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/" target="_blank">github.blog/changelog/2026-02-25-github-copilot-cli-is-now-generally-available/</a></div>
+        <div class="src-desc">Copilot CLI GA・Skills / Custom Agents / Hooks / /diff コマンドの正式リリース（2026年2月）</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">🛠️</div>
+        <div class="src-title">Microsoft Dev Blog: Awesome GitHub Copilot Customizations</div>
+        <div class="src-url"><a href="https://developer.microsoft.com/blog/introducing-awesome-github-copilot-customizations-repo" target="_blank">developer.microsoft.com/blog/introducing-awesome-github-copilot-customizations-repo</a></div>
+        <div class="src-desc">*.prompt.md・*.chatmode.md のユースケース・DBA チャットモード実装例</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">⭐</div>
+        <div class="src-title">GitHub: github/awesome-copilot（コミュニティリポジトリ）</div>
+        <div class="src-url"><a href="https://github.com/github/awesome-copilot" target="_blank">github.com/github/awesome-copilot</a></div>
+        <div class="src-desc">公式コミュニティ集：agents/ instructions/ skills/ hooks/ plugins/ の実例テンプレート集</div>
+      </div>
+      <div class="src-card">
+        <div class="src-icon">📊</div>
+        <div class="src-title">SmartScope: GitHub Copilot Custom Instructions 完全ガイド</div>
+        <div class="src-url"><a href="https://smartscope.blog/en/generative-ai/github-copilot/github-copilot-custom-instructions-guide/" target="_blank">smartscope.blog/en/generative-ai/github-copilot/github-copilot-custom-instructions-guide/</a></div>
+        <div class="src-desc">2026年2月最新版：全ファイル種別の詳細比較・AGENTS.md 標準化・クロスツール互換戦略</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
