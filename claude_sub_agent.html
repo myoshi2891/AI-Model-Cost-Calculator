@@ -693,17 +693,17 @@ MEMORY.md が 200行を超えた場合は要約・整理してください。</d
       <div class="code-header"><span>.claude/memory/code-reviewer/MEMORY.md</span><span class="code-lang">Markdown</span></div>
       <div class="code-body"><span class="hl-head"># Code Reviewer Memory</span>
 <span class="hl-cmt"><!-- このファイルは code-reviewer エージェントが自動更新します。200行を超えたら要約してください --></span>
-<span class="hl-cmt"><!-- Last updated: 2025-10-15 | Lines: 47 --></span>
+<span class="hl-cmt"><!-- Last updated: 2026-10-15 | Lines: 47 --></span>
 
 <span class="hl-sub">## Recurring Patterns (繰り返し発生する問題)</span>
 
 <span class="hl-head">### Security</span>
-- [2025-10-10] `src/lib/db.ts`: ユーザー入力を直接SQLに結合していた → Prepared Statement を使うよう修正済
-- [2025-10-12] `app/api/**/*.ts`: 認証チェックが middleware でのみ行われ、handler内で再検証なし → 二重チェック必須
+- [2026-10-10] `src/lib/db.ts`: ユーザー入力を直接SQLに結合していた → Prepared Statement を使うよう修正済
+- [2026-10-12] `app/api/**/*.ts`: 認証チェックが middleware でのみ行われ、handler内で再検証なし → 二重チェック必須
 
 <span class="hl-head">### Performance</span>
-- [2025-10-08] Supabase の `.select('*')` が多用されている → 必要カラムのみ指定する慣習を徹底
-- [2025-10-14] React Server Component で useClient が不必要に使われている → 'use client' は最小化
+- [2026-10-08] Supabase の `.select('*')` が多用されている → 必要カラムのみ指定する慣習を徹底
+- [2026-10-14] React Server Component で useClient が不必要に使われている → 'use client' は最小化
 
 <span class="hl-head">### Code Conventions (このプロジェクト固有)</span>
 - エラーは必ず `Result<T, E>` 型でラップする (throw 禁止)

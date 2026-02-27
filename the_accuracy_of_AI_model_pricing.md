@@ -2,7 +2,7 @@
 
 ## **監査の背景および対象システムの現状分析**
 
-本レポートは、特定のAIモデルコスト計算ツール（対象URL: <https://ai-model-cost-calculator.netlify.app/）に掲載されている各AIモデルのAPI利用金額が、2026年現在の最新かつ正確な情報であるかを監査検証することを目的としている。同時に、同サイト内に実装されていると想定される「参考リンク集> — 公式料金ページ」の項目が、各公式ウェブサイトから最新の正しい数値を動的に取得できているかについての技術的および運用的な機能評価を実施する。
+本レポートは、特定のAIモデルコスト計算ツール（対象URL: https://ai-model-cost-calculator.netlify.app/）に掲載されている各AIモデルのAPI利用金額が、2026年現在の最新かつ正確な情報であるかを監査検証することを目的としている。同時に、同サイト内に実装されていると想定される「参考リンク集 — 公式料金ページ」の項目が、各公式ウェブサイトから最新の正しい数値を動的に取得できているかについての技術的および運用的な機能評価を実施する。
 
 調査の初期段階におけるサーバー応答およびパケット解析の結果、対象となるウェブサイトは現在完全にアクセス不能（オフライン）の状態にあり、サーバーからの有効なHTTP応答が得られないことが確認された1。サイト上にテキストやモデル名、価格の表示は一切存在せず、ユーザーが指定した「参考リンク集」のセクションやその内部のURLリストを直接視認あるいは検証することは物理的に不可能である1。
 
@@ -18,7 +18,7 @@ NetlifyのAI推論（AI Inference）機能の基盤仕様によれば、基盤�
 
 ## **OpenAIの最新価格構造とマルチモーダル戦略の高度化**
 
-OpenAIの2026年における価格戦略は、単なるトークン単価の引き下げ競争から脱却し、タスクの複雑性や要求される推論の深さに応じてモデルの階層を極端に細分化する方向へシフトしている。同社のAPIエコシステムは現在、フラッグシップのGPT-5シリーズ、ファインチューニングや特定タスク向けの旧世代GPT-4.1シリーズ、そして音声や視覚を統合したリアルタイムAPIという三つの主要な柱で構成されている7。以下に提示するデータはすべて、公式の価格ページ（証明URL: <https://openai.com/api/pricing/）から取得された2026年2月27日時点の最新数値である7。>
+OpenAIの2026年における価格戦略は、単なるトークン単価の引き下げ競争から脱却し、タスクの複雑性や要求される推論の深さに応じてモデルの階層を極端に細分化する方向へシフトしている。同社のAPIエコシステムは現在、フラッグシップのGPT-5シリーズ、ファインチューニングや特定タスク向けの旧世代GPT-4.1シリーズ、そして音声や視覚を統合したリアルタイムAPIという三つの主要な柱で構成されている7。以下に提示するデータはすべて、公式の価格ページ（証明URL: https://openai.com/api/pricing/）から取得された2026年2月27日時点の最新数値である7。
 
 ### **フロンティアモデルと推論特化型モデルの経済性**
 
@@ -55,13 +55,13 @@ GPT-5アーキテクチャの導入により、複雑な多段階推論やエー
 | **gpt-realtime-mini (Text)** | $0.60 | $0.06 | $2.40 |
 | **gpt-realtime (Audio)** | $32.00 | $0.40 | $64.00 |
 | **gpt-realtime-mini (Audio)** | $10.00 | $0.30 | $20.00 |
-| **gpt-realtime (Image)** | $5.00 | $0.50 | \- |
+| **gpt-realtime (Image)** | $5.00 | $0.50 | - |
 
 このデータ構造から、音声データのエンコーディングとデコーディングがいかに計算集約的であるかが浮き彫りになる。標準的なテキスト入力が4.00ドルであるのに対し、音声入力は8倍の32.00ドルに達し、出力においてもテキストの16.00ドルに対して音声は64.00ドルという高額なプレミアムが課されている7。さらに、高精細な映像生成を担うSora Video APIにおいては、720x1280解像度の「sora-2」が生成1秒あたり0.10ドル、より高品質な「sora-2-pro」が0.30ドル、高解像度の1024x1792が0.50ドルに設定されており、トークンベースの課金から、動画の「再生時間」という人間の知覚に基づく時間課金モデルへのパラダイムシフトが完了している7。また、画像生成APIにおいても、テキスト入出力（GPT-image-1.5）が入力5.00ドル・出力10.00ドルであるのに対し、画像を入力プロンプトとして使用する画像入出力モデルは入力8.00ドル・出力32.00ドルへと跳ね上がる7。
 
 ## **Anthropic Claude系列の段階的コンテキスト課金とプロンプトキャッシング**
 
-Anthropicは、Claude 3.5 Sonnetから続くアーキテクチャの進化をClaude 4.6世代へと昇華させ、特に長大なコンテキストの処理能力において市場をリードしている。同社の2026年における価格戦略の中心は、「コンテキストウィンドウの長さに応じた段階的課金（Tiered Pricing）」と「プロンプトキャッシングによる劇的な割引」の組み合わせである8。以下のデータは公式ページ（証明URL: <https://www.anthropic.com/pricing）に基づく8。>
+Anthropicは、Claude 3.5 Sonnetから続くアーキテクチャの進化をClaude 4.6世代へと昇華させ、特に長大なコンテキストの処理能力において市場をリードしている。同社の2026年における価格戦略の中心は、「コンテキストウィンドウの長さに応じた段階的課金（Tiered Pricing）」と「プロンプトキャッシングによる劇的な割引」の組み合わせである8。以下のデータは公式ページ（証明URL: https://www.anthropic.com/pricing）に基づく8。
 
 ### **コンテキスト依存の非線形プライシング**
 
@@ -85,7 +85,7 @@ Anthropicは、Claude 3.5 Sonnetから続くアーキテクチャの進化をCla
 
 ## **Google Geminiエコシステムのマルチモーダル課金とグラウンディング**
 
-Googleは自社の強固なクラウドインフラストラクチャと検索エンジンの支配的地位を背景に、Geminiモデル群を通じてAIの価格競争において独自の陣地を形成している。同社の戦略は、巨大なコンテキストウィンドウの提供と、マルチモーダル入力、そして「グラウンディング（外部情報への事実紐付け）」という付加価値を統合した包括的なエコシステムの構築にある。以下のデータは公式ページ（証明URL: <https://ai.google.dev/pricing）に基づく16。>
+Googleは自社の強固なクラウドインフラストラクチャと検索エンジンの支配的地位を背景に、Geminiモデル群を通じてAIの価格競争において独自の陣地を形成している。同社の戦略は、巨大なコンテキストウィンドウの提供と、マルチモーダル入力、そして「グラウンディング（外部情報への事実紐付け）」という付加価値を統合した包括的なエコシステムの構築にある。以下のデータは公式ページ（証明URL: https://ai.google.dev/pricing）に基づく16。
 
 ### **Gemini 2.0および3.1世代の価格構造**
 
@@ -122,7 +122,7 @@ Googleの価格体系において最も革新的な要素は、コンテキス�
 
 ## **DeepSeekの価格破壊とユニファイド・プライシングの衝撃**
 
-西側の巨大IT企業が主導してきたAIモデルの価格設定パラダイムに対し、中国のAIスタートアップであるDeepSeekは、アーキテクチャの極限までの効率化を武器に、文字通りの価格破壊をもたらした。DeepSeekの戦略は、MoE（Mixture-of-Experts）技術の精緻化による推論時の活性化パラメーター数の劇的な削減と、それによって浮いた計算リソースを大胆な価格引き下げに直結させることにある。以下のデータは公式ページ（証明URL: <https://api-docs.deepseek.com/quick\_start/pricing/）に基づく9。>
+西側の巨大IT企業が主導してきたAIモデルの価格設定パラダイムに対し、中国のAIスタートアップであるDeepSeekは、アーキテクチャの極限までの効率化を武器に、文字通りの価格破壊をもたらした。DeepSeekの戦略は、MoE（Mixture-of-Experts）技術の精緻化による推論時の活性化パラメーター数の劇的な削減と、それによって浮いた計算リソースを大胆な価格引き下げに直結させることにある。以下のデータは公式ページ（証明URL: https://api-docs.deepseek.com/quick_start/pricing/）に基づく9。
 
 ### **DeepSeek-V3.2における統合価格（Unified Pricing）**
 
@@ -147,7 +147,7 @@ AI市場は巨大IT企業による寡占状態にあるわけではなく、特�
 
 ### **Mistral AI: オープンウェイトとマルチクラウド展開のハイブリッド**
 
-フランスを拠点とするMistral AIは、APIを通じたマネージドサービスの提供と、エンタープライズ環境へ直接デプロイ可能なオープンウェイトモデルの配布という双方向の戦略を展開している。以下のデータは公式ページ（証明URL: <https://mistral.ai/pricing）に基づく23。>
+フランスを拠点とするMistral AIは、APIを通じたマネージドサービスの提供と、エンタープライズ環境へ直接デプロイ可能なオープンウェイトモデルの配布という双方向の戦略を展開している。以下のデータは公式ページ（証明URL: https://mistral.ai/pricing）に基づく23。
 
 | モデル名 | コンテキスト長 | 入力価格 ($) | 出力価格 ($) | 特記事項 |
 | :---- | :---- | :---- | :---- | :---- |
@@ -169,24 +169,24 @@ Mistral Large 3の価格設定（入力0.50ドル / 出力1.50ドル）は、同
 
 イーロン・マスク率いるxAIと、独自開発のLPU（Language Processing Unit）チップで推論インフラに特化するGroqは、それぞれ異なるベクトルで技術的限界を突破している。
 
-**xAI (Grok API)** xAIの提供するAPI（証明URL: <https://x.ai/api）における最大のブレイクスルーは、その途方もないコンテキスト長にある33。>
+**xAI (Grok API)** xAIの提供するAPI（証明URL: https://x.ai/api）における最大のブレイクスルーは、その途方もないコンテキスト長にある33。
 
 * **Grok 4.1 Fast**: 入力 0.20ドル / 出力 0.50ドル。\*\*200万トークン（2M）\*\*のコンテキストウィンドウ25  
 * **Grok 4**: 入力 3.00ドル / 出力 15.00ドル。256Kのコンテキストウィンドウ25
 
 Grok 4.1 Fastの「200万トークンを0.20ドルの入力単価で処理可能」というスペックは、企業の過去数年分の財務諸表、数千ページに及ぶ訴訟の証拠書類、あるいは巨大なソフトウェアのソースコードリポジトリ全体を、事前のチャンキングやRAG（Retrieval-Augmented Generation）パイプラインを構築することなく、生のまま一括でモデルに入力して分析することを可能にする25。これは、データ前処理に関わるエンジニアリングコストを根底から破壊するポテンシャルを秘めている。
 
-**Groq (LPUインフラストラクチャ)** 一方で、ソフトウェアモデルそのものではなく、AIを動かすための物理ハードウェア（LPU）に特化したGroq（証明URL: <https://groq.com/pricing）は、オープンソースモデルを超高速で提供するクラウドプラットフォーム「GroqCloud」を展開している34。同プラットフォームでは、LlamaやMistralなどのモデル群がトークンベースで販売されているが、その提供価値の源泉は「Time-to-first-token（最初のトークンが出力されるまでの時間）の極小化」と「超並列処理による高いトークン生成速度（Tokens/Second）」にある25。また、SOC> 2、GDPR、HIPAAといった厳格なコンプライアンス認証を取得し、規制の厳しい金融や医療業界向けにオンプレミス導入オプション（GroqRack）も提供しており、エッジとクラウドの中間領域における推論需要を独占しようとしている36。
+**Groq (LPUインフラストラクチャ)** 一方で、ソフトウェアモデルそのものではなく、AIを動かすための物理ハードウェア（LPU）に特化したGroq（証明URL: https://groq.com/pricing）は、オープンソースモデルを超高速で提供するクラウドプラットフォーム「GroqCloud」を展開している34。同プラットフォームでは、LlamaやMistralなどのモデル群がトークンベースで販売されているが、その提供価値の源泉は「Time-to-first-token（最初のトークンが出力されるまでの時間）の極小化」と「超並列処理による高いトークン生成速度（Tokens/Second）」にある25。また、SOC 2、GDPR、HIPAAといった厳格なコンプライアンス認証を取得し、規制の厳しい金融や医療業界向けにオンプレミス導入オプション（GroqRack）も提供しており、エッジとクラウドの中間領域における推論需要を独占しようとしている36。
 
 ### **Perplexity: 検索特化型AIのプレミアム価格戦略**
 
-LLMを単なる文章生成エンジンとしてではなく、最新情報の検索と統合に特化したナレッジエンジンとして再定義したPerplexityのAPI（証明URL: <https://docs.perplexity.ai/docs/getting-started/pricing）は、プロンプトの文字数ではなく「検索の深さと推論の重さ」に基づいた極めてユニークな料金体系を構築している37。>
+LLMを単なる文章生成エンジンとしてではなく、最新情報の検索と統合に特化したナレッジエンジンとして再定義したPerplexityのAPI（証明URL: https://docs.perplexity.ai/docs/getting-started/pricing）は、プロンプトの文字数ではなく「検索の深さと推論の重さ」に基づいた極めてユニークな料金体系を構築している37。
 
 | API モデル名 | 入力価格 ($) | 出力価格 ($) | 推論(Reasoning)トークン ($) |
 | :---- | :---- | :---- | :---- |
-| **Sonar** | $1.00 | $1.00 | \- |
-| **Sonar Pro** | $3.00 | $15.00 | \- |
-| **Sonar Reasoning Pro** | $2.00 | $8.00 | \- |
+| **Sonar** | $1.00 | $1.00 | - |
+| **Sonar Pro** | $3.00 | $15.00 | - |
+| **Sonar Reasoning Pro** | $2.00 | $8.00 | - |
 | **Sonar Deep Research** | $2.00 | $8.00 | $3.00 |
 
 さらに、これらのモデル単価に加えて、バックグラウンドで実行される「検索コンテキストのサイズ（検索網羅性の深さ）」に応じた固定のリクエスト手数料が加算される37。
@@ -214,7 +214,7 @@ API以外のエンドユーザー向けサブスクリプションにおいて�
 
 **【正しい数値の証明となる公式URLディレクトリ】**
 
-対象サイトの管理者がデータを修正する際、あるいは開発者が新たなコスト計算ツールをスクラッチから構築する際に参照すべき、各公式の最新（2026年）プライシングページのURLは以下の通りである。これらが本レポートにおける各金額の完全な証明となる一次情報ソースである。
+対象サイトの管理者がデータを修正する際、あるいは開発者が新たなコスト計算ツールをスクラッチから構築する際に参照すべき、各公式の最新（2026年）プライシングページのURLは以下の通りである。これらが本レポートにおける各金額が一次情報に基づくことを示す一次情報ソースである。
 
 * **OpenAI 公式料金ページ** (GPT-5.2, GPT-5 mini, ファインチューニング, Realtime API 等)  
   * URL: <https://openai.com/api/pricing/> 7  
@@ -223,8 +223,8 @@ API以外のエンドユーザー向けサブスクリプションにおいて�
 * **Google Gemini 公式料金ページ** (Gemini 3.1 Pro, 2.0 Flash, 時間単位のキャッシュストレージ課金)  
   * URL: <https://ai.google.dev/pricing> 16  
 * **DeepSeek 公式料金ページ** (DeepSeek-V3.2 Chat / Reasoner ユニファイド・プライシング)  
-  * URL: <https://api-docs.deepseek.com/quick\_start/pricing/> 9  
-* **Mistral AI 公式料金ページ** (Mistral Large 3, Medium 3, Small 4\)  
+  * URL: <https://api-docs.deepseek.com/quick_start/pricing/> 9  
+* **Mistral AI 公式料金ページ** (Mistral Large 3, Medium 3, Small 4)  
   * URL: <https://mistral.ai/pricing> 23  
 * **xAI (Grok) 公式料金ページ** (200万コンテキストのGrok 4.1 Fast)  
   * URL: <https://x.ai/api> 33  
@@ -235,45 +235,48 @@ API以外のエンドユーザー向けサブスクリプションにおいて�
 
 したがって、「参考リンク集」から単一のテキスト値を抜き出してテーブルに流し込むような旧来のスクレイパー型のコスト計算ツールは、ユーザーに対して意図せず誤った、あるいは過小評価されたインフラストラクチャの予算見積もりを提示するリスク（技術的負債）を抱えることになる。次世代のAIモデルコスト計算ツールを設計する上では、ユーザーに想定される「平均プロンプト長」「キャッシュヒット率の予測値」「推論を必要とする複雑なタスクの割合」を入力させる動的なシミュレーション機能をフロントエンドに組み込むことが、正確性を担保するための最低条件となる。本レポートで整理された各プロバイダーの複雑な料金体系とアーキテクチャの因果関係が、そのシステム設計の基盤となるべきである。
 
-#### **引用文献**
+### **引用文献**
 
-1. ai-model-cost-calculator.netlify.app, 2月 27, 2026にアクセス、 [https://ai-model-cost-calculator.netlify.app/](https://ai-model-cost-calculator.netlify.app/)  
-2. Bolt.new \+ Vite \+ React, 2月 27, 2026にアクセス、 [https://aicostcalculator.netlify.app/](https://aicostcalculator.netlify.app/)  
-3. Pricing for AI features | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/pricing-for-ai-features/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/pricing-for-ai-features/)  
-4. How credits work | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/)  
-5. Credit-based pricing plans | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/)  
-6. Pricing and Plans | Netlify, 2月 27, 2026にアクセス、 [https://www.netlify.com/pricing/](https://www.netlify.com/pricing/)  
-7. Pricing | OpenAI, 2月 27, 2026にアクセス、 [https://openai.com/api/pricing/](https://openai.com/api/pricing/)  
-8. Plans & Pricing | Claude by Anthropic, 2月 27, 2026にアクセス、 [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)  
-9. Models & Pricing | DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick\_start/pricing/](https://api-docs.deepseek.com/quick_start/pricing/)  
-10. Compare models | OpenAI API, 2月 27, 2026にアクセス、 [https://developers.openai.com/api/docs/models/compare](https://developers.openai.com/api/docs/models/compare)  
-11. LLM API Pricing Comparison (2025): OpenAI, Gemini, Claude \- IntuitionLabs.ai, 2月 27, 2026にアクセス、 [https://intuitionlabs.ai/articles/llm-api-pricing-comparison-2025](https://intuitionlabs.ai/articles/llm-api-pricing-comparison-2025)  
-12. Azure OpenAI Service \- Pricing, 2月 27, 2026にアクセス、 [https://azure.microsoft.com/en-us/pricing/details/azure-openai/](https://azure.microsoft.com/en-us/pricing/details/azure-openai/)  
-13. Pricing \- Claude API Docs, 2月 27, 2026にアクセス、 [https://platform.claude.com/docs/en/about-claude/pricing](https://platform.claude.com/docs/en/about-claude/pricing)  
-14. Anthropic Claude API Pricing 2026: Complete Cost Breakdown \- MetaCTO, 2月 27, 2026にアクセス、 [https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration](https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration)  
-15. Claude Sonnet 4.6 \- Anthropic, 2月 27, 2026にアクセス、 [https://www.anthropic.com/claude/sonnet](https://www.anthropic.com/claude/sonnet)  
-16. Gemini Developer API pricing | Gemini API | Google AI for Developers, 2月 27, 2026にアクセス、 [https://ai.google.dev/pricing](https://ai.google.dev/pricing)  
-17. Gemini AI Pricing: What You'll Really Pay In 2025 \- CloudZero, 2月 27, 2026にアクセス、 [https://www.cloudzero.com/blog/gemini-pricing/](https://www.cloudzero.com/blog/gemini-pricing/)  
-18. Gemini Developer API pricing, 2月 27, 2026にアクセス、 [https://ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing)  
-19. pricing-details-usd \- DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick\_start/pricing-details-usd](https://api-docs.deepseek.com/quick_start/pricing-details-usd)  
-20. DeepSeek API Pricing Calculator & Cost Guide (Feb 2026\) \- CostGoat, 2月 27, 2026にアクセス、 [https://costgoat.com/pricing/deepseek-api](https://costgoat.com/pricing/deepseek-api)  
-21. Introducing DeepSeek-V3.2-Exp, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/news/news250929](https://api-docs.deepseek.com/news/news250929)  
-22. Models & Pricing \- DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick\_start/pricing](https://api-docs.deepseek.com/quick_start/pricing)  
-23. Pricing \- Mistral AI, 2月 27, 2026にアクセス、 [https://mistral.ai/pricing](https://mistral.ai/pricing)  
-24. Mistral Large 3, 2月 27, 2026にアクセス、 [https://docs.mistral.ai/models/mistral-large-3-25-12](https://docs.mistral.ai/models/mistral-large-3-25-12)  
-25. Top 11 LLM API Providers in 2026\. GPT-5 vs. Claude 4.5 vs ..., 2月 27, 2026にアクセス、 [https://medium.com/@future\_agi/top-11-llm-api-providers-in-2026-7eb5d235ef27](https://medium.com/@future_agi/top-11-llm-api-providers-in-2026-7eb5d235ef27)  
-26. Mistral Small (Sep '24) Intelligence, Performance & Price Analysis, 2月 27, 2026にアクセス、 [https://artificialanalysis.ai/models/mistral-small](https://artificialanalysis.ai/models/mistral-small)  
-27. Mistral AI Provider \- Complete Guide to Models, Reasoning, and API Integration \- Promptfoo, 2月 27, 2026にアクセス、 [https://www.promptfoo.dev/docs/providers/mistral/](https://www.promptfoo.dev/docs/providers/mistral/)  
-28. Azure Ai/mistral Large 3 Pricing \- azure | LLM API Costs \- Holori Calculator, 2月 27, 2026にアクセス、 [https://calculator.holori.com/llm/azure/azure\_ai%2Fmistral-large-3](https://calculator.holori.com/llm/azure/azure_ai%2Fmistral-large-3)  
-29. Mistral Large 3: API Provider Performance Benchmarking & Price Analysis, 2月 27, 2026にアクセス、 [https://artificialanalysis.ai/models/mistral-large-3/providers](https://artificialanalysis.ai/models/mistral-large-3/providers)  
-30. Mistral AI: Frontier AI LLMs, assistants, agents, services, 2月 27, 2026にアクセス、 [https://mistral.ai/](https://mistral.ai/)  
-31. Mistral AI Studio \- your AI production platform, 2月 27, 2026にアクセス、 [https://mistral.ai/products/studio](https://mistral.ai/products/studio)  
-32. Mistral AI pricing and plans guide for the UK \- Wise, 2月 27, 2026にアクセス、 [https://wise.com/gb/blog/mistral-ai-pricing](https://wise.com/gb/blog/mistral-ai-pricing)  
-33. API: Frontier Models for Reasoning & Enterprise \- xAI, 2月 27, 2026にアクセス、 [https://x.ai/api](https://x.ai/api)  
-34. A complete guide to Groq pricing in 2025 \- eesel AI, 2月 27, 2026にアクセス、 [https://www.eesel.ai/blog/groq-pricing](https://www.eesel.ai/blog/groq-pricing)  
-35. Groq On-Demand Pricing for Tokens-as-a-Service, 2月 27, 2026にアクセス、 [https://groq.com/pricing](https://groq.com/pricing)  
-36. GroqCloud | Groq is fast, low cost inference., 2月 27, 2026にアクセス、 [https://groq.com/groqcloud](https://groq.com/groqcloud)  
-37. Pricing \- Perplexity, 2月 27, 2026にアクセス、 [https://docs.perplexity.ai/docs/getting-started/pricing](https://docs.perplexity.ai/docs/getting-started/pricing)  
-38. Perplexity Pricing in 2026 for Individuals, Orgs & Developers \- Finout, 2月 27, 2026にアクセス、 [https://www.finout.io/blog/perplexity-pricing-in-2026](https://www.finout.io/blog/perplexity-pricing-in-2026)  
-39. Perplexity Price in 2026: Full Plan and Cost Breakdown \- Global GPT, 2月 27, 2026にアクセス、 [https://www.glbgpt.com/hub/perplexity-price-in-2025/](https://www.glbgpt.com/hub/perplexity-price-in-2025/)  
-40. Perplexity Enterprise Pricing \- Get Started Today, 2月 27, 2026にアクセス、 [https://www.perplexity.ai/enterprise/pricing](https://www.perplexity.ai/enterprise/pricing)
+7. Pricing | OpenAI, 2月 27, 2026にアクセス、 [https://openai.com/api/pricing/](https://openai.com/api/pricing/) [一次]  
+8. Plans & Pricing | Claude by Anthropic, 2月 27, 2026にアクセス、 [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing) [一次]  
+9. Models & Pricing | DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick_start/pricing/](https://api-docs.deepseek.com/quick_start/pricing/) [一次]  
+10. Compare models | OpenAI API, 2月 27, 2026にアクセス、 [https://developers.openai.com/api/docs/models/compare](https://developers.openai.com/api/docs/models/compare) [一次]  
+12. Azure OpenAI Service - Pricing, 2月 27, 2026にアクセス、 [https://azure.microsoft.com/en-us/pricing/details/azure-openai/](https://azure.microsoft.com/en-us/pricing/details/azure-openai/) [一次]  
+13. Pricing - Claude API Docs, 2月 27, 2026にアクセス、 [https://platform.claude.com/docs/en/about-claude/pricing](https://platform.claude.com/docs/en/about-claude/pricing) [一次]  
+15. Claude Sonnet 4.6 - Anthropic, 2月 27, 2026にアクセス、 [https://www.anthropic.com/claude/sonnet](https://www.anthropic.com/claude/sonnet) [一次]  
+16. Gemini Developer API pricing | Gemini API | Google AI for Developers, 2月 27, 2026にアクセス、 [https://ai.google.dev/pricing](https://ai.google.dev/pricing) [一次]  
+18. Gemini Developer API pricing, 2月 27, 2026にアクセス、 [https://ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) [一次]  
+19. pricing-details-usd - DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick_start/pricing-details-usd](https://api-docs.deepseek.com/quick_start/pricing-details-usd) [一次]  
+21. Introducing DeepSeek-V3.2-Exp, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/news/news250929](https://api-docs.deepseek.com/news/news250929) [一次]  
+22. Models & Pricing - DeepSeek API Docs, 2月 27, 2026にアクセス、 [https://api-docs.deepseek.com/quick_start/pricing](https://api-docs.deepseek.com/quick_start/pricing) [一次]  
+23. Pricing - Mistral AI, 2月 27, 2026にアクセス、 [https://mistral.ai/pricing](https://mistral.ai/pricing) [一次]  
+24. Mistral Large 3, 2月 27, 2026にアクセス、 [https://docs.mistral.ai/models/mistral-large-3-25-12](https://docs.mistral.ai/models/mistral-large-3-25-12) [一次]  
+30. Mistral AI: Frontier AI LLMs, assistants, agents, services, 2月 27, 2026にアクセス、 [https://mistral.ai/](https://mistral.ai/) [一次]  
+31. Mistral AI Studio - your AI production platform, 2月 27, 2026にアクセス、 [https://mistral.ai/products/studio](https://mistral.ai/products/studio) [一次]  
+33. API: Frontier Models for Reasoning & Enterprise - xAI, 2月 27, 2026にアクセス、 [https://x.ai/api](https://x.ai/api) [一次]  
+35. Groq On-Demand Pricing for Tokens-as-a-Service, 2月 27, 2026にアクセス、 [https://groq.com/pricing](https://groq.com/pricing) [一次]  
+36. GroqCloud | Groq is fast, low cost inference., 2月 27, 2026にアクセス、 [https://groq.com/groqcloud](https://groq.com/groqcloud) [一次]  
+37. Pricing - Perplexity, 2月 27, 2026にアクセス、 [https://docs.perplexity.ai/docs/getting-started/pricing](https://docs.perplexity.ai/docs/getting-started/pricing) [一次]  
+40. Perplexity Enterprise Pricing - Get Started Today, 2月 27, 2026にアクセス、 [https://www.perplexity.ai/enterprise/pricing](https://www.perplexity.ai/enterprise/pricing) [一次]  
+
+### **補足（二次情報）**
+
+1. ai-model-cost-calculator.netlify.app, 2月 27, 2026にアクセス、 [https://ai-model-cost-calculator.netlify.app/](https://ai-model-cost-calculator.netlify.app/) [二次]  
+2. Bolt.new \+ Vite \+ React, 2月 27, 2026にアクセス、 [https://aicostcalculator.netlify.app/](https://aicostcalculator.netlify.app/) [二次]  
+3. Pricing for AI features | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/pricing-for-ai-features/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/pricing-for-ai-features/) [二次]  
+4. How credits work | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/) [二次]  
+5. Credit-based pricing plans | Netlify Docs, 2月 27, 2026にアクセス、 [https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/) [二次]  
+6. Pricing and Plans | Netlify, 2月 27, 2026にアクセス、 [https://www.netlify.com/pricing/](https://www.netlify.com/pricing/) [二次]  
+11. LLM API Pricing Comparison (2025): OpenAI, Gemini, Claude - IntuitionLabs.ai, 2月 27, 2026にアクセス、 [https://intuitionlabs.ai/articles/llm-api-pricing-comparison-2025](https://intuitionlabs.ai/articles/llm-api-pricing-comparison-2025) [二次]  
+14. Anthropic Claude API Pricing 2026: Complete Cost Breakdown - MetaCTO, 2月 27, 2026にアクセス、 [https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration](https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration) [二次]  
+17. Gemini AI Pricing: What You'll Really Pay In 2025 - CloudZero, 2月 27, 2026にアクセス、 [https://www.cloudzero.com/blog/gemini-pricing/](https://www.cloudzero.com/blog/gemini-pricing/) [二次]  
+20. DeepSeek API Pricing Calculator & Cost Guide (Feb 2026) - CostGoat, 2月 27, 2026にアクセス、 [https://costgoat.com/pricing/deepseek-api](https://costgoat.com/pricing/deepseek-api) [二次]  
+25. Top 11 LLM API Providers in 2026. GPT-5 vs. Claude 4.5 vs ..., 2月 27, 2026にアクセス、 [https://medium.com/@future_agi/top-11-llm-api-providers-in-2026-7eb5d235ef27](https://medium.com/@future_agi/top-11-llm-api-providers-in-2026-7eb5d235ef27) [二次]  
+26. Mistral Small (Sep '24) Intelligence, Performance & Price Analysis, 2月 27, 2026にアクセス、 [https://artificialanalysis.ai/models/mistral-small](https://artificialanalysis.ai/models/mistral-small) [二次]  
+27. Mistral AI Provider - Complete Guide to Models, Reasoning, and API Integration - Promptfoo, 2月 27, 2026にアクセス、 [https://www.promptfoo.dev/docs/providers/mistral/](https://www.promptfoo.dev/docs/providers/mistral/) [二次]  
+28. Azure Ai/mistral Large 3 Pricing - azure | LLM API Costs - Holori Calculator, 2月 27, 2026にアクセス、 [https://calculator.holori.com/llm/azure/azure_ai%2Fmistral-large-3](https://calculator.holori.com/llm/azure/azure_ai%2Fmistral-large-3) [二次]  
+29. Mistral Large 3: API Provider Performance Benchmarking & Price Analysis, 2月 27, 2026にアクセス、 [https://artificialanalysis.ai/models/mistral-large-3/providers](https://artificialanalysis.ai/models/mistral-large-3/providers) [二次]  
+32. Mistral AI pricing and plans guide for the UK - Wise, 2月 27, 2026にアクセス、 [https://wise.com/gb/blog/mistral-ai-pricing](https://wise.com/gb/blog/mistral-ai-pricing) [二次]  
+34. A complete guide to Groq pricing in 2025 - eesel AI, 2月 27, 2026にアクセス、 [https://www.eesel.ai/blog/groq-pricing](https://www.eesel.ai/blog/groq-pricing) [二次]  
+38. Perplexity Pricing in 2026 for Individuals, Orgs & Developers - Finout, 2月 27, 2026にアクセス、 [https://www.finout.io/blog/perplexity-pricing-in-2026](https://www.finout.io/blog/perplexity-pricing-in-2026) [二次]  
+39. Perplexity Price in 2026: Full Plan and Cost Breakdown - Global GPT, 2月 27, 2026にアクセス、 [https://www.glbgpt.com/hub/perplexity-price-in-2025/](https://www.glbgpt.com/hub/perplexity-price-in-2025/) [二次]  
