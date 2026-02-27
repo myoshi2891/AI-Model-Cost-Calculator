@@ -71,6 +71,7 @@
   // href が安全なプロトコルかを検証（javascript: 等を排除）
   const isSafeHref = (href) => {
     if (typeof href !== 'string') return false;
+    if (href.startsWith('//')) return false; // プロトコル相対URL拒否
     if (href.startsWith('/') || href.startsWith('./')) return true;
     try {
       const url = new URL(href, window.location.origin);

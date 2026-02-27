@@ -11,9 +11,9 @@ This directory contains the React 19 frontend for the AI Model Pricing Calculato
 
 ## Key Features
 
-- **Single-File Output**: All CSS, JS, and data are inlined into a single HTML file during the build process (`assetsInlineLimit: 100_000_000`). This ensures maximum portability and no reliance on external assets.
+- **Single-File Output**: All React application CSS, JS, and pricing data are inlined into a single HTML file during the build process (`assetsInlineLimit: 100_000_000`). The application core has no external asset dependencies.
 - **Dynamic Pricing Data**: Evaluates and displays data fetched statically from `src/data/pricing.json`. This JSON is automatically copied over by the Python scraper process.
-- **Common Header Integration**: The built application automatically resolves and injects `common-header.js` and `common-header.css` from the project root. This ensures that the primary calculator and model documentation files (like `claude/skill.html`) share identical and consistent responsive navigation with dropdown menus.
+- **Common Header Integration**: At runtime, a small inline bootstrap script loads `common-header.js` and `common-header.css` from the project root to provide shared site-wide navigation (dropdown menus) across the calculator and model documentation pages (e.g., `claude/skill.html`). These files are **not** inlined into the build output.
 - **Bilingual Interface**: Full support for English and Japanese text using a lightweight custom hook based on `src/i18n.ts`.
 
 ## Setup & Scripts
