@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code サブエージェント Markdownファイル ベストプラクティス</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #f97316;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #60a5fa;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --tag-bg: #1f2937;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --success: #34d399;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.7; }
+
+  /* ── Layout ── */
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+  
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d1117 40%, #0a1929 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    margin-bottom: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4); color: var(--accent); border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 20px; }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.2; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero p { color: var(--text-muted); font-size: 1.05rem; max-width: 640px; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 56px; }
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  .section-title .num { background: var(--accent); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; }
+  
+  /* ── Card ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; }
+  .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card p { color: #c9d1d9; margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ── File tree diagram ── */
+  .file-tree {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+  .file-tree .dir  { color: #60a5fa; font-weight: 600; }
+  .file-tree .file-md   { color: #fbbf24; }
+  .file-tree .file-comment { color: #6e7681; font-style: italic; }
+  .file-tree .indent { color: #30363d; }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .code-header { background: var(--surface2); padding: 8px 16px; font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .code-lang { color: var(--accent2); font-weight: 600; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .code-body { padding: 20px 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; white-space: pre; }
+  .hl-key   { color: #ff7b72; }
+  .hl-str   { color: #a5d6ff; }
+  .hl-val   { color: #79c0ff; }
+  .hl-cmt   { color: #8b949e; font-style: italic; }
+  .hl-head  { color: #f97316; font-weight: 700; }
+  .hl-sub   { color: #34d399; font-weight: 600; }
+  .hl-warn  { color: #fbbf24; }
+  .hl-good  { color: #34d399; }
+  .hl-bad   { color: #f87171; }
+
+  /* ── Diagram: agent architecture ── */
+  .arch-diagram { background: #010409; border: 1px solid var(--border); border-radius: 12px; padding: 32px 24px; margin: 24px 0; }
+  .arch-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .arch-box {
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    min-width: 130px;
+    line-height: 1.3;
+  }
+  .box-main   { background: rgba(167,139,250,0.2); border: 2px solid rgba(167,139,250,0.6); color: #a78bfa; }
+  .box-agent  { background: rgba(52,211,153,0.15); border: 2px solid rgba(52,211,153,0.5); color: #34d399; }
+  .box-file   { background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.4); color: #fbbf24; font-weight: 600; font-family: monospace; font-size: 12px; padding: 8px 14px; }
+  .arch-arrow { color: var(--text-muted); font-size: 22px; line-height: 1; }
+  .arch-label { text-align: center; color: var(--text-muted); font-size: 12px; margin-top: -6px; margin-bottom: 16px; }
+
+  /* ── Best / Anti pattern ── */
+  .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media(max-width:640px) { .pattern-grid { grid-template-columns: 1fr; } }
+  .pat { border-radius: 10px; padding: 16px 18px; }
+  .pat-good { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.3); }
+  .pat-bad  { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.3); }
+  .pat-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .pat-good .pat-title { color: var(--success); }
+  .pat-bad  .pat-title { color: var(--danger); }
+  .pat ul { list-style: none; padding: 0; }
+  .pat ul li { font-size: 13px; color: #c9d1d9; padding: 3px 0; padding-left: 18px; position: relative; }
+  .pat-good ul li::before { content: '✓'; position: absolute; left: 0; color: var(--success); }
+  .pat-bad  ul li::before { content: '✗'; position: absolute; left: 0; color: var(--danger); }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { background: var(--surface2); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid #21262d; color: #c9d1d9; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td code, th code { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 12px; color: #fbbf24; }
+
+  /* ── Badge ── */
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .badge-orange { background: rgba(249,115,22,0.2); color: var(--accent); border: 1px solid rgba(249,115,22,0.4); }
+  .badge-purple { background: rgba(167,139,250,0.2); color: var(--accent2); border: 1px solid rgba(167,139,250,0.4); }
+  .badge-green  { background: rgba(52,211,153,0.15); color: var(--accent3); border: 1px solid rgba(52,211,153,0.4); }
+  .badge-blue   { background: rgba(96,165,250,0.15); color: var(--accent4); border: 1px solid rgba(96,165,250,0.4); }
+
+  /* ── Tips ── */
+  .tip { border-radius: 8px; padding: 14px 18px; margin: 14px 0; display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; }
+  .tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .tip-info    { background: rgba(96,165,250,0.1);  border-left: 3px solid #60a5fa; }
+  .tip-warn    { background: rgba(251,191,36,0.08); border-left: 3px solid #fbbf24; }
+  .tip-danger  { background: rgba(248,113,113,0.08);border-left: 3px solid #f87171; }
+  .tip-success { background: rgba(52,211,153,0.08); border-left: 3px solid #34d399; }
+  .tip-content strong { display: block; margin-bottom: 4px; }
+
+  /* ── Routing decision tree ── */
+  .decision-tree { background: #010409; border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin: 20px 0; font-size: 13px; }
+  .dt-node { border-radius: 8px; padding: 10px 16px; display: inline-block; font-weight: 600; }
+  .dt-q    { background: rgba(167,139,250,0.2); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; }
+  .dt-yes  { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4); color: #6ee7b7; }
+  .dt-no   { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+  .dt-row  { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+  .dt-line { color: var(--text-muted); font-size: 20px; }
+
+  /* ── Sources ── */
+  .source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; }
+  .source-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .source-title { font-size: 13px; font-weight: 700; color: var(--accent4); margin-bottom: 6px; }
+  .source-url { font-size: 11px; color: var(--text-muted); word-break: break-all; font-family: monospace; }
+  .source-desc { font-size: 12px; color: #8b949e; margin-top: 6px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  a { color: var(--accent4); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .mono { font-family: monospace; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 12.5px; color: #fbbf24; }
+
+  /* ── Agent Teams specific ── */
+  .at-banner {
+    background: linear-gradient(135deg, #0a2a1a 0%, #0d1117 50%, #100828 100%);
+    border: 2px solid rgba(52,211,153,0.4);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .at-banner::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(52,211,153,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .at-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4);
+    border-radius: 20px; padding: 4px 14px;
+    font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--accent3); margin-bottom: 14px;
+  }
+  .at-banner h3 { font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 10px; }
+  .at-banner p  { color: #8b949e; font-size: 14px; line-height: 1.7; }
+
+  /* comparison grid */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media(max-width:640px) { .compare-grid { grid-template-columns: 1fr; } }
+  .cmp { border-radius: 10px; padding: 18px 20px; }
+  .cmp-sub  { background: rgba(96,165,250,0.07);  border: 1px solid rgba(96,165,250,0.3); }
+  .cmp-team { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.3); }
+  .cmp-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+  .cmp-sub  .cmp-title { color: var(--accent4); }
+  .cmp-team .cmp-title { color: var(--accent3); }
+  .cmp ul { list-style: none; }
+  .cmp ul li { font-size: 13px; color: #c9d1d9; padding: 3px 0 3px 18px; position: relative; }
+  .cmp ul li::before { content: '▸'; position: absolute; left: 0; opacity: .5; }
+
+  /* flow steps */
+  .flow-steps { display: flex; gap: 0; margin: 16px 0; flex-wrap: wrap; align-items: flex-start; }
+  .flow-step { flex: 1; min-width: 100px; text-align: center; }
+  .flow-box { border-radius: 10px; padding: 14px 10px; font-size: 12px; font-weight: 700; margin: 0 4px; }
+  .fb-lead { background: rgba(167,139,250,0.2); border: 2px solid rgba(167,139,250,0.6); color: #a78bfa; }
+  .fb-task { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4); color: #fbbf24; }
+  .fb-mate { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); color: #34d399; }
+  .fb-hook { background: rgba(248,113,113,0.1);  border: 1px solid rgba(248,113,113,0.4); color: #f87171; }
+  .flow-arrow { display: flex; align-items: center; color: #30363d; font-size: 22px; padding: 20px 2px 0; flex-shrink: 0; }
+  .flow-label { font-size: 10.5px; color: #6e7681; margin-top: 6px; text-align: center; }
+
+  /* use case cards */
+  .usecase-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+  @media(max-width:640px) { .usecase-grid { grid-template-columns: 1fr; } }
+  .uc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .uc-icon { font-size: 24px; margin-bottom: 8px; }
+  .uc-title { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+  .uc-desc  { font-size: 12.5px; color: #8b949e; line-height: 1.6; }
+  .uc-prompt { margin-top: 10px; font-size: 11.5px; background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-family: monospace; color: #34d399; line-height: 1.6; }
+
+  /* section with green accent */
+  .section-team .section-title .num { background: linear-gradient(135deg, #34d399, #059669); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🤖 Claude Code 完全ガイド — 2026年 Agent Teams 対応版</div>
+    <h1>サブエージェント + Agent Teams 開発における<br>Markdownファイル ベストプラクティス</h1>
+    <p>CLAUDE.md・エージェント定義 .md・MEMORY.md・README.md ── それぞれの役割と書き方を体系的に解説します。さらに <strong>2026年2月リリースの Agent Teams（実験的機能）</strong>における CLAUDE.md 設計・タスクファイル管理・hooks 設定の最新ベストプラクティスを追記しています。</p>
+  </div>
+
+  <!-- 1. アーキテクチャ全体像 -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span>全体アーキテクチャと各 Markdown の位置づけ</div>
+    <div class="card">
+      <p>Claude Code におけるサブエージェント開発では、以下の 4 種類のMarkdownファイルが重要な役割を担います。</p>
+    </div>
+
+    <div class="arch-diagram">
+      <div style="text-align:center;margin-bottom:20px;color:#8b949e;font-size:12px;text-transform:uppercase;letter-spacing:.1em;">FILE HIERARCHY &amp; DATA FLOW</div>
+      <div class="arch-row">
+        <div class="arch-box box-file">CLAUDE.md<br><small style="color:#8b949e;font-weight:400;">プロジェクトルート</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box box-main">Main Agent<br>(Claude Code)</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box box-file">.claude/agents/<br><small style="color:#8b949e;font-weight:400;">*.md</small></div>
+      </div>
+      <div style="text-align:center;color:#30363d;font-size:22px;margin:4px 0;">↓</div>
+      <div class="arch-row">
+        <div class="arch-box box-agent">pm-spec<br><small>Agent</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box box-agent">architect<br><small>Agent</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box box-agent">implementer<br><small>Agent</small></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box box-agent">reviewer<br><small>Agent</small></div>
+      </div>
+      <div style="text-align:center;color:#30363d;font-size:22px;margin:4px 0;">↓ ↓ ↓ ↓</div>
+      <div class="arch-row">
+        <div class="arch-box box-file">MEMORY.md</div>
+        <div class="arch-box box-file">MEMORY.md</div>
+        <div class="arch-box box-file">MEMORY.md</div>
+        <div class="arch-box box-file">MEMORY.md</div>
+      </div>
+      <div class="arch-label">各サブエージェントが独立したコンテキストウィンドウと MEMORY.md を持つ</div>
+    </div>
+
+    <!-- SVG File Tree Diagram -->
+    <div style="background:#010409; border:1px solid #30363d; border-radius:12px; overflow:hidden; margin-top:8px;">
+      <div style="background:#161b22; border-bottom:1px solid #30363d; padding:10px 18px; display:flex; align-items:center; gap:8px;">
+        <span style="width:12px;height:12px;border-radius:50%;background:#f87171;display:inline-block;"></span>
+        <span style="width:12px;height:12px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
+        <span style="width:12px;height:12px;border-radius:50%;background:#34d399;display:inline-block;"></span>
+        <span style="margin-left:12px;color:#8b949e;font-size:12px;font-family:monospace;">project-root/ — ファイル構造</span>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 700" width="100%" style="display:block;" font-family="-apple-system,'Segoe UI',sans-serif">
+        <defs>
+          <linearGradient id="ftBadge1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f97316"/><stop offset="100%" style="stop-color:#fb923c"/></linearGradient>
+          <linearGradient id="ftBadge2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#a78bfa"/><stop offset="100%" style="stop-color:#c4b5fd"/></linearGradient>
+          <linearGradient id="ftBadge3" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#34d399"/><stop offset="100%" style="stop-color:#6ee7b7"/></linearGradient>
+          <linearGradient id="ftBadge4" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#60a5fa"/><stop offset="100%" style="stop-color:#93c5fd"/></linearGradient>
+          <linearGradient id="ftBadgeCmd" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#f43f5e"/><stop offset="100%" style="stop-color:#fb7185"/></linearGradient>
+        </defs>
+        <rect width="920" height="700" fill="#010409"/>
+
+        <!-- ─── LEGEND (right) ─── -->
+        <rect x="658" y="18" width="244" height="192" rx="10" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+        <text x="780" y="40" text-anchor="middle" fill="#8b949e" font-size="11" letter-spacing="1">LEGEND</text>
+        <!-- ① -->
+        <rect x="674" y="50" width="22" height="22" rx="5" fill="url(#ftBadge1)"/>
+        <text x="685" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="800">①</text>
+        <text x="704" y="65" font-size="12" fill="#e6edf3">CLAUDE.md（常時ロード）</text>
+        <!-- ② -->
+        <rect x="674" y="82" width="22" height="22" rx="5" fill="url(#ftBadge2)"/>
+        <text x="685" y="97" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="704" y="97" font-size="12" fill="#e6edf3">エージェント定義</text>
+        <!-- ③ -->
+        <rect x="674" y="114" width="22" height="22" rx="5" fill="url(#ftBadge3)"/>
+        <text x="685" y="129" text-anchor="middle" fill="white" font-size="12" font-weight="800">③</text>
+        <text x="704" y="129" font-size="12" fill="#e6edf3">MEMORY.md（学習記憶）</text>
+        <!-- ④ -->
+        <rect x="674" y="146" width="22" height="22" rx="5" fill="url(#ftBadge4)"/>
+        <text x="685" y="161" text-anchor="middle" fill="white" font-size="12" font-weight="800">④</text>
+        <text x="704" y="161" font-size="12" fill="#e6edf3">README.md（人間向け）</text>
+        <!-- /cmd -->
+        <rect x="674" y="178" width="68" height="22" rx="5" fill="url(#ftBadgeCmd)"/>
+        <text x="708" y="193" text-anchor="middle" fill="white" font-size="11" font-weight="700">/command</text>
+        <text x="750" y="193" font-size="12" fill="#e6edf3">スラッシュコマンド</text>
+
+        <!-- ─── TREE LINES ─── -->
+        <!-- L0→L1 vertical spine -->
+        <line x1="44" y1="50" x2="44" y2="636" stroke="#30363d" stroke-width="1.5"/>
+        <!-- ROW 1: CLAUDE.md root -->
+        <line x1="44" y1="50" x2="70" y2="50" stroke="#30363d" stroke-width="1.5"/>
+        <!-- ROW 2: .claude/ -->
+        <line x1="44" y1="110" x2="70" y2="110" stroke="#30363d" stroke-width="1.5"/>
+        <!-- L1 .claude spine -->
+        <line x1="86" y1="110" x2="86" y2="530" stroke="#30363d" stroke-width="1.5"/>
+        <!-- agents/ branch -->
+        <line x1="86" y1="160" x2="112" y2="160" stroke="#30363d" stroke-width="1.5"/>
+        <!-- L2 agents spine -->
+        <line x1="128" y1="160" x2="128" y2="340" stroke="#30363d" stroke-width="1.5"/>
+        <!-- pm-spec.md -->
+        <line x1="128" y1="200" x2="154" y2="200" stroke="#30363d" stroke-width="1.5"/>
+        <!-- architect-review.md -->
+        <line x1="128" y1="240" x2="154" y2="240" stroke="#30363d" stroke-width="1.5"/>
+        <!-- implementer.md -->
+        <line x1="128" y1="280" x2="154" y2="280" stroke="#30363d" stroke-width="1.5"/>
+        <!-- code-reviewer.md -->
+        <line x1="128" y1="320" x2="154" y2="320" stroke="#30363d" stroke-width="1.5"/>
+        <!-- memory/ branch -->
+        <line x1="86" y1="380" x2="112" y2="380" stroke="#30363d" stroke-width="1.5"/>
+        <!-- L2 memory spine -->
+        <line x1="128" y1="380" x2="128" y2="450" stroke="#30363d" stroke-width="1.5"/>
+        <!-- code-reviewer/MEMORY.md -->
+        <line x1="128" y1="420" x2="154" y2="420" stroke="#30363d" stroke-width="1.5"/>
+        <!-- architect/MEMORY.md -->
+        <line x1="128" y1="458" x2="154" y2="458" stroke="#30363d" stroke-width="1.5"/>
+        <!-- commands/ branch -->
+        <line x1="86" y1="510" x2="112" y2="510" stroke="#30363d" stroke-width="1.5"/>
+        <!-- L2 commands spine -->
+        <line x1="128" y1="510" x2="128" y2="550" stroke="#30363d" stroke-width="1.5"/>
+        <!-- review.md -->
+        <line x1="128" y1="550" x2="154" y2="550" stroke="#30363d" stroke-width="1.5"/>
+        <!-- frontend/ -->
+        <line x1="44" y1="570" x2="70" y2="570" stroke="#30363d" stroke-width="1.5"/>
+        <line x1="86" y1="570" x2="86" y2="600" stroke="#30363d" stroke-width="1.5"/>
+        <line x1="86" y1="600" x2="112" y2="600" stroke="#30363d" stroke-width="1.5"/>
+        <!-- backend/ -->
+        <line x1="44" y1="614" x2="70" y2="614" stroke="#30363d" stroke-width="1.5"/>
+        <line x1="86" y1="614" x2="86" y2="644" stroke="#30363d" stroke-width="1.5"/>
+        <line x1="86" y1="644" x2="112" y2="644" stroke="#30363d" stroke-width="1.5"/>
+        <!-- README.md -->
+        <line x1="44" y1="666" x2="70" y2="666" stroke="#30363d" stroke-width="1.5"/>
+
+        <!-- ─── ROOT LABEL ─── -->
+        <text x="20" y="30" font-size="16" fill="#60a5fa">📁</text>
+        <text x="44" y="30" font-size="14" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">  project-root/</text>
+
+        <!-- ─── ROW 1: CLAUDE.md (root) ─── -->
+        <text x="78" y="55" font-size="15" fill="#fbbf24">📄</text>
+        <text x="100" y="55" font-size="13.5" font-weight="700" fill="#fbbf24" font-family="'SF Mono','Fira Code',monospace">CLAUDE.md</text>
+        <rect x="216" y="40" width="22" height="22" rx="5" fill="url(#ftBadge1)"/>
+        <text x="227" y="55" text-anchor="middle" fill="white" font-size="12" font-weight="800">①</text>
+        <text x="246" y="55" font-size="12" fill="#8b949e">メインエージェント向け：常時ロードされるグローバル設定</text>
+
+        <!-- ─── ROW 2: .claude/ ─── -->
+        <text x="78" y="116" font-size="15" fill="#60a5fa">📁</text>
+        <text x="100" y="116" font-size="14" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">.claude/</text>
+
+        <!-- ─── ROW 3: agents/ ─── -->
+        <text x="120" y="166" font-size="14" fill="#60a5fa">📂</text>
+        <text x="140" y="166" font-size="13.5" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">agents/</text>
+        <rect x="224" y="152" width="22" height="22" rx="5" fill="url(#ftBadge2)"/>
+        <text x="235" y="167" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="254" y="167" font-size="12" fill="#8b949e">サブエージェント定義 (YAML frontmatter + system prompt)</text>
+
+        <!-- ─── ROW 4: pm-spec.md ─── -->
+        <text x="162" y="206" font-size="14" fill="#c4b5fd">📝</text>
+        <text x="182" y="206" font-size="13" fill="#c4b5fd" font-family="'SF Mono','Fira Code',monospace">pm-spec.md</text>
+        <rect x="298" y="192" width="22" height="22" rx="5" fill="url(#ftBadge2)" opacity="0.75"/>
+        <text x="309" y="207" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="328" y="207" font-size="12" fill="#6e7781">PM 仕様作成エージェント</text>
+
+        <!-- ─── ROW 5: architect-review.md ─── -->
+        <text x="162" y="246" font-size="14" fill="#c4b5fd">📝</text>
+        <text x="182" y="246" font-size="13" fill="#c4b5fd" font-family="'SF Mono','Fira Code',monospace">architect-review.md</text>
+        <rect x="356" y="232" width="22" height="22" rx="5" fill="url(#ftBadge2)" opacity="0.75"/>
+        <text x="367" y="247" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="386" y="247" font-size="12" fill="#6e7781">アーキテクチャ設計・ADR作成エージェント</text>
+
+        <!-- ─── ROW 6: implementer.md ─── -->
+        <text x="162" y="286" font-size="14" fill="#c4b5fd">📝</text>
+        <text x="182" y="286" font-size="13" fill="#c4b5fd" font-family="'SF Mono','Fira Code',monospace">implementer.md</text>
+        <rect x="314" y="272" width="22" height="22" rx="5" fill="url(#ftBadge2)" opacity="0.75"/>
+        <text x="325" y="287" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="344" y="287" font-size="12" fill="#6e7781">コード実装エージェント</text>
+
+        <!-- ─── ROW 7: code-reviewer.md ─── -->
+        <text x="162" y="326" font-size="14" fill="#c4b5fd">📝</text>
+        <text x="182" y="326" font-size="13" fill="#c4b5fd" font-family="'SF Mono','Fira Code',monospace">code-reviewer.md</text>
+        <rect x="316" y="312" width="22" height="22" rx="5" fill="url(#ftBadge2)" opacity="0.75"/>
+        <text x="327" y="327" text-anchor="middle" fill="white" font-size="12" font-weight="800">②</text>
+        <text x="346" y="327" font-size="12" fill="#6e7781">コードレビューエージェント (Read-only)</text>
+
+        <!-- ─── ROW 8: memory/ ─── -->
+        <text x="120" y="386" font-size="14" fill="#60a5fa">📂</text>
+        <text x="140" y="386" font-size="13.5" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">memory/</text>
+
+        <!-- ─── ROW 9: code-reviewer/MEMORY.md ─── -->
+        <text x="162" y="426" font-size="14" fill="#34d399">🧠</text>
+        <text x="182" y="426" font-size="13" fill="#34d399" font-family="'SF Mono','Fira Code',monospace">code-reviewer/MEMORY.md</text>
+        <rect x="388" y="412" width="22" height="22" rx="5" fill="url(#ftBadge3)"/>
+        <text x="399" y="427" text-anchor="middle" fill="white" font-size="12" font-weight="800">③</text>
+        <text x="418" y="427" font-size="12" fill="#8b949e">エージェントの学習・記憶ファイル（200行上限）</text>
+
+        <!-- ─── ROW 10: architect/MEMORY.md ─── -->
+        <text x="162" y="464" font-size="14" fill="#34d399">🧠</text>
+        <text x="182" y="464" font-size="13" fill="#34d399" font-family="'SF Mono','Fira Code',monospace">architect/MEMORY.md</text>
+        <rect x="354" y="450" width="22" height="22" rx="5" fill="url(#ftBadge3)"/>
+        <text x="365" y="465" text-anchor="middle" fill="white" font-size="12" font-weight="800">③</text>
+        <text x="384" y="465" font-size="12" fill="#6e7781">設計ナレッジの蓄積</text>
+
+        <!-- ─── ROW 11: commands/ ─── -->
+        <text x="120" y="516" font-size="14" fill="#60a5fa">📂</text>
+        <text x="140" y="516" font-size="13.5" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">commands/</text>
+
+        <!-- ─── ROW 12: review.md (slash command) ─── -->
+        <text x="162" y="556" font-size="14" fill="#fb7185">⚡</text>
+        <text x="182" y="556" font-size="13" fill="#fb7185" font-family="'SF Mono','Fira Code',monospace">review.md</text>
+        <rect x="262" y="542" width="72" height="22" rx="5" fill="url(#ftBadgeCmd)"/>
+        <text x="298" y="557" text-anchor="middle" fill="white" font-size="11" font-weight="700">/command</text>
+        <text x="342" y="557" font-size="12" fill="#8b949e">スラッシュコマンド定義</text>
+
+        <!-- ─── ROW 13: frontend/ ─── -->
+        <text x="78" y="576" font-size="14" fill="#60a5fa">📂</text>
+        <text x="98" y="576" font-size="13.5" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">frontend/</text>
+        <text x="162" y="606" font-size="14" fill="#fbbf24">📄</text>
+        <text x="182" y="606" font-size="13" fill="#fbbf24" font-family="'SF Mono','Fira Code',monospace">CLAUDE.md</text>
+        <rect x="270" y="592" width="22" height="22" rx="5" fill="url(#ftBadge1)" opacity="0.8"/>
+        <text x="281" y="607" text-anchor="middle" fill="white" font-size="12" font-weight="800">①</text>
+        <text x="300" y="607" font-size="12" fill="#8b949e">サブディレクトリ用：フロントエンド固有の補足設定</text>
+
+        <!-- ─── ROW 14: backend/ ─── -->
+        <text x="78" y="620" font-size="14" fill="#60a5fa">📂</text>
+        <text x="98" y="620" font-size="13.5" font-weight="700" fill="#60a5fa" font-family="'SF Mono','Fira Code',monospace">backend/</text>
+        <text x="162" y="650" font-size="14" fill="#fbbf24">📄</text>
+        <text x="182" y="650" font-size="13" fill="#fbbf24" font-family="'SF Mono','Fira Code',monospace">CLAUDE.md</text>
+        <rect x="270" y="636" width="22" height="22" rx="5" fill="url(#ftBadge1)" opacity="0.8"/>
+        <text x="281" y="651" text-anchor="middle" fill="white" font-size="12" font-weight="800">①</text>
+        <text x="300" y="651" font-size="12" fill="#8b949e">サブディレクトリ用：バックエンド固有の補足設定</text>
+
+        <!-- ─── ROW 15: README.md ─── -->
+        <text x="78" y="672" font-size="14" fill="#93c5fd">📘</text>
+        <text x="98" y="672" font-size="14" font-weight="700" fill="#93c5fd" font-family="'SF Mono','Fira Code',monospace">README.md</text>
+        <rect x="208" y="658" width="22" height="22" rx="5" fill="url(#ftBadge4)"/>
+        <text x="219" y="673" text-anchor="middle" fill="white" font-size="12" font-weight="800">④</text>
+        <text x="238" y="673" font-size="12" fill="#8b949e">人間向け：エージェント構成の全体ドキュメント</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 2. CLAUDE.md -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span><span class="mono">CLAUDE.md</span> — メインエージェントのグローバル設定</div>
+
+    <div class="tip tip-warn">
+      <span class="tip-icon">⚠️</span>
+      <div class="tip-content">
+        <strong>コンテキスト汚染の罠</strong>
+        CLAUDE.md はすべてのセッションで毎回ロードされます。不要な情報（コードスタイル、過去の修正履歴など）を詰め込みすぎると、LLMが従える指示数（フロンティアモデルで約150〜200件）を超え、<b>パフォーマンスが急激に低下</b>します。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 CLAUDE.md に書くべきこと / 書かないべきこと</div>
+      <div class="pattern-grid">
+        <div class="pat pat-good">
+          <div class="pat-title">✅ 書くべき内容</div>
+          <ul>
+            <li>プロジェクト概要（1〜3文）</li>
+            <li>技術スタック・主要ライブラリ</li>
+            <li>サブエージェントのルーティングルール</li>
+            <li>禁止コマンド・危険な操作の明示</li>
+            <li>ビルド・テスト・デプロイコマンド</li>
+            <li>エラー時の問い合わせ先・Docs URL</li>
+            <li>モノレポ構造の説明</li>
+          </ul>
+        </div>
+        <div class="pat pat-bad">
+          <div class="pat-title">✗ 書かないべき内容</div>
+          <ul>
+            <li>コードスタイル・フォーマットルール (linter に委ねる)</li>
+            <li>特定タスクにしか使わない詳細手順</li>
+            <li>長大なコードスニペット</li>
+            <li>@ファイル参照（毎回全体が埋め込まれる）</li>
+            <li>「〜しないで」の禁止形のみの指示</li>
+            <li>修正履歴・変更ログ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 実践的な CLAUDE.md テンプレート（サブエージェント活用版）</div>
+      <div class="code-block">
+        <div class="code-header"><span>CLAUDE.md</span><span class="code-lang">Markdown</span></div>
+        <div class="code-body"><span class="hl-head"># PROJECT: my-saas-app</span>
+
+<span class="hl-cmt">## Overview</span>
+Next.js 15 + Supabase + Stripe。マルチテナント SaaS。
+本番環境は Vercel、DBは Supabase (PostgreSQL)。
+
+<span class="hl-cmt">## Tech Stack</span>
+- Frontend: Next.js 15 (App Router), TypeScript, Tailwind CSS
+- Backend: Supabase Edge Functions (Deno)
+- Auth: Supabase Auth + Row Level Security
+- Payment: Stripe Checkout / Webhooks
+
+<span class="hl-cmt">## Build & Test</span>
+- Build:   `pnpm build`
+- Test:    `pnpm test` (Vitest)
+- Lint:    `pnpm lint` (ESLint + Prettier — **linterに任せること**)
+- DB型生成: `pnpm supabase gen types`
+
+<span class="hl-cmt">## Sub-Agent Routing Rules</span>
+<span class="hl-warn">**Parallel dispatch** (全条件を満たす場合のみ):</span>
+- タスクが 3件以上で互いに独立
+- 共有ファイルなし・状態が独立
+- ドメイン境界が明確 (frontend / backend / db)
+
+<span class="hl-warn">**Sequential dispatch** (いずれかの条件で):
+</span>- タスクに依存関係がある (B は A の出力が必要)
+- 共有ファイル / 共有状態がある
+- スコープが不明確な場合
+
+<span class="hl-cmt">## Domain Boundaries</span>
+- **frontend-agent** → app/, components/, styles/ のみ
+- **backend-agent**  → supabase/functions/, lib/server/ のみ
+- **db-agent**       → supabase/migrations/, schema.sql のみ
+
+<span class="hl-cmt">## Forbidden Operations</span>
+- `supabase db reset` は絶対に実行しない (本番データ消去)
+- `--force` フラグは使わない; 代わりに `--dry-run` で確認
+- .env.production は読み書き禁止
+
+<span class="hl-cmt">## Key Docs</span>
+- 詳細設計: docs/architecture.md
+- DB スキーマ: supabase/schema.sql
+- API仕様: docs/api-spec.md</div>
+      </div>
+    </div>
+
+    <div class="tip tip-info">
+      <span class="tip-icon">💡</span>
+      <div class="tip-content">
+        <strong>サブディレクトリ CLAUDE.md の活用</strong>
+        <code>frontend/CLAUDE.md</code> や <code>backend/CLAUDE.md</code> に分割すると、そのディレクトリで作業する際だけ追加コンテキストが読み込まれます。グローバル CLAUDE.md は薄く、局所設定は局所ファイルへ。
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. サブエージェント定義 .md -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span>サブエージェント定義 <span class="mono">.claude/agents/*.md</span></div>
+
+    <div class="card">
+      <p>サブエージェントは <b>YAML フロントマター + システムプロンプト本文</b> で構成されます。メインエージェントの system prompt は<b>継承されません</b>。フロントマターで定義できるフィールドは以下の通りです。</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>フィールド</th><th>必須</th><th>値の例</th><th>説明</th></tr>
+        <tr><td><code>name</code></td><td><span class="badge badge-orange">必須</span></td><td><code>code-reviewer</code></td><td>エージェント識別子（ハイフン区切り推奨）</td></tr>
+        <tr><td><code>description</code></td><td><span class="badge badge-orange">必須</span></td><td>"PRのコードレビューを実施する"</td><td>Claude がどのタスクでこのエージェントを呼ぶかの判断基準</td></tr>
+        <tr><td><code>tools</code></td><td>任意</td><td><code>Read, Glob, Grep</code></td><td>許可ツール。省略するとメインと同じツールセットを継承</td></tr>
+        <tr><td><code>model</code></td><td>任意</td><td><code>sonnet</code> / <code>haiku</code> / <code>opus</code></td><td>使用モデル。コスト最適化に活用</td></tr>
+        <tr><td><code>memory</code></td><td>任意</td><td><code>user</code> / <code>project</code> / <code>local</code></td><td>MEMORY.md のスコープ</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 実践的なサブエージェント定義テンプレート</div>
+      <div class="code-block">
+        <div class="code-header"><span>.claude/agents/code-reviewer.md</span><span class="code-lang">Markdown + YAML</span></div>
+        <div class="code-body"><span class="hl-str">---</span>
+<span class="hl-key">name</span>: <span class="hl-val">code-reviewer</span>
+<span class="hl-key">description</span>: <span class="hl-val">"コードレビューを実施する。PR作成後・コード変更後に自動で呼び出される。
+  セキュリティ・パフォーマンス・型安全性・ベストプラクティスをチェックする。"</span>
+<span class="hl-key">tools</span>: <span class="hl-val">Read, Glob, Grep</span>   <span class="hl-cmt"># Read-only: 書き込みは行わない</span>
+<span class="hl-key">model</span>: <span class="hl-val">sonnet</span>            <span class="hl-cmt"># コスト効率重視</span>
+<span class="hl-key">memory</span>: <span class="hl-val">project</span>          <span class="hl-cmt"># プロジェクト固有のパターンを記憶</span>
+<span class="hl-str">---</span>
+
+<span class="hl-head">## Role</span>
+あなたはシニアエンジニアのコードレビュアーです。
+コードの品質・セキュリティ・パフォーマンスを厳しくチェックします。
+
+<span class="hl-head">## Review Checklist</span>
+レビュー開始前に **必ず MEMORY.md を確認** し、過去のパターンを参照してください。
+
+<span class="hl-sub">### Security</span>
+- [ ] SQL インジェクション / XSS リスクがないか
+- [ ] 認証・認可が適切に実装されているか
+- [ ] 秘密情報がハードコードされていないか
+
+<span class="hl-sub">### Performance</span>
+- [ ] N+1 クエリが発生していないか
+- [ ] 不要な再レンダリングがないか (React)
+- [ ] 重い処理が非同期化されているか
+
+<span class="hl-sub">### Code Quality</span>
+- [ ] 型定義が適切か (TypeScript)
+- [ ] エラーハンドリングが漏れていないか
+- [ ] テストが書かれているか
+
+<span class="hl-head">## Output Format</span>
+以下の形式でレポートを出力してください：
+```
+## Code Review Report
+### 🔴 Critical (要対応)
+### 🟡 Warning (推奨対応)  
+### 🟢 Good (良い点)
+```
+
+<span class="hl-head">## Memory Management</span>
+レビュー完了後、新しいパターンや繰り返し発生する問題を MEMORY.md に追記してください。
+MEMORY.md が 200行を超えた場合は要約・整理してください。</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 並列パイプライン例: PM Spec → Architect → Implementer</div>
+      <div class="code-block">
+        <div class="code-header"><span>.claude/agents/pm-spec.md</span><span class="code-lang">YAML frontmatter</span></div>
+        <div class="code-body"><span class="hl-str">---</span>
+<span class="hl-key">name</span>: <span class="hl-val">pm-spec</span>
+<span class="hl-key">description</span>: <span class="hl-val">"新機能の要求仕様書を作成する。機能要件・非機能要件・受け入れ条件を定義し
+  ステータスを READY_FOR_ARCH に設定する。"</span>
+<span class="hl-key">tools</span>: <span class="hl-val">Read, Write, Edit</span>
+<span class="hl-key">model</span>: <span class="hl-val">sonnet</span>
+<span class="hl-str">---</span>
+<span class="hl-cmt"># PM Spec Agent のシステムプロンプト ...</span></div>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span>.claude/agents/architect-review.md</span><span class="code-lang">YAML frontmatter</span></div>
+        <div class="code-body"><span class="hl-str">---</span>
+<span class="hl-key">name</span>: <span class="hl-val">architect-review</span>
+<span class="hl-key">description</span>: <span class="hl-val">"pm-spec が READY_FOR_ARCH になった後に呼び出す。
+  プラットフォーム制約・コスト・パフォーマンスを考慮した設計を行い ADR を作成する。"</span>
+<span class="hl-key">tools</span>: <span class="hl-val">Read, Write, Edit, Bash</span>
+<span class="hl-key">model</span>: <span class="hl-val">opus</span>   <span class="hl-cmt"># 複雑な設計判断はOpusを使用</span>
+<span class="hl-str">---</span></div>
+      </div>
+    </div>
+
+    <div class="tip tip-danger">
+      <span class="tip-icon">🚨</span>
+      <div class="tip-content">
+        <strong>サブエージェントのツール権限は最小化せよ</strong>
+        サブエージェントはメインエージェントのsystem promptを継承しません。<code>tools</code>フィールドで明示的に権限を絞らないと、デフォルトで全ツールが有効になります。Read-onlyでよいエージェントには必ず <code>tools: Read, Glob, Grep</code> のみを指定してください。
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MEMORY.md -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span><span class="mono">MEMORY.md</span> — エージェントの学習・記憶ファイル</div>
+
+    <div class="card">
+      <p>MEMORY.md はサブエージェントが「経験から学んだパターン」を蓄積するファイルです。<b>200行を上限</b>とし、それを超えたら要約・整理を行う設計が公式推奨です。LLMはステートレスなため、これが唯一の「記憶」となります。</p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span>.claude/memory/code-reviewer/MEMORY.md</span><span class="code-lang">Markdown</span></div>
+      <div class="code-body"><span class="hl-head"># Code Reviewer Memory</span>
+<span class="hl-cmt"><!-- このファイルは code-reviewer エージェントが自動更新します。200行を超えたら要約してください --></span>
+<span class="hl-cmt"><!-- Last updated: 2026-10-15 | Lines: 47 --></span>
+
+<span class="hl-sub">## Recurring Patterns (繰り返し発生する問題)</span>
+
+<span class="hl-head">### Security</span>
+- [2026-10-10] `src/lib/db.ts`: ユーザー入力を直接SQLに結合していた → Prepared Statement を使うよう修正済
+- [2026-10-12] `app/api/**/*.ts`: 認証チェックが middleware でのみ行われ、handler内で再検証なし → 二重チェック必須
+
+<span class="hl-head">### Performance</span>
+- [2026-10-08] Supabase の `.select('*')` が多用されている → 必要カラムのみ指定する慣習を徹底
+- [2026-10-14] React Server Component で useClient が不必要に使われている → 'use client' は最小化
+
+<span class="hl-head">### Code Conventions (このプロジェクト固有)</span>
+- エラーは必ず `Result<T, E>` 型でラップする (throw 禁止)
+- API route は `zod` でリクエストバリデーションが必須
+- Server Action の命名は `action` プレフィックス (例: `actionCreateUser`)
+
+<span class="hl-sub">## Known Good Patterns</span>
+- `src/lib/auth.ts` の `withAuth()` HOF: 認証パターンの模範例
+- `supabase/functions/stripe-webhook/`: エラーハンドリングの模範例</div>
+    </div>
+
+    <div class="tip tip-success">
+      <span class="tip-icon">✅</span>
+      <div class="tip-content">
+        <strong>MEMORY.md の管理ルール（エージェントのシステムプロンプトに必ず記述する）</strong>
+        「タスク開始前に MEMORY.md を参照せよ」「新パターン発見時に追記せよ」「200行超過時は要約せよ」の3つをサブエージェントの system prompt 内に必ず明示してください。
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ルーティング設計 -->
+  <div class="section">
+    <div class="section-title"><span class="num">5</span>サブエージェント ルーティング設計の意思決定ツリー</div>
+
+    <div class="decision-tree">
+      <div style="text-align:center;color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px;">ROUTING DECISION TREE (CLAUDE.md に記述する)</div>
+      
+      <div class="dt-row">
+        <div class="dt-node dt-q">タスクが 3件以上ある？</div>
+        <div class="dt-line">→ NO →</div>
+        <div class="dt-node dt-no">メインエージェントで処理</div>
+      </div>
+      <div style="color:#30363d;font-size:20px;padding-left:20px;">↓ YES</div>
+      <div class="dt-row">
+        <div class="dt-node dt-q">タスク間に依存関係がある？<br><small style="font-weight:400;">(Bの処理にAの出力が必要)</small></div>
+        <div class="dt-line">→ YES →</div>
+        <div class="dt-node dt-no">Sequential dispatch<br><small>直列: A→B→C</small></div>
+      </div>
+      <div style="color:#30363d;font-size:20px;padding-left:20px;">↓ NO</div>
+      <div class="dt-row">
+        <div class="dt-node dt-q">共有ファイル・状態がある？</div>
+        <div class="dt-line">→ YES →</div>
+        <div class="dt-node dt-no">Sequential dispatch<br><small>マージ競合リスクあり</small></div>
+      </div>
+      <div style="color:#30363d;font-size:20px;padding-left:20px;">↓ NO</div>
+      <div class="dt-row">
+        <div class="dt-node dt-q">ドメイン境界が明確？<br><small style="font-weight:400;">(frontend / backend / db)</small></div>
+        <div class="dt-line">→ NO →</div>
+        <div class="dt-node dt-no">スコープ明確化を先に行う</div>
+      </div>
+      <div style="color:#30363d;font-size:20px;padding-left:20px;">↓ YES</div>
+      <div class="dt-row">
+        <div class="dt-node dt-yes">✅ Parallel dispatch<br><small>並列: A || B || C</small></div>
+        <div style="margin-left:20px;color:#8b949e;font-size:12px;">例: frontend/backend/db エージェントを同時起動</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. モデル選択 -->
+  <div class="section">
+    <div class="section-title"><span class="num">6</span>コスト最適なモデル選択戦略</div>
+
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>model</th>
+          <th>用途</th>
+          <th>サブエージェント例</th>
+          <th>特徴</th>
+        </tr>
+        <tr>
+          <td><code>haiku</code></td>
+          <td>高速・低コスト</td>
+          <td>コードベース探索、ファイル検索</td>
+          <td><span class="badge badge-green">最速</span> 探索タスク向け</td>
+        </tr>
+        <tr>
+          <td><code>sonnet</code></td>
+          <td>バランス重視</td>
+          <td>コードレビュー、テスト生成、実装</td>
+          <td><span class="badge badge-blue">推奨デフォルト</span></td>
+        </tr>
+        <tr>
+          <td><code>opus</code></td>
+          <td>複雑な判断</td>
+          <td>アーキテクチャ設計、セキュリティ監査</td>
+          <td><span class="badge badge-purple">高精度</span> 高コスト</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="tip tip-info">
+      <span class="tip-icon">💡</span>
+      <div class="tip-content">
+        <strong>Built-in サブエージェント (v2.0.17+)</strong>
+        Claude Code v2.0.17 以降、Explore サブエージェント（Haiku搭載）がコードベース探索を自動担当します。v2.0.28 では Plan サブエージェントが追加され、計画フェーズが独立した専用エージェントで処理されるようになりました。
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Anti-Patterns -->
+  <div class="section">
+    <div class="section-title"><span class="num">7</span>絶対に避けるべき Anti-Patterns</div>
+
+    <div class="pattern-grid">
+      <div class="pat pat-bad">
+        <div class="pat-title">✗ CLAUDE.md の Anti-Patterns</div>
+        <ul>
+          <li>コードスタイル規約を書く（linterに委ねよ）</li>
+          <li>@ファイルで長大なドキュメントを埋め込む</li>
+          <li>20件を超えるスラッシュコマンドを定義</li>
+          <li>「〜しないこと」だけの禁止形指示（代替手段を示す）</li>
+          <li>MCP サーバーのトークンを 20k 超で使用</li>
+          <li>修正履歴・変更ログの記録</li>
+        </ul>
+      </div>
+      <div class="pat pat-bad">
+        <div class="pat-title">✗ サブエージェント定義の Anti-Patterns</div>
+        <ul>
+          <li>description が曖昧で呼び出し条件が不明確</li>
+          <li>tools フィールドを省略（全権限を継承してしまう）</li>
+          <li>10件以上の並列エージェントを同時起動</li>
+          <li>共有ファイルを触るエージェントを並列実行</li>
+          <li>MEMORY.md の上限管理をしない（肥大化）</li>
+          <li>全エージェントに opus を使う（コスト爆発）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. README.md -->
+  <div class="section">
+    <div class="section-title"><span class="num">8</span><span class="mono">.claude/README.md</span> — エージェント構成ドキュメント</div>
+
+    <div class="card">
+      <p>チームメンバーが「どのエージェントが何をするか」を把握できる人間向けドキュメントです。エージェントが増えてきたら必ず作成しましょう。</p>
+      <div class="code-block">
+        <div class="code-header"><span>.claude/README.md</span><span class="code-lang">Markdown</span></div>
+        <div class="code-body"><span class="hl-head"># Agent Architecture</span>
+
+<span class="hl-sub">## パイプライン概要</span>
+```
+pm-spec → architect-review → implementer → code-reviewer
+```
+
+<span class="hl-sub">## エージェント一覧</span>
+
+| Agent | Model | Tools | いつ使う |
+|-------|-------|-------|---------|
+| pm-spec | sonnet | Read/Write | 新機能の仕様作成時 |
+| architect-review | opus | Read/Write/Bash | 設計レビュー・ADR作成時 |
+| implementer | sonnet | All | コード実装時 |
+| code-reviewer | sonnet | Read のみ | PR・コード変更後 |
+
+<span class="hl-sub">## ステータスフロー</span>
+`DRAFT` → `READY_FOR_ARCH` → `READY_FOR_BUILD` → `REVIEW` → `DONE`
+
+<span class="hl-sub">## 使い方</span>
+```bash
+# 自動ルーティング（Claude が適切なエージェントを選択）
+"新しい決済機能の仕様を作成して"
+
+# 明示的に指定
+"code-reviewer エージェントで src/payment/ をレビューして"
+```</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary table -->
+  <div class="section">
+    <div class="section-title"><span class="num">9</span>まとめ：各 Markdown の役割と設計原則</div>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>ファイル</th>
+          <th>読者</th>
+          <th>設計原則</th>
+          <th>アンチパターン</th>
+        </tr>
+        <tr>
+          <td><code>CLAUDE.md</code><br><small>(root)</small></td>
+          <td>メインAgent<br>常時ロード</td>
+          <td>薄く・普遍的に。150〜200指示以内に収める</td>
+          <td>コードスタイル・@ファイル埋め込み・修正履歴</td>
+        </tr>
+        <tr>
+          <td><code>CLAUDE.md</code><br><small>(subdir)</small></td>
+          <td>メインAgent<br>そのディレクトリ作業時のみ</td>
+          <td>そのドメイン固有の補足だけ。root と重複させない</td>
+          <td>rootと同じ内容の重複記述</td>
+        </tr>
+        <tr>
+          <td><code>.claude/agents/*.md</code></td>
+          <td>各サブAgent<br>(独立コンテキスト)</td>
+          <td>YAML frontmatter + 明確なロール定義 + チェックリスト</td>
+          <td>tools省略・曖昧なdescription</td>
+        </tr>
+        <tr>
+          <td><code>MEMORY.md</code></td>
+          <td>各サブAgent<br>(自己更新)</td>
+          <td>200行上限・日付付きパターン記録・定期要約</td>
+          <td>上限なし肥大化・管理指示の省略</td>
+        </tr>
+        <tr>
+          <td><code>.claude/README.md</code></td>
+          <td>人間<br>(チームメンバー)</td>
+          <td>エージェント一覧・パイプライン・ステータスフロー</td>
+          <td>エージェント数が多いのに作成しない</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       AGENT TEAMS セクション（2026年2月 Opus 4.6 リリース・追記）
+       ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- AT-1. Agent Teams 概要 -->
+  <div class="section section-team">
+    <div class="section-title">
+      <span class="num">10</span>
+      Agent Teams とは — サブエージェントとの根本的な違い
+    </div>
+
+    <div class="at-banner">
+      <div class="at-badge">🧪 Experimental · 2026年2月 Opus 4.6 同時リリース</div>
+      <h3>Agent Teams：複数の Claude Code セッションがチームとして協調する</h3>
+      <p>Agent Teams は、複数の Claude Code インスタンスが<strong>独立したコンテキストウィンドウ</strong>を持ちながら、<strong>共有タスクリスト・ダイレクトメッセージ</strong>で連携する実験的機能です。サブエージェントが「親に報告するだけの孤立ワーカー」であるのに対し、Agent Teams のテイムメイトは<strong>お互いに直接通信し、タスクを自律的にクレームし、仮説を議論しながら</strong>作業します。デフォルト無効（フィーチャーフラグ）。Anthropic は 16 並列インスタンスで 10万行の C コンパイラをビルドする実証実験を行いました（コスト: $20,000 / 2週間）。</p>
+    </div>
+
+    <div class="compare-grid">
+      <div class="cmp cmp-sub">
+        <div class="cmp-title">🔹 Sub-Agents（既存）</div>
+        <ul>
+          <li>単一セッション内で動作</li>
+          <li>親エージェントにのみ結果を報告</li>
+          <li>テイムメイト間の直接通信なし</li>
+          <li>親が仲介しないと情報共有不可</li>
+          <li>タスク完了後は存在しない</li>
+          <li>コスト: 通常セッションと同等</li>
+          <li><strong>適用:</strong> 独立タスクの並列実行、ファイル検索、コードレビューなどの単一ドメイン作業</li>
+        </ul>
+      </div>
+      <div class="cmp cmp-team">
+        <div class="cmp-title">🟢 Agent Teams（新機能）</div>
+        <ul>
+          <li>各テイムメイトが独立したセッション</li>
+          <li>テイムメイト間で直接メッセージ可能</li>
+          <li>共有タスクリストからタスクを自律クレーム</li>
+          <li>リードなしに相互調整できる</li>
+          <li>ユーザーが個別テイムメイトに直接話せる</li>
+          <li>コスト: 通常の 3〜4倍（テイムメイト数 × コンテキスト）</li>
+          <li><strong>適用:</strong> 競合仮説デバッグ、クロスレイヤー実装、並列リサーチ</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 Agent Teams アーキテクチャ（フロー図）</div>
+      <div class="arch-diagram">
+        <div style="text-align:center;margin-bottom:20px;color:#6e7681;font-size:11px;text-transform:uppercase;letter-spacing:.12em;">AGENT TEAMS COORDINATION FLOW</div>
+
+        <!-- Row 1: Lead + Delegate Mode -->
+        <div class="arch-row">
+          <div class="arch-box" style="background:rgba(167,139,250,0.2);border:2px solid rgba(167,139,250,0.6);color:#a78bfa;min-width:160px;">
+            🎯 Team Lead<br><small style="color:#6e7681;font-weight:400;">Delegate Mode ON<br>（調整専任）</small>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;min-width:180px;">
+            📋 Shared Task List<br><small style="font-family:monospace;font-size:11px;font-weight:400;color:#6e7681;">~/.claude/tasks/{team}/</small>
+          </div>
+          <div class="arch-arrow">↔</div>
+          <div class="arch-box" style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.4);color:#60a5fa;min-width:140px;">
+            📬 Mailbox<br><small style="font-size:11px;font-weight:400;color:#6e7681;">テイムメイト間<br>ダイレクトメッセージ</small>
+          </div>
+        </div>
+        <div class="arch-label">↓ タスクが pending → in_progress → completed と遷移（ファイルロックで競合防止）</div>
+
+        <!-- Row 2: Teammates -->
+        <div class="arch-row">
+          <div class="arch-box" style="background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.4);color:#34d399;">
+            👷 Teammate A<br><small style="font-weight:400;font-size:11px;color:#6e7681;">Frontend</small>
+          </div>
+          <div class="arch-arrow">⇄</div>
+          <div class="arch-box" style="background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.4);color:#34d399;">
+            👷 Teammate B<br><small style="font-weight:400;font-size:11px;color:#6e7681;">Backend</small>
+          </div>
+          <div class="arch-arrow">⇄</div>
+          <div class="arch-box" style="background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.4);color:#34d399;">
+            👷 Teammate C<br><small style="font-weight:400;font-size:11px;color:#6e7681;">Testing</small>
+          </div>
+        </div>
+        <div class="arch-label">各テイムメイトは独立コンテキスト。CLAUDE.md・MCPサーバー・Skills を自動ロード（リードの会話履歴は継承しない）</div>
+
+        <!-- Row 3: Hooks -->
+        <div class="arch-row">
+          <div class="arch-box" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:12px;">
+            🪝 TeammateIdle Hook<br><small style="font-weight:400;font-size:11px;color:#6e7681;">アイドル前に実行<br>exit 2 でフィードバック継続</small>
+          </div>
+          <div style="color:#30363d;font-size:22px;margin:0 8px;padding-top:8px;">+</div>
+          <div class="arch-box" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-size:12px;">
+            🪝 TaskCompleted Hook<br><small style="font-weight:400;font-size:11px;color:#6e7681;">タスク完了前に実行<br>exit 2 で完了ブロック</small>
+          </div>
+        </div>
+        <div class="arch-label">hooks で品質ゲートを自動化（テスト必須・Lint 必須などを強制）</div>
+
+        <!-- Row 4: Storage -->
+        <div class="arch-row" style="margin-top:8px;">
+          <div style="font-family:monospace;font-size:12px;color:#6e7681;text-align:center;width:100%;">
+            💾 <span style="color:#fbbf24;">~/.claude/teams/{name}/config.json</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+            <span style="color:#fbbf24;">~/.claude/tasks/{name}/*.json</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+            チームクリーンアップは必ずリードから実行
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-2. settings.json / 有効化 -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">11</span>Agent Teams の有効化と <span class="mono">settings.json</span> 設定</div>
+
+    <div class="tip tip-warn">
+      <span class="tip-icon">⚠️</span>
+      <div class="tip-content">
+        <strong>デフォルト無効・実験的機能</strong>
+        Agent Teams はデフォルトで無効。有効にするには <code>settings.json</code> または環境変数で <code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code> を設定します。セッション再開・タスク調整・シャットダウンの挙動に既知の制限があります。必ずリードからクリーンアップを実行してください（テイムメイトから実行するとリソースが不整合になります）。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ <span class="mono">~/.claude/settings.json</span> — Agent Teams 設定</div>
+      <div class="code-block">
+        <div class="code-header"><span>~/.claude/settings.json</span><span class="code-lang">JSON</span></div>
+        <div class="code-body">{
+  <span class="hl-key">"env"</span>: {
+    <span class="hl-key">"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span>: <span class="hl-str">"1"</span>
+    <span class="hl-cmt">// 環境変数でも設定可: export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</span>
+  },
+
+  <span class="hl-cmt">// テイムメイトの表示モード</span>
+  <span class="hl-cmt">// "auto" = tmux 使用中は split panes、それ以外は in-process（デフォルト）</span>
+  <span class="hl-cmt">// "split" = tmux / iTerm2 の分割ペイン（要 tmux or iTerm2 + it2 CLI）</span>
+
+  <span class="hl-key">"hooks"</span>: {
+    <span class="hl-cmt">// ── TeammateIdle: テイムメイトがアイドル直前に実行 ──────────────</span>
+    <span class="hl-key">"TeammateIdle"</span>: [
+      {
+        <span class="hl-key">"hooks"</span>: [
+          {
+            <span class="hl-key">"type"</span>: <span class="hl-str">"command"</span>,
+            <span class="hl-key">"command"</span>: <span class="hl-str">"bash -c 'if [ -f ./dist/output.js ]; then echo OK; else echo \"Build artifact missing\" &gt;&amp;2; exit 2; fi'"</span>
+            <span class="hl-cmt">// exit 2 → フィードバックを送りテイムメイトを継続</span>
+            <span class="hl-cmt">// exit 0 → アイドルに移行させる</span>
+          }
+        ]
+      }
+    ],
+
+    <span class="hl-cmt">// ── TaskCompleted: タスク完了マーク直前に実行 ──────────────────</span>
+    <span class="hl-key">"TaskCompleted"</span>: [
+      {
+        <span class="hl-key">"hooks"</span>: [
+          {
+            <span class="hl-key">"type"</span>: <span class="hl-str">"command"</span>,
+            <span class="hl-key">"command"</span>: <span class="hl-str">"bash -c 'if ! pnpm test 2&gt;&amp;1; then echo \"Tests failing — fix before closing task\" &gt;&amp;2; exit 2; fi'"</span>
+            <span class="hl-cmt">// exit 2 → 完了をブロックしフィードバック送信</span>
+            <span class="hl-cmt">// exit 0 → タスクを completed に遷移させる</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+      </div>
+    </div>
+
+    <div class="tip tip-info">
+      <span class="tip-icon">💡</span>
+      <div class="tip-content">
+        <strong>ショートカットキー（In-process モード）</strong>
+        <code>Shift+↑/↓</code> でテイムメイトを切り替え、<code>Enter</code> で選択、<code>Esc</code> で中断、<code>Ctrl+T</code> でタスクリストを表示。<code>Shift+Tab</code> で Delegate Mode ON/OFF を切り替えられます（ON にするとリードは実装せず調整専任になります）。
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-3. Agent Teams 向け CLAUDE.md 設計 -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">12</span>Agent Teams 向け <span class="mono">CLAUDE.md</span> 設計 — 最重要ポイント</div>
+
+    <div class="tip tip-success">
+      <span class="tip-icon">✅</span>
+      <div class="tip-content">
+        <strong>テイムメイト全員が CLAUDE.md を自動ロードする</strong>
+        各テイムメイトは起動時に CLAUDE.md・MCP サーバー・Skills を自動読込します。リードの会話履歴は継承されません。<strong>CLAUDE.md の品質がそのままチーム全体のパフォーマンスを決定します。</strong> CLAUDE.md が曖昧だと、各テイムメイトが独自にコードベースを探索し直すため、トークンコストが 3〜4倍に膨れ上がります。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📄 Agent Teams 向け CLAUDE.md テンプレート（追記部分）</div>
+      <div class="code-block">
+        <div class="code-header"><span>CLAUDE.md — Agent Teams セクション追加版</span><span class="code-lang">Markdown</span></div>
+        <div class="code-body"><span class="hl-head"># PROJECT: my-saas-app</span>
+<span class="hl-cmt">## Overview ... (既存セクション省略)</span>
+
+<span class="hl-cmt">## ─── Agent Teams Configuration ────────────────────────────────────</span>
+<span class="hl-head">## Agent Teams — File Ownership Rules</span>
+<span class="hl-warn">競合防止のため、テイムメイトは以下の境界を厳守すること:</span>
+
+| Teammate Role | 書き込み可能なパス | 読み取り |
+|---|---|---|
+| frontend-teammate | app/, components/, styles/ | 全体 |
+| backend-teammate  | supabase/functions/, lib/server/ | 全体 |
+| db-teammate       | supabase/migrations/ | 全体 |
+| test-teammate     | tests/, **/*.test.ts | 全体 |
+
+<span class="hl-warn">同一ファイルへの同時書き込みは絶対に行わないこと。</span>
+担当外ファイルを変更したい場合はリードに報告し指示を仰ぐこと。
+
+<span class="hl-head">## Agent Teams — Task "Done" Definition</span>
+テイムメイトがタスクを <span class="hl-str">"completed"</span> にマークする前に<strong>必ず確認すること</strong>:
+- [ ] <span class="hl-str">`pnpm test`</span> がすべて PASS している
+- [ ] <span class="hl-str">`pnpm lint`</span> にエラーがない
+- [ ] 担当ファイルのみが変更されている
+- [ ] リードへの完了レポートに変更ファイル一覧・テスト結果を含める
+
+<span class="hl-head">## Agent Teams — Communication Protocol</span>
+- リードへの報告形式:
+  <span class="hl-str">"DONE: [タスクID] [変更ファイル一覧] [テスト結果]"</span>
+- 他テイムメイトへのブロック報告:
+  <span class="hl-str">"BLOCKED: [依存タスクID] を待機中"</span>
+- 型定義など共有 API が変わった場合は関係テイムメイトに SendMessage
+
+<span class="hl-head">## Agent Teams — Plan-Before-Implement Rule</span>
+<span class="hl-warn">リスクの高い変更（DB スキーマ変更・API 破壊的変更）は実装前に必ずリードに計画を提出し承認を得ること。</span>
+承認前はファイルを Read-only 扱いとし、実装を開始しないこと。
+
+<span class="hl-head">## Agent Teams — Forbidden</span>
+- チームクリーンアップをテイムメイトから実行することは<span class="hl-bad">禁止</span>（必ずリードから）
+- 担当外ディレクトリへの書き込み<span class="hl-bad">禁止</span>
+- <span class="hl-str">`supabase db reset`</span> の実行<span class="hl-bad">禁止</span></div>
+      </div>
+    </div>
+
+    <div class="tip tip-warn">
+      <span class="tip-icon">⚠️</span>
+      <div class="tip-content">
+        <strong>コンテキスト効率化 — スポーンプロンプトに詳細を含める</strong>
+        テイムメイトはリードの会話履歴を持ちません。タスク固有の詳細情報はスポーンプロンプト（TaskCreate の description フィールド）に含めてください。CLAUDE.md には普遍的ルールだけを書き、タスク固有の詳細はタスクファイルに持たせます。
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-4. Task List ファイル設計 -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">13</span>タスクリストファイル設計 — <span class="mono">~/.claude/tasks/{team}/*.json</span></div>
+
+    <div class="card">
+      <p>Agent Teams のタスクは <code>~/.claude/tasks/{team-name}/</code> 配下の JSON ファイルとして管理されます。タスクは <strong>pending → in_progress → completed</strong> の3状態を遷移し、ファイルロックによる競合防止が組み込まれています。<code>description</code> フィールドが実質的にテイムメイトへのプロンプトとなるため、内容の精度がパフォーマンスを左右します。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 タスクファイル設計パターン（ベストプラクティス）</div>
+      <div class="code-block">
+        <div class="code-header"><span>~/.claude/tasks/auth-team/1.json（タスク定義例）</span><span class="code-lang">JSON</span></div>
+        <div class="code-body">{
+  <span class="hl-key">"id"</span>: <span class="hl-str">"1"</span>,
+  <span class="hl-key">"subject"</span>: <span class="hl-str">"JWT 処理を src/auth/jwt.ts に分離"</span>,
+  <span class="hl-key">"description"</span>: <span class="hl-str">"
+    ## タスク概要
+    monolithic な src/auth.ts から JWT 署名・検証ロジックを分離し、
+    src/auth/jwt.ts に独立モジュールとして実装する。
+
+    ## 担当ファイル（書き込み可能）
+    - src/auth/jwt.ts（新規作成）
+    - src/auth/index.ts（export 更新のみ）
+
+    ## 実装仕様
+    - JWT_SECRET は process.env から読み取る（ハードコード禁止）
+    - 関数: signToken(payload) / verifyToken(token)
+    - エラーは Result<T, JwtError> 型で返す（throw 禁止）
+
+    ## 完了条件
+    - pnpm test auth が PASS
+    - 型エラーなし (tsc --noEmit)
+    - src/auth.ts の既存テストが引き続き PASS
+
+    ## 依存関係
+    - このタスクが完了後に T2（session-teammate）がアンブロック
+    - 完了時に session-teammate に SendMessage で型定義変更を通知
+  "</span>,
+  <span class="hl-key">"status"</span>: <span class="hl-str">"pending"</span>,
+  <span class="hl-key">"owner"</span>: <span class="hl-val">null</span>,
+  <span class="hl-key">"dependencies"</span>: [],
+  <span class="hl-key">"blockedBy"</span>: []
+}</div>
+      </div>
+    </div>
+
+    <div class="pattern-grid">
+      <div class="pat pat-good">
+        <div class="pat-title">✅ タスク設計 ベストプラクティス</div>
+        <ul>
+          <li>1タスク = 1テイムメイトが担当できる単位</li>
+          <li>description に「担当ファイル」「完了条件」「依存関係」を記載</li>
+          <li>1テイムメイトあたり 5〜6タスクが最適（多すぎず少なすぎず）</li>
+          <li>依存関係を dependencies フィールドで明示（自動アンブロック）</li>
+          <li>完了時の通知先テイムメイトを記述（型変更・API変更時）</li>
+          <li>タスクサイズは「明確な成果物」が出せる粒度に</li>
+        </ul>
+      </div>
+      <div class="pat pat-bad">
+        <div class="pat-title">✗ タスク設計 Anti-Patterns</div>
+        <ul>
+          <li>description が短すぎる（テイムメイトが再探索し無駄にトークン消費）</li>
+          <li>担当ファイルを明示しない（別テイムメイトと衝突する）</li>
+          <li>完了条件を書かない（テイムメイトが勝手に判断）</li>
+          <li>粒度が大きすぎる（1タスクで全機能実装など）</li>
+          <li>同一ファイルを複数タスクで書き込み対象にする</li>
+          <li>依存関係を手動で管理（ファイルロックを信頼する）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-5. hooks 設計 -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">14</span>Agent Teams Hooks 設計 — 品質ゲートの自動化</div>
+
+    <div class="card">
+      <p>Claude Code は Agent Teams 向けに <code>TeammateIdle</code>・<code>TaskCompleted</code> の2つのフックイベントを提供します（v2.1.33+）。フックは<strong>命令的（Imperative）</strong>であり、シェルコマンドを実行してその結果（終了コード）で Claude の動作を制御します。14種類あるフックイベント全体（SessionStart・PreToolUse 等）と組み合わせることで、チーム全体に一貫した品質ポリシーを強制できます。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🪝 全 Agent Teams 対応フック一覧</div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>フックイベント</th><th>発火タイミング</th><th>exit 0</th><th>exit 2</th><th>主な用途</th></tr>
+          <tr>
+            <td><code>TeammateIdle</code></td>
+            <td>テイムメイトがアイドル直前</td>
+            <td>アイドルに移行</td>
+            <td>フィードバックして継続</td>
+            <td>ビルド成果物チェック・次タスクの自動アサイン</td>
+          </tr>
+          <tr>
+            <td><code>TaskCompleted</code></td>
+            <td>タスク完了マーク直前</td>
+            <td>completed に遷移</td>
+            <td>完了ブロック＋フィードバック</td>
+            <td>テスト必須・Lint チェック・受け入れ条件検証</td>
+          </tr>
+          <tr>
+            <td><code>SubagentStart</code></td>
+            <td>サブエージェント起動時</td>
+            <td>起動継続</td>
+            <td>起動キャンセル</td>
+            <td>不正なエージェントタイプのブロック</td>
+          </tr>
+          <tr>
+            <td><code>SubagentStop</code></td>
+            <td>サブエージェント終了時</td>
+            <td>終了継続</td>
+            <td>フィードバック送信</td>
+            <td>成果物の確認・クリーンアップ</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🪝 実践的な hooks 設定テンプレート（品質ゲート）</div>
+      <div class="code-block">
+        <div class="code-header"><span>~/.claude/settings.json — 品質ゲート hooks</span><span class="code-lang">JSON</span></div>
+        <div class="code-body">{
+  <span class="hl-key">"env"</span>: {
+    <span class="hl-key">"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"</span>: <span class="hl-str">"1"</span>
+  },
+  <span class="hl-key">"hooks"</span>: {
+
+    <span class="hl-cmt">// ── TeammateIdle: アイドル前にビルドチェック ──────────────────</span>
+    <span class="hl-key">"TeammateIdle"</span>: [
+      {
+        <span class="hl-key">"hooks"</span>: [
+          {
+            <span class="hl-key">"type"</span>: <span class="hl-str">"command"</span>,
+            <span class="hl-key">"timeout"</span>: 10000,
+            <span class="hl-cmt">// TypeScript コンパイルエラーがないかチェック</span>
+            <span class="hl-key">"command"</span>: <span class="hl-str">"bash -c 'if ! npx tsc --noEmit 2&gt;&amp;1; then echo \"TypeScript errors found\" &gt;&amp;2; exit 2; fi'"</span>
+          }
+        ]
+      }
+    ],
+
+    <span class="hl-cmt">// ── TaskCompleted: タスク完了前にテスト実行（品質ゲート）────</span>
+    <span class="hl-key">"TaskCompleted"</span>: [
+      {
+        <span class="hl-key">"hooks"</span>: [
+          {
+            <span class="hl-key">"type"</span>: <span class="hl-str">"command"</span>,
+            <span class="hl-key">"timeout"</span>: 60000,
+            <span class="hl-cmt">// テストが通らない限りタスクを完了させない</span>
+            <span class="hl-key">"command"</span>: <span class="hl-str">"bash -c 'if ! pnpm test --run 2&gt;&amp;1; then echo \"Tests must pass before task completion\" &gt;&amp;2; exit 2; fi'"</span>
+          }
+        ]
+      }
+    ],
+
+    <span class="hl-cmt">// ── PreToolUse: 機密ファイルへの書き込みブロック ────────────</span>
+    <span class="hl-key">"PreToolUse"</span>: [
+      {
+        <span class="hl-key">"matcher"</span>: <span class="hl-str">"Write"</span>,
+        <span class="hl-key">"hooks"</span>: [
+          {
+            <span class="hl-key">"type"</span>: <span class="hl-str">"command"</span>,
+            <span class="hl-cmt">// .env ファイルへの書き込みを全テイムメイトでブロック</span>
+            <span class="hl-key">"command"</span>: <span class="hl-str">"bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -q \".env\"; then echo \".env file modification blocked\" &gt;&amp;2; exit 2; fi'"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-6. Use Cases & Prompts -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">15</span>Agent Teams のユースケース別プロンプトパターン</div>
+
+    <div class="usecase-grid">
+      <div class="uc">
+        <div class="uc-icon">🔍</div>
+        <div class="uc-title">競合仮説デバッグ（最強のユースケース）</div>
+        <div class="uc-desc">複数テイムメイトが独立して異なる仮説を検証し、互いに反論し合うことで最速で根本原因を特定。逐次的な調査では最初に発見した理論に引きずられる「アンカリング」を防げます。</div>
+        <div class="uc-prompt">"アプリが1メッセージ後に終了するバグがある。<br>5人のテイムメイトを起動して異なる仮説を調査させ、<br>互いに理論を反証し合うよう指示して。<br>findings.md に共同コンセンサスをまとめて。"</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">🏗️</div>
+        <div class="uc-title">クロスレイヤー実装</div>
+        <div class="uc-desc">フロントエンド・バックエンド・DBマイグレーション・テストを担当テイムメイトが並列実装。Backend テイムメイトが API 型定義を完成させたら、Frontend テイムメイトに SendMessage で直接通知。</div>
+        <div class="uc-prompt">"認証機能を実装して。<br>Frontend / Backend / DB-migration / Test の<br>4テイムメイトを起動。Sonnet を各テイムメイトに使用。<br>DB テイムメイトから始めて、完了後に他をアンブロックして。"</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">🔬</div>
+        <div class="uc-title">並列 QA スウォーム</div>
+        <div class="uc-desc">複数テイムメイトが同時にアプリの異なる側面（パフォーマンス・セキュリティ・アクセシビリティ・E2E）を検証。alexop.dev 実績: 5エージェントで3分でブログ QA 完了。</div>
+        <div class="uc-prompt">"localhost:3000 で動くアプリの QA をして。<br>3テイムメイトを起動: セキュリティ / パフォーマンス / アクセシビリティ。<br>各自 curl でページを検証して findings をまとめて。"</div>
+      </div>
+      <div class="uc">
+        <div class="uc-icon">📐</div>
+        <div class="uc-title">Plan → Team の2ステップパターン（推奨）</div>
+        <div class="uc-desc">まず Plan モード（安価・読み取り専用）で計画を立て、レビュー後に Agent Teams を起動（高コスト・並列実装）。計画をチェックポイントにしてトークン無駄遣いを防ぐのが鉄則。</div>
+        <div class="uc-prompt">Step 1: "auth.ts のリファクタリング計画を立てて。<br>jwt/session/middleware に分割するプランを見せて。<br>（実装はしないこと）"<br><br>Step 2（計画確認後）:<br>"この計画を Agent Teams で並列実装して。<br>各ファイルを別テイムメイトに担当させて。"</div>
+      </div>
+    </div>
+
+    <div class="tip tip-danger">
+      <span class="tip-icon">🚨</span>
+      <div class="tip-content">
+        <strong>Agent Teams Anti-Patterns（コスト・品質両面）</strong>
+        <br>• <strong>いきなり大タスクで起動</strong>：Plan モードで計画を確認してから Team を起動すること<br>
+        • <strong>同一ファイルを複数テイムメイトが編集</strong>：必ずファイルオーナーシップを CLAUDE.md に明記<br>
+        • <strong>依存関係のあるタスクを並列実行</strong>：dependencies フィールドを使って自動順序管理<br>
+        • <strong>全テイムメイトに Opus を使う</strong>：リードに Opus、テイムメイトに Sonnet でコスト最適化<br>
+        • <strong>テイムメイトからチームクリーンアップを実行</strong>：必ずリードから実行（リソース不整合になる）<br>
+        • <strong>CLAUDE.md が曖昧</strong>：全テイムメイトが独自に探索し直し、トークンが3倍以上消費される
+      </div>
+    </div>
+  </div>
+
+  <!-- AT-7. Updated Summary Table -->
+  <div class="section section-team">
+    <div class="section-title"><span class="num">16</span>まとめ：全 Markdown + 設定ファイルの役割（Agent Teams 追記版）</div>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>ファイル / 設定</th>
+          <th>読者</th>
+          <th>Agent Teams での役割</th>
+          <th>設計原則（Agent Teams 対応）</th>
+        </tr>
+        <tr>
+          <td><code>CLAUDE.md</code><br><small>(root)</small></td>
+          <td>全テイムメイト<br>起動時に自動ロード</td>
+          <td>全テイムメイトの共通コンテキスト。CLAUDE.md の品質 = チームパフォーマンス</td>
+          <td>ファイルオーナーシップ・完了条件・通信プロトコル・禁止操作を明記</td>
+        </tr>
+        <tr>
+          <td><code>.claude/agents/*.md</code></td>
+          <td>各サブエージェント</td>
+          <td>Agent Teams でも有効。Task(agent_type) でテイムメイトのエージェントタイプを指定可</td>
+          <td>tools フィールドで権限を最小化。description でルーティング条件を明確に</td>
+        </tr>
+        <tr>
+          <td><code>MEMORY.md</code></td>
+          <td>各サブエージェント<br>（自己更新）</td>
+          <td>テイムメイトは独立コンテキストのため、共有 MEMORY.md への書き込みは競合リスクあり</td>
+          <td>Agent Teams では MEMORY.md をテイムメイトに使わせず、タスクファイルで情報共有</td>
+        </tr>
+        <tr>
+          <td><code>settings.json</code></td>
+          <td>Claude Code ランタイム</td>
+          <td>Agent Teams の有効化・フック（TeammateIdle / TaskCompleted）を定義</td>
+          <td>hooks に品質ゲートを設定。全テイムメイトに共通ポリシーを強制できる</td>
+        </tr>
+        <tr>
+          <td><code>~/.claude/tasks/{team}/*.json</code></td>
+          <td>テイムメイト全員<br>（自律的にクレーム）</td>
+          <td>Agent Teams のコア。pending→in_progress→completed の状態管理</td>
+          <td>description に「担当ファイル・完了条件・依存関係」を詳細記述（テイムメイトへのプロンプト）</td>
+        </tr>
+        <tr>
+          <td><code>~/.claude/teams/{team}/config.json</code></td>
+          <td>Claude Code ランタイム</td>
+          <td>チームの設定ファイル。TeamCreate で自動生成</td>
+          <td>クリーンアップは必ずリードから（テイムメイトから実行すると不整合）</td>
+        </tr>
+        <tr>
+          <td><code>.claude/README.md</code></td>
+          <td>人間<br>（チームメンバー）</td>
+          <td>エージェント一覧・Agent Teams 有効化手順・ユースケース例を追記する</td>
+          <td>Agent Teams のコスト感（3〜4倍トークン）・推奨ユースケースを明記</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Sources -->
+  <div class="section">
+    <div class="section-title"><span class="num">📚</span>参考ソース（サブエージェント + Agent Teams 全ソース）</div>
+    <div class="source-grid">
+      <div class="source-card">
+        <div class="source-title">🔵 Anthropic 公式: Sub-agents ドキュメント</div>
+        <div class="source-url"><a href="https://code.claude.com/docs/en/sub-agents" target="_blank" rel="noopener noreferrer">https://code.claude.com/docs/en/sub-agents</a></div>
+        <div class="source-desc">YAML frontmatter・ツール設定・memory scope の公式仕様</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🟠 HumanLayer: Writing a good CLAUDE.md</div>
+        <div class="source-url"><a href="https://www.humanlayer.dev/blog/writing-a-good-claude-md" target="_blank" rel="noopener noreferrer">https://www.humanlayer.dev/blog/writing-a-good-claude-md</a></div>
+        <div class="source-desc">コンテキスト汚染・150〜200命令上限・linterへの委譲理論</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🟣 PubNub: Best practices for Claude Code subagents</div>
+        <div class="source-url"><a href="https://www.pubnub.com/blog/best-practices-for-claude-code-sub-agents/" target="_blank" rel="noopener noreferrer">https://www.pubnub.com/blog/best-practices-for-claude-code-sub-agents/</a></div>
+        <div class="source-desc">pm-spec→architect→implementerパイプライン・ADR生成パターン</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🟢 ClaudeFast: Sub-Agent Routing Best Practices</div>
+        <div class="source-url"><a href="https://claudefa.st/blog/guide/agents/sub-agent-best-practices" target="_blank" rel="noopener noreferrer">https://claudefa.st/blog/guide/agents/sub-agent-best-practices</a></div>
+        <div class="source-desc">並列/直列ルーティング決定ロジック・CLAUDE.mdへの記述例</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🔴 ClaudeLog: Sub-agents 解説</div>
+        <div class="source-url"><a href="https://claudelog.com/mechanics/sub-agents/" target="_blank" rel="noopener noreferrer">https://claudelog.com/mechanics/sub-agents/</a></div>
+        <div class="source-desc">Built-in エージェント(Explore/Plan)・v2.0.28の新機能</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">⚪ alexop.dev: Claude Code カスタマイズ全体像</div>
+        <div class="source-url"><a href="https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/" target="_blank" rel="noopener noreferrer">https://alexop.dev/posts/claude-code-customization-guide-claudemd-skills-subagents/</a></div>
+        <div class="source-desc">CLAUDE.md・スラッシュコマンド・スキル・サブエージェントの比較</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🟡 GitHub: awesome-claude-code-subagents</div>
+        <div class="source-url"><a href="https://github.com/VoltAgent/awesome-claude-code-subagents" target="_blank" rel="noopener noreferrer">https://github.com/VoltAgent/awesome-claude-code-subagents</a></div>
+        <div class="source-desc">100件以上のサブエージェント定義テンプレート集</div>
+      </div>
+      <div class="source-card">
+        <div class="source-title">🔵 rosmur: Claude Code Best Practices (総合)</div>
+        <div class="source-url"><a href="https://rosmur.github.io/claudecode-best-practices/" target="_blank" rel="noopener noreferrer">https://rosmur.github.io/claudecode-best-practices/</a></div>
+        <div class="source-desc">コミュニティ知見の集大成。優先度付きプラクティス一覧</div>
+      </div>
+
+      <!-- NEW: Agent Teams sources -->
+      <div class="source-card" style="border-color:rgba(52,211,153,0.4);">
+        <div class="source-title" style="color:#34d399;">🟢 Anthropic 公式: Agent Teams ドキュメント</div>
+        <div class="source-url"><a href="https://code.claude.com/docs/en/agent-teams" target="_blank" rel="noopener noreferrer">https://code.claude.com/docs/en/agent-teams</a></div>
+        <div class="source-desc">Agent Teams 公式仕様：リード/テイムメイト・共有タスクリスト・TeammateIdle/TaskCompleted フック・CLAUDE.md の自動ロード・クリーンアップ手順</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.4);">
+        <div class="source-title" style="color:#34d399;">🟢 Anthropic 公式 CHANGELOG: Agent Teams リリースノート</div>
+        <div class="source-url"><a href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer">https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md</a></div>
+        <div class="source-desc">v2.1.33 TeammateIdle/TaskCompleted フックイベント・v2.1.32 Agent Teams 実装・Task(agent_type) 構文・memory frontmatter の公式リリースノート</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 Addy Osmani: Claude Code Swarms（Agent Teams 詳解）</div>
+        <div class="source-url"><a href="https://addyosmani.com/blog/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">https://addyosmani.com/blog/claude-code-agent-teams/</a></div>
+        <div class="source-desc">なぜコンテキスト分散が有効か・タスクサイジングとファイルオーナーシップの重要性・Engineering Manager スキルとの類比・コスト試算（3〜4倍）</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 alexop.dev: From Tasks to Swarms（Agent Teams 実装解説）</div>
+        <div class="source-url"><a href="https://alexop.dev/posts/from-tasks-to-swarms-agent-teams-in-claude-code/" target="_blank" rel="noopener noreferrer">https://alexop.dev/posts/from-tasks-to-swarms-agent-teams-in-claude-code/</a></div>
+        <div class="source-desc">7つの Agent Teams ツール（TeamCreate/TaskCreate/TaskUpdate 等）の実コール・Plan→Team 2ステップパターン・QA スウォーム実践例（3分完了）</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 claudefa.st: Agent Teams Controls（Delegate Mode・Hooks 詳解）</div>
+        <div class="source-url"><a href="https://claudefa.st/blog/guide/agents/agent-teams-controls" target="_blank" rel="noopener noreferrer">https://claudefa.st/blog/guide/agents/agent-teams-controls</a></div>
+        <div class="source-desc">Delegate Mode の効果・TaskCompleted フックでテスト強制・CLAUDE.md の品質とトークン効率・テイムメイト数ガイドライン（5〜6タスク/テイムメイト）</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 claudefa.st: Agent Teams 完全ガイド 2026</div>
+        <div class="source-url"><a href="https://claudefa.st/blog/guide/agents/agent-teams" target="_blank" rel="noopener noreferrer">https://claudefa.st/blog/guide/agents/agent-teams</a></div>
+        <div class="source-desc">サブエージェント vs Agent Teams の決定的違い・Opus 4.6 同時リリース経緯・ネイティブ統合の優位性・コミュニティ実装（OpenClaw/oh-my-claudecode）との比較</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 SitePoint: Claude Code Agent Teams — Architecture 解説</div>
+        <div class="source-url"><a href="https://www.sitepoint.com/anthropic-claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">https://www.sitepoint.com/anthropic-claude-code-agent-teams/</a></div>
+        <div class="source-desc">リード/テイムメイトモデルの技術アーキテクチャ・依存関係オーダリング・開発者ロールが「コード執筆」から「エージェント指揮」へシフトする予測</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 jeongil.dev: Claude Code コミュニティ進化史（oh-my-claudecode → Agent Teams）</div>
+        <div class="source-url"><a href="https://jeongil.dev/en/blog/trends/claude-code-agent-teams/" target="_blank" rel="noopener noreferrer">https://jeongil.dev/en/blog/trends/claude-code-agent-teams/</a></div>
+        <div class="source-desc">TeammateTool の発見経緯・oh-my-claudecode（32エージェント・7実行モード）との比較・モデル混在設計（Opus for Lead / Sonnet for Teammates）</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 Medium (Haberlah): Configure Claude Code to Power Your Agent Team</div>
+        <div class="source-url"><a href="https://medium.com/@haberlah/configure-claude-code-to-power-your-agent-team-90c8d3bca392" target="_blank" rel="noopener noreferrer">https://medium.com/@haberlah/configure-claude-code-to-power-your-agent-team-90c8d3bca392</a></div>
+        <div class="source-desc">14フックイベント全一覧・settings.local.json でのMCPサーバー設定・PreToolUse による機密ファイル保護・200K トークンウィンドウ管理の設計論</div>
+      </div>
+      <div class="source-card" style="border-color:rgba(52,211,153,0.3);">
+        <div class="source-title" style="color:#34d399;">🟢 GitHub: AgentSpeak — Agent Teams トークン効率化プロトコル</div>
+        <div class="source-url"><a href="https://github.com/yuvalsuede/claude-teams-language-protocol" target="_blank" rel="noopener noreferrer">https://github.com/yuvalsuede/claude-teams-language-protocol</a></div>
+        <div class="source-desc">テイムメイト間メッセージを60〜70%削減する圧縮プロトコル・T# タスク参照・ファイルロック短縮表記・TaskCompleted/TeammateIdle フックとの統合</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

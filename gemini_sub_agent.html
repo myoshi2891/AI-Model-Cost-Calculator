@@ -1,0 +1,3501 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini サブエージェント Markdownファイル ベストプラクティス</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Mono&display=swap');
+
+      :root {
+        --bg: #f8faff;
+        --surface: #ffffff;
+        --surface2: #f1f3f9;
+        --border: #e2e8f4;
+        --border2: #c8d3ea;
+        --blue: #1a73e8;
+        --blue-l: #e8f0fe;
+        --green: #1e8e3e;
+        --green-l: #e6f4ea;
+        --yellow: #f9ab00;
+        --yellow-l: #fef7e0;
+        --red: #d93025;
+        --red-l: #fce8e6;
+        --purple: #7c3aed;
+        --purple-l: #ede9fe;
+        --teal: #00897b;
+        --teal-l: #e0f2f1;
+        --text: #202124;
+        --text2: #5f6368;
+        --text3: #80868b;
+        --shadow: 0 1px 3px rgba(60, 64, 67, 0.12), 0 1px 2px rgba(60, 64, 67, 0.08);
+        --shadow-md: 0 4px 12px rgba(60, 64, 67, 0.15);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          'Google Sans',
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      /* ── TOP NAV ── */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 12px 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .topbar-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .g-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .topbar-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .topbar-subtitle {
+        font-size: 13px;
+        color: var(--text3);
+        margin-left: auto;
+      }
+
+      /* ── Wrapper ── */
+      .wrapper {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 48px 24px 96px;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 50%, #4a148c 100%);
+        border-radius: 20px;
+        padding: 52px 48px;
+        margin-bottom: 56px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        right: -80px;
+        top: -80px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 65%);
+        pointer-events: none;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        left: 30%;
+        bottom: -60px;
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 24px;
+        padding: 4px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-size: 2.6rem;
+        font-weight: 700;
+        line-height: 1.15;
+        margin-bottom: 18px;
+      }
+      .hero h1 span {
+        opacity: 0.75;
+      }
+      .hero p {
+        font-size: 1.05rem;
+        opacity: 0.85;
+        max-width: 600px;
+        line-height: 1.7;
+      }
+      .hero-chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+      .hero-chip {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 4px 14px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      /* ── Section ── */
+      .section {
+        margin-bottom: 60px;
+      }
+      .section-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--border);
+      }
+      .section-num {
+        background: var(--blue);
+        color: white;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .section-head h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      /* ── Cards ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+      }
+      .card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card p {
+        color: var(--text2);
+        margin-bottom: 10px;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ── Hierarchy diagram ── */
+      .hier-wrap {
+        background: linear-gradient(135deg, #0d1b3e, #1a2a5e);
+        border-radius: 14px;
+        padding: 32px 28px;
+        margin: 20px 0;
+        overflow-x: auto;
+      }
+      .hier-title {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+      .hier-row {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 0;
+      }
+      .hier-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        flex: 1;
+        min-width: 160px;
+        max-width: 210px;
+      }
+      .hier-box {
+        border-radius: 10px;
+        padding: 12px 16px;
+        text-align: center;
+        font-size: 12.5px;
+        font-weight: 600;
+        width: 100%;
+        position: relative;
+      }
+      .hb-global {
+        background: rgba(26, 115, 232, 0.25);
+        border: 1.5px solid rgba(26, 115, 232, 0.6);
+        color: #82b4ff;
+      }
+      .hb-project {
+        background: rgba(30, 142, 62, 0.2);
+        border: 1.5px solid rgba(30, 142, 62, 0.5);
+        color: #81c995;
+      }
+      .hb-sub {
+        background: rgba(124, 58, 237, 0.2);
+        border: 1.5px solid rgba(124, 58, 237, 0.5);
+        color: #c4b5fd;
+      }
+      .hb-auto {
+        background: rgba(0, 137, 123, 0.2);
+        border: 1.5px solid rgba(0, 137, 123, 0.5);
+        color: #80cbc4;
+      }
+      .hier-box small {
+        display: block;
+        font-weight: 400;
+        opacity: 0.7;
+        margin-top: 3px;
+        font-size: 11px;
+      }
+      .hier-arrow-down {
+        color: rgba(255, 255, 255, 0.25);
+        font-size: 18px;
+        line-height: 1;
+        padding: 4px 0;
+      }
+      .hier-connector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+      }
+      .hier-connector-arrow {
+        color: rgba(255, 255, 255, 0.2);
+        font-size: 22px;
+      }
+      .hier-label {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 11px;
+        margin-top: 16px;
+      }
+      .hier-priority {
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      /* ── File tree SVG container ── */
+      .filetree-wrap {
+        background: #0a0e1a;
+        border-radius: 14px;
+        overflow: hidden;
+        margin: 20px 0;
+        border: 1px solid #1e2d52;
+      }
+      .filetree-header {
+        background: #111827;
+        border-bottom: 1px solid #1e2d52;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ft-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+
+      /* ── Code blocks ── */
+      .code-wrap {
+        background: #0a0e1a;
+        border: 1px solid #1e2d52;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .code-bar {
+        background: #111827;
+        border-bottom: 1px solid #1e2d52;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .code-bar .lang {
+        color: #818cf8;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .code-body {
+        padding: 20px 22px;
+        font-family: 'Google Sans Mono', 'Fira Code', 'SF Mono', monospace;
+        font-size: 13px;
+        line-height: 1.85;
+        overflow-x: auto;
+        white-space: pre;
+        color: #e2e8f0;
+      }
+      .ck {
+        color: #f87171;
+      } /* keyword */
+      .cs {
+        color: #86efac;
+      } /* string */
+      .cv {
+        color: #93c5fd;
+      } /* value */
+      .cc {
+        color: #64748b;
+        font-style: italic;
+      } /* comment */
+      .ch {
+        color: #fb923c;
+        font-weight: 700;
+      } /* heading */
+      .cm {
+        color: #34d399;
+        font-weight: 600;
+      } /* method/key */
+      .cw {
+        color: #fbbf24;
+      } /* warning/var */
+      .ce {
+        color: #a78bfa;
+      } /* entity */
+
+      /* ── Google-style chips ── */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border-radius: 16px;
+        padding: 3px 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .chip-blue {
+        background: var(--blue-l);
+        color: var(--blue);
+        border: 1px solid #c5d8fc;
+      }
+      .chip-green {
+        background: var(--green-l);
+        color: var(--green);
+        border: 1px solid #c6e8ce;
+      }
+      .chip-yellow {
+        background: var(--yellow-l);
+        color: #b06000;
+        border: 1px solid #fde293;
+      }
+      .chip-red {
+        background: var(--red-l);
+        color: var(--red);
+        border: 1px solid #f5c6c2;
+      }
+      .chip-purple {
+        background: var(--purple-l);
+        color: var(--purple);
+        border: 1px solid #d8b4fe;
+      }
+      .chip-teal {
+        background: var(--teal-l);
+        color: var(--teal);
+        border: 1px solid #b2dfdb;
+      }
+      .mono {
+        font-family: 'Google Sans Mono', monospace;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 5px;
+        padding: 1px 6px;
+        font-size: 12.5px;
+        color: #1a73e8;
+      }
+
+      /* ── Alert boxes ── */
+      .alert {
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin: 16px 0;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        font-size: 13.5px;
+      }
+      .alert-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .alert-info {
+        background: var(--blue-l);
+        border-left: 3px solid var(--blue);
+      }
+      .alert-warn {
+        background: var(--yellow-l);
+        border-left: 3px solid var(--yellow);
+      }
+      .alert-danger {
+        background: var(--red-l);
+        border-left: 3px solid var(--red);
+      }
+      .alert-success {
+        background: var(--green-l);
+        border-left: 3px solid var(--green);
+      }
+      .alert-content strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+      .alert-content {
+        color: var(--text2);
+      }
+
+      /* ── Best/Anti pattern grid ── */
+      .pat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .pat-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .pat {
+        border-radius: 12px;
+        padding: 18px 20px;
+      }
+      .pat-ok {
+        background: var(--green-l);
+        border: 1px solid #c6e8ce;
+      }
+      .pat-ng {
+        background: var(--red-l);
+        border: 1px solid #f5c6c2;
+      }
+      .pat-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin-bottom: 10px;
+      }
+      .pat-ok .pat-label {
+        color: var(--green);
+      }
+      .pat-ng .pat-label {
+        color: var(--red);
+      }
+      .pat ul {
+        list-style: none;
+      }
+      .pat ul li {
+        font-size: 13.5px;
+        color: var(--text2);
+        padding: 4px 0;
+        padding-left: 20px;
+        position: relative;
+      }
+      .pat-ok ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--green);
+        font-weight: 700;
+      }
+      .pat-ng ul li::before {
+        content: '✗';
+        position: absolute;
+        left: 0;
+        color: var(--red);
+        font-weight: 700;
+      }
+
+      /* ── ADK agent types ── */
+      .agent-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .agent-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .agent-card {
+        border-radius: 12px;
+        padding: 18px;
+        border: 1px solid var(--border);
+        background: white;
+        box-shadow: var(--shadow);
+      }
+      .agent-card-icon {
+        font-size: 26px;
+        margin-bottom: 10px;
+      }
+      .agent-card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      .agent-card-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        line-height: 1.6;
+      }
+      .agent-card-ex {
+        margin-top: 10px;
+        font-size: 11.5px;
+        color: var(--text3);
+        background: var(--surface2);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-family: monospace;
+      }
+
+      /* ── Table ── */
+      .tbl-wrap {
+        overflow-x: auto;
+        margin: 16px 0;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        background: white;
+      }
+      thead th {
+        background: var(--surface2);
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        padding: 10px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      tbody td {
+        padding: 11px 16px;
+        border-bottom: 1px solid var(--surface2);
+        color: var(--text2);
+        vertical-align: top;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      td code {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--blue);
+      }
+
+      /* ── Decision flow ── */
+      .flow-wrap {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        margin: 20px 0;
+      }
+      .flow-title {
+        text-align: center;
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 22px;
+      }
+      .flow-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+        flex-wrap: wrap;
+      }
+      .fn-q {
+        background: var(--blue-l);
+        border: 1px solid #c5d8fc;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--blue);
+        font-size: 13px;
+      }
+      .fn-y {
+        background: var(--green-l);
+        border: 1px solid #c6e8ce;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--green);
+        font-size: 13px;
+      }
+      .fn-n {
+        background: var(--red-l);
+        border: 1px solid #f5c6c2;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--red);
+        font-size: 13px;
+      }
+      .fn-arr {
+        color: var(--text3);
+        font-size: 18px;
+      }
+      .fn-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text3);
+      }
+      .fn-indent {
+        padding-left: 28px;
+        border-left: 2px solid var(--border2);
+        margin-left: 20px;
+      }
+
+      /* ── Source cards ── */
+      .src-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .src-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+        box-shadow: var(--shadow);
+      }
+      .src-icon {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+      .src-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--blue);
+        margin-bottom: 4px;
+      }
+      .src-url {
+        font-size: 11px;
+        color: var(--text3);
+        word-break: break-all;
+        font-family: monospace;
+        margin-bottom: 6px;
+      }
+      .src-desc {
+        font-size: 12px;
+        color: var(--text2);
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 52px 0;
+      }
+      a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      /* ══════════════════════════════════════════════════════════
+         マルチエージェント & A2A 追加 CSS
+         ══════════════════════════════════════════════════════════ */
+
+      /* accent colours */
+      :root {
+        --orange: #e8710a;
+        --orange-l: #fff3e0;
+        --indigo: #3949ab;
+        --indigo-l: #e8eaf6;
+      }
+
+      /* GA / experimental バナー */
+      .ma-banner {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 45%, #e3f2fd 100%);
+        border: 2px solid #81c784;
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .ma-banner::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(30, 142, 62, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .ma-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--green-l);
+        border: 1px solid #a5d6a7;
+        border-radius: 20px;
+        padding: 4px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--green);
+        margin-bottom: 14px;
+      }
+      .ma-banner h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+      .ma-banner p {
+        color: var(--text2);
+        font-size: 13.5px;
+        line-height: 1.75;
+      }
+
+      /* 3レイヤースタック */
+      .layer-stack {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      .layer-row {
+        display: flex;
+        align-items: flex-start;
+        padding: 16px 20px;
+        gap: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .layer-row:last-child {
+        border-bottom: none;
+      }
+      .lr-adk {
+        background: linear-gradient(90deg, #e6f4ea, #fafafa);
+      }
+      .lr-a2a {
+        background: linear-gradient(90deg, #e8f0fe, #fafafa);
+      }
+      .lr-mcp {
+        background: linear-gradient(90deg, #fff3e0, #fafafa);
+      }
+      .layer-badge {
+        width: 56px;
+        text-align: center;
+        border-radius: 8px;
+        padding: 6px 4px;
+        font-size: 10.5px;
+        font-weight: 800;
+        flex-shrink: 0;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+      }
+      .lb-adk {
+        background: var(--green-l);
+        color: var(--green);
+        border: 1px solid #a5d6a7;
+      }
+      .lb-a2a {
+        background: var(--blue-l);
+        color: var(--blue);
+        border: 1px solid #c5d8fc;
+      }
+      .lb-mcp {
+        background: var(--orange-l);
+        color: var(--orange);
+        border: 1px solid #ffcc80;
+      }
+      .layer-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--text);
+        min-width: 190px;
+        flex-shrink: 0;
+      }
+      .layer-body {
+        flex: 1;
+      }
+      .layer-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        line-height: 1.6;
+      }
+      .layer-file {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--text3);
+        font-family: monospace;
+        background: var(--surface2);
+        border-radius: 5px;
+        padding: 2px 8px;
+        border: 1px solid var(--border2);
+      }
+
+      /* Sub vs Multi 比較 */
+      .cmp2-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .cmp2-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .cmp2 {
+        border-radius: 12px;
+        padding: 20px 22px;
+      }
+      .cmp2-sub {
+        background: var(--blue-l);
+        border: 1px solid #c5d8fc;
+      }
+      .cmp2-mult {
+        background: var(--green-l);
+        border: 1px solid #a5d6a7;
+      }
+      .cmp2-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+      }
+      .cmp2-sub .cmp2-label {
+        color: var(--blue);
+      }
+      .cmp2-mult .cmp2-label {
+        color: var(--green);
+      }
+      .cmp2 ul {
+        list-style: none;
+      }
+      .cmp2 ul li {
+        font-size: 13px;
+        color: var(--text2);
+        padding: 4px 0 4px 18px;
+        position: relative;
+      }
+      .cmp2 ul li::before {
+        content: '▸';
+        position: absolute;
+        left: 0;
+        opacity: 0.45;
+      }
+      .cmp2 ul li strong {
+        color: var(--text);
+      }
+
+      /* A2A アーキテクチャ図 */
+      .a2a-arch {
+        background: linear-gradient(135deg, #0d1b3e, #1a2a5e);
+        border-radius: 14px;
+        padding: 28px 24px;
+        margin: 20px 0;
+        overflow-x: auto;
+      }
+      .a2a-arch-title {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+      }
+      .a2a-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .a2a-label {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.35);
+        font-size: 11.5px;
+        margin: 4px 0 12px;
+      }
+      .a2a-box {
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: center;
+        min-width: 120px;
+        line-height: 1.4;
+      }
+      .ab-orch {
+        background: rgba(26, 115, 232, 0.25);
+        border: 2px solid rgba(26, 115, 232, 0.6);
+        color: #82b4ff;
+      }
+      .ab-local {
+        background: rgba(30, 142, 62, 0.2);
+        border: 1.5px solid rgba(30, 142, 62, 0.5);
+        color: #81c995;
+      }
+      .ab-remote {
+        background: rgba(124, 58, 237, 0.2);
+        border: 1.5px solid rgba(124, 58, 237, 0.5);
+        color: #c4b5fd;
+      }
+      .ab-card {
+        background: rgba(0, 137, 123, 0.2);
+        border: 1.5px solid rgba(0, 137, 123, 0.5);
+        color: #80cbc4;
+      }
+      .ab-engine {
+        background: rgba(249, 171, 0, 0.15);
+        border: 1.5px solid rgba(249, 171, 0, 0.5);
+        color: #fde293;
+      }
+      .a2a-arrow {
+        color: rgba(255, 255, 255, 0.3);
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+
+      /* ユースケースグリッド */
+      .uc-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .uc-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .uc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+      .uc-icon {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
+      .uc-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .uc-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        line-height: 1.6;
+      }
+      .uc-code {
+        margin-top: 10px;
+        font-size: 11px;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-family: monospace;
+        color: var(--green);
+        line-height: 1.65;
+      }
+
+      /* 意思決定フロー */
+      .dflow {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        margin: 20px 0;
+      }
+      .dflow-title {
+        text-align: center;
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
+      .dflow-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+        flex-wrap: wrap;
+      }
+      .dn-q {
+        background: var(--blue-l);
+        border: 1px solid #c5d8fc;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--blue);
+        font-size: 13px;
+      }
+      .dn-y {
+        background: var(--green-l);
+        border: 1px solid #a5d6a7;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--green);
+        font-size: 13px;
+      }
+      .dn-n {
+        background: var(--red-l);
+        border: 1px solid #f5c6c2;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: var(--red);
+        font-size: 13px;
+      }
+      .dn-arr {
+        color: var(--text3);
+        font-size: 18px;
+      }
+      .dn-ind {
+        padding-left: 28px;
+        border-left: 2px solid var(--border2);
+        margin-left: 18px;
+      }
+
+      /* マルチエージェントセクション accent */
+      .section-ma .section-head {
+        border-bottom-color: #81c784;
+      }
+      .section-ma .section-num {
+        background: var(--green);
+      }
+
+      /* 新規ソースカード accent */
+      .src-card-new {
+        border-color: #a5d6a7 !important;
+      }
+      .src-card-new .src-title {
+        color: var(--green) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP NAV -->
+    <div class="topbar">
+      <div class="topbar-logo">
+        <span class="g-dot" style="background: #4285f4"></span>
+        <span class="g-dot" style="background: #ea4335"></span>
+        <span class="g-dot" style="background: #fbbc05"></span>
+        <span class="g-dot" style="background: #34a853"></span>
+        <span class="topbar-title">Gemini Agent Dev Guide</span>
+      </div>
+      <span class="topbar-subtitle"
+        >Gemini CLI · ADK · Code Assist · A2A Protocol · AgentEngine — 2026年2月
+        マルチエージェント完全版</span
+      >
+    </div>
+
+    <div class="wrapper">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-eyebrow">
+          🤖 Google Gemini 完全ガイド — 2026年2月 A2A / AgentEngine 対応版
+        </div>
+        <h1>
+          マルチエージェント開発における<br /><span>Markdownファイル & 設定ファイル</span>
+          ベストプラクティス
+        </h1>
+        <p>
+          GEMINI.md・AGENTS.md・agent.py・.geminiignore・settings.json に加え、
+          <strong
+            >A2A プロトコル（agent.json / Agent Card）・AgentEngine デプロイ・マルチエージェント向け
+            GEMINI.md 設計・RemoteA2aAgent 実装パターン</strong
+          >まで ── Gemini エコシステムの全ファイルを体系的に解説します。
+        </p>
+        <div class="hero-chips">
+          <span class="hero-chip">Gemini CLI</span>
+          <span class="hero-chip">Gemini Code Assist</span>
+          <span class="hero-chip">ADK (Python/Go/Java)</span>
+          <span class="hero-chip">A2A Protocol (Linux Foundation)</span>
+          <span class="hero-chip">AgentEngine (Vertex AI)</span>
+          <span class="hero-chip">MCP Integration</span>
+          <span class="hero-chip">Android Studio</span>
+        </div>
+      </div>
+
+      <!-- 1. OVERVIEW -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">1</span>
+          <h2>全体アーキテクチャと各ファイルの位置づけ</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            Gemini
+            エコシステムでのサブエージェント開発では、<strong>ツールによってMarkdownファイルの仕組みが異なります</strong>。大きく2つのレイヤーに分けて理解することが重要です。
+          </p>
+        </div>
+
+        <!-- Context Hierarchy Diagram -->
+        <div class="hier-wrap">
+          <div class="hier-title">GEMINI.md コンテキスト階層 — 読み込み優先度（低 → 高）</div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              flex-wrap: wrap;
+            "
+          >
+            <div class="hier-col">
+              <div class="hier-box hb-global">
+                🌐 Global<br />
+                <small>~/.gemini/GEMINI.md</small>
+              </div>
+              <div class="hier-arrow-down">↓</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.35); text-align: center">
+                全プロジェクト共通<br />デフォルト設定
+              </div>
+            </div>
+            <div class="hier-connector"><div class="hier-connector-arrow">→</div></div>
+            <div class="hier-col">
+              <div class="hier-box hb-project">
+                📁 Project Root<br />
+                <small>./GEMINI.md</small>
+              </div>
+              <div class="hier-arrow-down">↓</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.35); text-align: center">
+                プロジェクト固有<br />（git root 検出）
+              </div>
+            </div>
+            <div class="hier-connector"><div class="hier-connector-arrow">→</div></div>
+            <div class="hier-col">
+              <div class="hier-box hb-sub">
+                📂 Sub-directory<br />
+                <small>src/GEMINI.md 等</small>
+              </div>
+              <div class="hier-arrow-down">↓</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.35); text-align: center">
+                モジュール固有<br />補足コンテキスト
+              </div>
+            </div>
+            <div class="hier-connector"><div class="hier-connector-arrow">→</div></div>
+            <div class="hier-col">
+              <div class="hier-box hb-auto">
+                🔍 Auto-scan<br />
+                <small>ツールアクセス時に自動検出</small>
+              </div>
+              <div class="hier-arrow-down">↓</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.35); text-align: center">
+                ファイルアクセス時<br />動的ロード
+              </div>
+            </div>
+          </div>
+          <div class="hier-label">
+            すべてのファイルが結合されてモデルに送信される（.gitignore / .geminiignore は除外）
+          </div>
+          <div class="hier-priority">
+            優先度：Auto-scan ＞ Sub-directory ＞ Project Root ＞
+            Global（より具体的なファイルが優先）
+          </div>
+        </div>
+
+        <!-- File tree SVG -->
+        <div class="filetree-wrap">
+          <div class="filetree-header">
+            <span class="ft-dot" style="background: #f87171"></span>
+            <span class="ft-dot" style="background: #fbbf24"></span>
+            <span class="ft-dot" style="background: #34d399"></span>
+            <span style="margin-left: 10px; color: #6b7280; font-size: 12px; font-family: monospace"
+              >project-root/ — Gemini エコシステム ファイル構造</span
+            >
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 960 760"
+            width="100%"
+            style="display: block"
+            font-family="'Google Sans Mono','Fira Code','SF Mono',monospace"
+          >
+            <defs>
+              <linearGradient id="gb1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #1a73e8" />
+                <stop offset="100%" style="stop-color: #4285f4" />
+              </linearGradient>
+              <linearGradient id="gb2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #1e8e3e" />
+                <stop offset="100%" style="stop-color: #34a853" />
+              </linearGradient>
+              <linearGradient id="gb3" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #7c3aed" />
+                <stop offset="100%" style="stop-color: #8b5cf6" />
+              </linearGradient>
+              <linearGradient id="gb4" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #d93025" />
+                <stop offset="100%" style="stop-color: #ea4335" />
+              </linearGradient>
+              <linearGradient id="gb5" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #00897b" />
+                <stop offset="100%" style="stop-color: #26a69a" />
+              </linearGradient>
+            </defs>
+            <rect width="960" height="760" fill="#0a0e1a" />
+
+            <!-- LEGEND -->
+            <rect
+              x="660"
+              y="18"
+              width="282"
+              height="230"
+              rx="10"
+              fill="#111827"
+              stroke="#1e2d52"
+              stroke-width="1"
+            />
+            <text
+              x="801"
+              y="40"
+              text-anchor="middle"
+              fill="#6b7280"
+              font-size="11"
+              letter-spacing="1"
+            >
+              LEGEND
+            </text>
+            <rect x="676" y="50" width="22" height="22" rx="5" fill="url(#gb1)" />
+            <text x="687" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ①
+            </text>
+            <text x="706" y="65" font-size="12" fill="#e2e8f0">GEMINI.md / AGENT.md</text>
+            <rect x="676" y="82" width="22" height="22" rx="5" fill="url(#gb2)" />
+            <text x="687" y="97" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ②
+            </text>
+            <text x="706" y="97" font-size="12" fill="#e2e8f0">
+              ADK agent.py（エージェント定義）
+            </text>
+            <rect x="676" y="114" width="22" height="22" rx="5" fill="url(#gb3)" />
+            <text
+              x="687"
+              y="129"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="706" y="129" font-size="12" fill="#e2e8f0">設定・制御ファイル</text>
+            <rect x="676" y="146" width="22" height="22" rx="5" fill="url(#gb4)" />
+            <text
+              x="687"
+              y="161"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ④
+            </text>
+            <text x="706" y="161" font-size="12" fill="#e2e8f0">.geminiignore（除外ルール）</text>
+            <rect x="676" y="178" width="22" height="22" rx="5" fill="url(#gb5)" />
+            <text
+              x="687"
+              y="193"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="706" y="193" font-size="12" fill="#e2e8f0">README.md（人間向け）</text>
+            <rect x="676" y="210" width="58" height="22" rx="5" fill="#374151" />
+            <text
+              x="705"
+              y="225"
+              text-anchor="middle"
+              fill="#9ca3af"
+              font-size="11"
+              font-weight="700"
+            >
+              📁 DIR
+            </text>
+            <text x="742" y="225" font-size="12" fill="#6b7280">ディレクトリ</text>
+
+            <!-- TREE LINES -->
+            <line x1="44" y1="48" x2="44" y2="696" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="44" y1="50" x2="70" y2="50" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- GEMINI.md root -->
+            <line x1="44" y1="95" x2="70" y2="95" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- AGENTS.md -->
+            <line x1="44" y1="140" x2="70" y2="140" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- .geminiignore -->
+            <line x1="44" y1="185" x2="70" y2="185" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- settings.json -->
+            <line x1="44" y1="230" x2="70" y2="230" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- .gemini/ dir -->
+            <!-- .gemini/ spine -->
+            <line x1="86" y1="230" x2="86" y2="260" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="258" x2="112" y2="258" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- settings.json sub -->
+            <line x1="44" y1="300" x2="70" y2="300" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- src/ dir -->
+            <!-- src/ spine -->
+            <line x1="86" y1="300" x2="86" y2="390" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="328" x2="112" y2="328" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- src GEMINI.md -->
+            <line x1="86" y1="368" x2="112" y2="368" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- frontend/ -->
+            <line x1="128" y1="368" x2="128" y2="398" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="128" y1="396" x2="154" y2="396" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- frontend GEMINI.md -->
+            <!-- agents dir -->
+            <line x1="44" y1="440" x2="70" y2="440" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="440" x2="86" y2="560" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="470" x2="112" y2="470" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="510" x2="112" y2="510" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="550" x2="112" y2="550" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- evaluations -->
+            <line x1="44" y1="600" x2="70" y2="600" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="600" x2="86" y2="638" stroke="#1e2d52" stroke-width="1.5" />
+            <line x1="86" y1="636" x2="112" y2="636" stroke="#1e2d52" stroke-width="1.5" />
+            <!-- README -->
+            <line x1="44" y1="696" x2="70" y2="696" stroke="#1e2d52" stroke-width="1.5" />
+
+            <!-- ROOT -->
+            <text x="20" y="30" font-size="16" fill="#4285f4">📁</text>
+            <text x="42" y="30" font-size="14" font-weight="700" fill="#60a5fa">project-root/</text>
+
+            <!-- ROW 1: GEMINI.md root -->
+            <text x="78" y="56" font-size="14" fill="#93c5fd">📄</text>
+            <text x="98" y="56" font-size="13.5" font-weight="700" fill="#93c5fd">GEMINI.md</text>
+            <rect x="194" y="41" width="22" height="22" rx="5" fill="url(#gb1)" />
+            <text x="205" y="56" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ①
+            </text>
+            <text x="224" y="56" font-size="12" fill="#6b7280">
+              プロジェクト固有コンテキスト（常時ロード）
+            </text>
+            <!-- ROW 1b: also AGENT.md -->
+            <text x="224" y="74" font-size="11.5" fill="#4b5563">
+              ※ AGENT.md でも可（Code Assist / Android Studio）
+            </text>
+
+            <!-- ROW 2: AGENTS.md -->
+            <text x="78" y="101" font-size="14" fill="#86efac">📄</text>
+            <text x="98" y="101" font-size="13.5" font-weight="700" fill="#86efac">AGENTS.md</text>
+            <rect x="194" y="86" width="22" height="22" rx="5" fill="url(#gb1)" opacity="0.75" />
+            <text
+              x="205"
+              y="101"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ①
+            </text>
+            <text x="224" y="101" font-size="12" fill="#6b7280">
+              クロスツール互換（Claude / Codex / Cursor と共有可）
+            </text>
+
+            <!-- ROW 3: .geminiignore -->
+            <text x="78" y="146" font-size="14" fill="#fca5a5">🚫</text>
+            <text x="98" y="146" font-size="13.5" font-weight="700" fill="#fca5a5">
+              .geminiignore
+            </text>
+            <rect x="218" y="131" width="22" height="22" rx="5" fill="url(#gb4)" />
+            <text
+              x="229"
+              y="146"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ④
+            </text>
+            <text x="248" y="146" font-size="12" fill="#6b7280">
+              コンテキストから除外するファイル・フォルダ
+            </text>
+
+            <!-- ROW 4: settings.json -->
+            <text x="78" y="191" font-size="14" fill="#d1d5db">⚙️</text>
+            <text x="98" y="191" font-size="13.5" font-weight="700" fill="#d1d5db">
+              settings.json
+            </text>
+            <rect x="216" y="176" width="22" height="22" rx="5" fill="url(#gb3)" />
+            <text
+              x="227"
+              y="191"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="246" y="191" font-size="12" fill="#6b7280">
+              MCP設定・context.fileName・除外ツール設定
+            </text>
+
+            <!-- ROW 5: .gemini/ dir -->
+            <text x="78" y="236" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="236" font-size="14" font-weight="700" fill="#60a5fa">.gemini/</text>
+            <text x="184" y="236" font-size="12" fill="#4b5563">← IDE統合時の設定ディレクトリ</text>
+            <!-- settings.json in .gemini/ -->
+            <text x="120" y="264" font-size="14" fill="#d1d5db">⚙️</text>
+            <text x="140" y="264" font-size="13" fill="#d1d5db">settings.json</text>
+            <rect x="238" y="249" width="22" height="22" rx="5" fill="url(#gb3)" opacity="0.75" />
+            <text
+              x="249"
+              y="264"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="268" y="264" font-size="12" fill="#4b5563">VS Code / IntelliJ 統合設定</text>
+
+            <!-- ROW 6: src/ dir -->
+            <text x="78" y="306" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="306" font-size="14" font-weight="700" fill="#60a5fa">src/</text>
+            <!-- src/GEMINI.md -->
+            <text x="120" y="334" font-size="14" fill="#93c5fd">📄</text>
+            <text x="140" y="334" font-size="13" font-weight="700" fill="#93c5fd">GEMINI.md</text>
+            <rect x="228" y="319" width="22" height="22" rx="5" fill="url(#gb1)" opacity="0.7" />
+            <text
+              x="239"
+              y="334"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ①
+            </text>
+            <text x="258" y="334" font-size="12" fill="#6b7280">
+              src/ 固有のコーディング規約・依存関係
+            </text>
+            <!-- src/frontend/ -->
+            <text x="120" y="374" font-size="13" fill="#60a5fa">📂</text>
+            <text x="140" y="374" font-size="13" font-weight="700" fill="#60a5fa">frontend/</text>
+            <text x="162" y="402" font-size="13" fill="#93c5fd">📄</text>
+            <text x="182" y="402" font-size="13" fill="#93c5fd">GEMINI.md</text>
+            <rect x="268" y="387" width="22" height="22" rx="5" fill="url(#gb1)" opacity="0.6" />
+            <text
+              x="279"
+              y="402"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ①
+            </text>
+            <text x="298" y="402" font-size="12" fill="#6b7280">
+              React/Next.js固有ルール（自動スキャン）
+            </text>
+
+            <!-- ROW 7: agents/ dir (ADK) -->
+            <text x="78" y="446" font-size="14" fill="#4ade80">📁</text>
+            <text x="98" y="446" font-size="14" font-weight="700" fill="#4ade80">agents/</text>
+            <text x="184" y="446" font-size="12" fill="#4b5563">← ADK サブエージェント定義</text>
+            <!-- agent files -->
+            <text x="120" y="476" font-size="14" fill="#86efac">🐍</text>
+            <text x="140" y="476" font-size="13" fill="#86efac">orchestrator/agent.py</text>
+            <rect x="326" y="461" width="22" height="22" rx="5" fill="url(#gb2)" />
+            <text
+              x="337"
+              y="476"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ②
+            </text>
+            <text x="356" y="476" font-size="12" fill="#6b7280">
+              ルートエージェント定義 (instruction フィールド)
+            </text>
+
+            <text x="120" y="516" font-size="14" fill="#86efac">🐍</text>
+            <text x="140" y="516" font-size="13" fill="#86efac">researcher/agent.py</text>
+            <rect x="310" y="501" width="22" height="22" rx="5" fill="url(#gb2)" opacity="0.75" />
+            <text
+              x="321"
+              y="516"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ②
+            </text>
+            <text x="340" y="516" font-size="12" fill="#6b7280">サブエージェント (LlmAgent)</text>
+
+            <text x="120" y="556" font-size="14" fill="#86efac">🐍</text>
+            <text x="140" y="556" font-size="13" fill="#86efac">reviewer/agent.py</text>
+            <rect x="306" y="541" width="22" height="22" rx="5" fill="url(#gb2)" opacity="0.75" />
+            <text
+              x="317"
+              y="556"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ②
+            </text>
+            <text x="336" y="556" font-size="12" fill="#6b7280">サブエージェント (LlmAgent)</text>
+
+            <!-- evaluations -->
+            <text x="78" y="606" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="606" font-size="14" font-weight="700" fill="#60a5fa">evals/</text>
+            <text x="120" y="642" font-size="13" fill="#d1d5db">📝</text>
+            <text x="140" y="642" font-size="13" fill="#d1d5db">eval_set.json</text>
+            <rect x="270" y="627" width="22" height="22" rx="5" fill="url(#gb3)" opacity="0.75" />
+            <text
+              x="281"
+              y="642"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="300" y="642" font-size="12" fill="#6b7280">
+              ADK 評価データセット（adk eval で使用）
+            </text>
+
+            <!-- README.md -->
+            <text x="78" y="702" font-size="14" fill="#60a5fa">📘</text>
+            <text x="98" y="702" font-size="14" font-weight="700" fill="#93c5fd">README.md</text>
+            <rect x="204" y="687" width="22" height="22" rx="5" fill="url(#gb5)" />
+            <text
+              x="215"
+              y="702"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="234" y="702" font-size="12" fill="#6b7280">
+              人間向け：エージェント構成・セットアップ手順
+            </text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 2. GEMINI.md -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">2</span>
+          <h2>
+            <span class="mono">GEMINI.md</span> / <span class="mono">AGENT.md</span> —
+            コンテキストファイルの設計
+          </h2>
+        </div>
+
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-content">
+            <strong>GEMINI.md vs AGENT.md — ツール別対応表</strong>
+            Gemini CLI は <code>GEMINI.md</code> がデフォルト。Gemini Code Assist (VS Code / Cloud)
+            は <code>GEMINI.md</code> か <code>AGENT.md</code> を使用。Android Studio は
+            <code>AGENTS.md</code> を採用。すべて <code>settings.json</code> の
+            <code>context.fileName</code> でカスタマイズ可能です。
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 GEMINI.md に書くべきこと / 書かないべきこと</div>
+          <div class="pat-grid">
+            <div class="pat pat-ok">
+              <div class="pat-label">✅ 書くべき内容</div>
+              <ul>
+                <li>プロジェクト概要・目的（2〜4文）</li>
+                <li>技術スタック・主要ライブラリのバージョン</li>
+                <li>サブエージェント委譲ルール</li>
+                <li>ビルド・テスト・デプロイコマンド</li>
+                <li>禁止操作の明示（DB reset 等）</li>
+                <li><code>@./subdir/guide.md</code> でのモジュール分割参照</li>
+                <li>コーディング規約（コンパクトに）</li>
+                <li>重要ドキュメントへのパス参照</li>
+              </ul>
+            </div>
+            <div class="pat pat-ng">
+              <div class="pat-label">✗ 書かないべき内容</div>
+              <ul>
+                <li>長大なコードスニペット（トークン浪費）</li>
+                <li>過去の変更履歴・修正ログ</li>
+                <li>ツール固有の設定（settings.json に分離）</li>
+                <li>機密情報・API キー（.geminiignore で除外）</li>
+                <li>すべての規約を1ファイルに詰め込む（@import で分割）</li>
+                <li>否定形のみの指示（代替案をセットで示す）</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📄 実践的な GEMINI.md テンプレート（サブエージェント対応版）</div>
+          <div class="code-wrap">
+            <div class="code-bar">
+              <span>GEMINI.md (project root)</span><span class="lang">Markdown</span>
+            </div>
+            <div class="code-body">
+              <span class="ch"># PROJECT: my-saas-app</span>
+
+              <span class="cm">## Overview</span>
+              Next.js 15 + Supabase + Stripe のマルチテナント SaaS。 本番: Vercel Edge Runtime / DB:
+              Supabase (PostgreSQL + pgvector)。
+
+              <span class="cm">## Tech Stack</span>
+              - Frontend: Next.js 15 App Router, TypeScript 5.x, Tailwind CSS - Backend: Supabase
+              Edge Functions (Deno 2.x) - Auth: Supabase Auth + Row Level Security - Payment: Stripe
+              Checkout / Billing Portal / Webhooks - AI: Gemini 2.5 Flash (via ADK), pgvector for
+              embeddings
+
+              <span class="cm">## Build & Test</span>
+              - Build: <span class="cs">`pnpm build`</span> - Test:
+              <span class="cs">`pnpm test`</span> (Vitest + Testing Library) - ADK dev:
+              <span class="cs">`adk web`</span> (Agent Dev UI on :8000) - Lint:
+              <span class="cs">`pnpm lint`</span> —
+              <span class="cw">ESLint/Prettier に全面委任すること</span> - DB types:
+              <span class="cs">`pnpm supabase gen types`</span>
+
+              <span class="cm">## Sub-Agent Routing</span>
+              <span class="cw">Parallel dispatch 条件（すべて満たす場合のみ）:</span>
+              - タスクが 3件以上かつ互いに独立 - 共有ファイル・共有状態なし - ドメイン境界が明確
+              (frontend / backend / db / ai) - ParallelAgent で書く場合: 各エージェントが<span
+                class="cw"
+                >異なるキーに書き込むこと</span
+              >
+
+              <span class="cw">Sequential dispatch（いずれかの条件で）:</span>
+              - タスクに依存関係がある（B に A の出力が必要） - 共有ファイルに触る処理がある
+
+              <span class="cm">## Domain Agents (ADK)</span>
+              - <span class="ce">orchestrator</span> → ルーティングのみ、実装しない -
+              <span class="ce">frontend-agent</span> → app/, components/, styles/ のみ -
+              <span class="ce">backend-agent</span> → supabase/functions/, lib/server/ のみ -
+              <span class="ce">ai-agent</span> → lib/ai/, embeddings/, vector queries のみ -
+              <span class="ce">db-agent</span> → supabase/migrations/, schema のみ
+
+              <span class="cm">## Forbidden Operations</span>
+              - <span class="cw">`supabase db reset`</span> は絶対に実行しない（本番データ消去） -
+              <span class="cw">`.env.production`</span> の読み書き禁止 -
+              <span class="cw">`--force`</span> フラグは使わない、代わりに
+              <span class="cs">`--dry-run`</span> で確認
+
+              <span class="cm">## @-imports (modular context)</span>
+              @./docs/architecture.md @./src/frontend/GEMINI.md @./src/backend/GEMINI.md
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <span class="alert-icon">💡</span>
+          <div class="alert-content">
+            <strong>@-import 構文でファイルを分割する</strong>
+            <code>@./path/to/file.md</code> 構文で他のMarkdownファイルをインポートできます（<code
+              >.md</code
+            >
+            ファイルのみ対応）。大きなプロジェクトでは「ルートは薄く、ドメイン別に分割」が鉄則です。CLIが正規表現でインライン展開するため、追加トークンコストなしで利用できます。
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. AGENTS.md interop -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">3</span>
+          <h2><span class="mono">AGENTS.md</span> — クロスツール互換戦略</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            チームで
+            <strong>Claude Code・Gemini CLI・Cursor・Codex</strong> を混在して使う場合、<code
+              >AGENTS.md</code
+            >
+            を共通エントリポイントとして採用する戦略が推奨されています。各ツール固有の設定は別ファイルに分離し、<code
+              >AGENTS.md</code
+            >
+            から参照します。
+          </p>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ツール</th>
+                <th>デフォルトファイル</th>
+                <th>代替ファイル</th>
+                <th>カスタマイズ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Gemini CLI</td>
+                <td><code>GEMINI.md</code></td>
+                <td><code>AGENTS.md</code></td>
+                <td><code>settings.json context.fileName</code></td>
+              </tr>
+              <tr>
+                <td>Gemini Code Assist</td>
+                <td><code>GEMINI.md</code></td>
+                <td><code>AGENT.md</code></td>
+                <td>IDE設定</td>
+              </tr>
+              <tr>
+                <td>Android Studio (Gemini)</td>
+                <td><code>AGENTS.md</code></td>
+                <td>-</td>
+                <td>複数ファイル自動スキャン</td>
+              </tr>
+              <tr>
+                <td>Claude Code</td>
+                <td><code>CLAUDE.md</code></td>
+                <td><code>AGENTS.md</code> (読む)</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Codex</td>
+                <td><code>AGENTS.md</code></td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Cursor</td>
+                <td><code>.cursorrules</code></td>
+                <td><code>AGENTS.md</code></td>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>AGENTS.md (共通エントリポイント)</span><span class="lang">Markdown</span>
+          </div>
+          <div class="code-body">
+            <span class="ch"># Agent Rules (Cross-tool shared)</span>
+            <span class="cc"
+              ># このファイルは GEMINI.md / CLAUDE.md / Cursor などすべてのツールで共通利用</span
+            >
+
+            <span class="cm">## Universal Rules</span>
+            - コードは TypeScript strict モード - テストなしのコードを本番にマージしない - DB
+            マイグレーションは必ず dry-run で確認後に実行 - セキュリティ: SQL直結は禁止、Prepared
+            Statement 必須
+
+            <span class="cm">## Tool-Specific Context</span>
+            <span class="cc"># Gemini 固有の追加設定は GEMINI.md を参照</span>
+            @./GEMINI.md <span class="cc"># Gemini CLI/Code Assist のみ有効</span>
+
+            <span class="cm">## Agent Domains</span>
+            - frontend: app/, components/, styles/, public/ - backend: supabase/, lib/server/, api/
+            - database: supabase/migrations/, schema files
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. ADK agent.py -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">4</span>
+          <h2>ADK <span class="mono">agent.py</span> — サブエージェント定義のベストプラクティス</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            Google ADK (Agent Development Kit) では、サブエージェントの「system prompt」は
+            <strong><code>instruction</code> フィールド</strong> に記述します。このフィールドが
+            Claude の <code>.claude/agents/*.md</code> に相当します。<code>description</code>
+            フィールドが AutoFlow ルーティングの判断基準になるため、特に重要です。
+          </p>
+        </div>
+
+        <div class="alert alert-warn">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-content">
+            <strong>description フィールドが「APIドキュメント」</strong>
+            LLM ルーティング（AutoFlow）では、<code>description</code>
+            の内容だけを見て「どのサブエージェントに委譲するか」を判断します。曖昧な description
+            は誤ルーティングの原因になります。「いつ・何のために呼ぶか」を具体的に記述してください。
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>agents/orchestrator/agent.py</span><span class="lang">Python / ADK</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"
+              ># agents/orchestrator/agent.py — ルートエージェント（コーディネーター）</span
+            >
+            <span class="ck">from</span> google.adk.agents <span class="ck">import</span> LlmAgent
+
+            <span class="cc"># サブエージェントをインポート（先に定義が必要）</span>
+            <span class="ck">from</span> agents.researcher.agent
+            <span class="ck">import</span> researcher_agent
+            <span class="ck">from</span> agents.implementer.agent
+            <span class="ck">import</span> implementer_agent
+            <span class="ck">from</span> agents.reviewer.agent
+            <span class="ck">import</span> reviewer_agent root_agent = LlmAgent(
+            <span class="cm">name</span>=<span class="cs">"orchestrator"</span>,
+            <span class="cm">model</span>=<span class="cs">"gemini-2.5-flash"</span>,
+            <span class="cm">description</span>=<span class="cs"
+              >"ユーザーの要求を分析し、適切なサブエージェントに委譲するコーディネーター。"</span
+            >, <span class="cm">instruction</span>=<span class="cs"
+              >""" あなたは開発チームのオーケストレーターです。
+              ユーザーの要求を分析し、以下のルールで適切なエージェントに委譲してください。 ##
+              委譲ルール - 調査・情報収集 → researcher_agent - コード実装 → implementer_agent -
+              コードレビュー → reviewer_agent - 複合タスク → SequentialAgent で順番に処理 ##
+              禁止事項 - 自身でコードを書かない（必ずサブエージェントに委譲） -
+              曖昧なタスクはそのまま渡さず、明確化してから委譲 """</span
+            >, <span class="cm">sub_agents</span>=[ researcher_agent,
+            <span class="cc"># 調査・情報収集</span> implementer_agent,
+            <span class="cc"># コード実装</span> reviewer_agent,
+            <span class="cc"># コードレビュー (Read-only)</span> ], )
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>agents/reviewer/agent.py</span><span class="lang">Python / ADK</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"
+              ># agents/reviewer/agent.py — 特化型サブエージェント（コードレビュー専用）</span
+            >
+            <span class="ck">from</span> google.adk.agents <span class="ck">import</span> LlmAgent
+            <span class="ck">from</span> google.adk.tools
+            <span class="ck">import</span> google_search reviewer_agent = LlmAgent(
+            <span class="cm">name</span>=<span class="cs">"reviewer"</span>,
+            <span class="cm">model</span>=<span class="cs">"gemini-2.5-flash"</span>,
+            <span class="cc"># コスト最適化</span> <span class="cm">description</span>=<span
+              class="cs"
+              >""" コードレビューを実施するエージェント。 以下の場合に呼び出す: - Pull Request
+              作成後 - コード変更が完了した後 - セキュリティ・パフォーマンス確認が必要な場合
+              Read-only: コードの変更は行わず、レポートのみ出力する。 """</span
+            >, <span class="cm">instruction</span>=<span class="cs"
+              >""" あなたはシニアエンジニアのコードレビュアーです。
+              提供されたコードを以下の観点でレビューしてください。 ## Review Checklist ### 🔴
+              Security - SQLインジェクション / XSS リスク - 認証・認可の適切な実装 -
+              秘密情報のハードコードがないか ### 🟡 Performance - N+1 クエリの有無 -
+              不要な再レンダリング (React) - 重い処理の非同期化 ### 🟢 Code Quality - TypeScript
+              型安全性 - エラーハンドリングの網羅 - テストカバレッジ ## 出力フォーマット ``` ## Code
+              Review Report ### 🔴 Critical (要対応) ### 🟡 Warning (推奨対応) ### 🟢 Good (良い点)
+              ``` """</span
+            >, <span class="cm">tools</span>=[],
+            <span class="cc"># ツールなし: Read-only のレビューのみ</span>
+            <span class="cm">output_key</span>=<span class="cs">"review_result"</span>,
+            <span class="cc"># 共有状態への書き込みキー</span> )
+          </div>
+        </div>
+
+        <!-- ADK agent types -->
+        <div class="card">
+          <div class="card-title">🔀 ADK ワークフローエージェントの選択基準</div>
+          <div class="agent-grid">
+            <div class="agent-card">
+              <div class="agent-card-icon">⛓️</div>
+              <div class="agent-card-title">SequentialAgent</div>
+              <div class="agent-card-desc">
+                サブエージェントを順番に実行。前のエージェントの出力を次が受け取る。依存関係がある場合に使用。
+              </div>
+              <div class="agent-card-ex">例: spec → design → implement → review</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-card-icon">⚡</div>
+              <div class="agent-card-title">ParallelAgent</div>
+              <div class="agent-card-desc">
+                すべてのサブエージェントを並列実行。共有状態に書くため<strong>必ず異なるキーを使う</strong>こと（レースコンディション防止）。
+              </div>
+              <div class="agent-card-ex">例: frontend || backend || db（独立タスク）</div>
+            </div>
+            <div class="agent-card">
+              <div class="agent-card-icon">🔁</div>
+              <div class="agent-card-title">LoopAgent</div>
+              <div class="agent-card-desc">
+                条件を満たすまでサブエージェントを繰り返し実行。反復精緻化・ポーリング・リトライに最適。
+              </div>
+              <div class="agent-card-ex">例: draft → critique → refine（品質基準達成まで）</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-danger">
+          <span class="alert-icon">🚨</span>
+          <div class="alert-content">
+            <strong>ParallelAgent の罠：共有状態のレースコンディション</strong>
+            ParallelAgent の子エージェントは
+            <strong>同じ session state を共有します</strong
+            >。複数のエージェントが同じキーに書き込むと値が上書きされます。各エージェントには必ず
+            <code>output_key="unique_key_name"</code> のように一意なキーを設定してください。
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. .geminiignore & settings.json -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">5</span>
+          <h2>
+            <span class="mono">.geminiignore</span> と <span class="mono">settings.json</span> —
+            制御ファイル設計
+          </h2>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>.geminiignore</span><span class="lang">Ignore rules</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"># .geminiignore — .gitignore と同じ書式</span>
+            <span class="cc"># コンテキストから除外すべきファイル・フォルダ</span>
+
+            <span class="cw"># 機密情報</span>
+            .env .env.*
+            <span class="ck">!.env.example</span> <span class="cc"># example は例外で含める</span>
+            secrets/ *.key *.pem
+
+            <span class="cw"># ビルド成果物（大量のトークン浪費を防ぐ）</span>
+            .next/ dist/ build/ node_modules/ .pnpm-store/
+
+            <span class="cw"># 自動生成ファイル（LLMが読む必要がない）</span>
+            *.min.js *.min.css *.map supabase/.branches/ supabase/.temp/
+
+            <span class="cw"># バイナリ・メディア</span>
+            *.png *.jpg *.webp *.woff2 *.pdf
+
+            <span class="cw"># ログ・一時ファイル</span>
+            *.log .DS_Store coverage/
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>settings.json (Gemini CLI / .gemini/)</span><span class="lang">JSON</span>
+          </div>
+          <div class="code-body">
+            { <span class="cm">"contextFileName"</span>: [<span class="cs">"GEMINI.md"</span>,
+            <span class="cs">"AGENTS.md"</span>], <span class="cc">// 複数ファイル対応</span>
+            <span class="cm">"mcpServers"</span>: { <span class="cm">"filesystem"</span>: {
+            <span class="cm">"command"</span>: <span class="cs">"npx"</span>,
+            <span class="cm">"args"</span>: [<span class="cs">"-y"</span>,
+            <span class="cs">"@modelcontextprotocol/server-filesystem"</span>,
+            <span class="cs">"./src"</span>] }, <span class="cm">"github"</span>: {
+            <span class="cm">"command"</span>: <span class="cs">"npx"</span>,
+            <span class="cm">"args"</span>: [<span class="cs">"-y"</span>,
+            <span class="cs">"@modelcontextprotocol/server-github"</span>],
+            <span class="cm">"env"</span>: { <span class="cm">"GITHUB_TOKEN"</span>:
+            <span class="cs">"${GITHUB_TOKEN}"</span> } } }, <span class="cm">"excludeTools"</span>:
+            [<span class="cs">"run_shell_command"</span>],
+            <span class="cc">// セキュリティ: シェル実行を無効化</span>
+            <span class="cm">"checkpointing"</span>: <span class="ck">true</span>
+            <span class="cc">// 変更前に自動チェックポイント保存</span> }
+          </div>
+        </div>
+
+        <div class="alert alert-success">
+          <span class="alert-icon">✅</span>
+          <div class="alert-content">
+            <strong>/memory コマンドでコンテキストを動的管理</strong>
+            Gemini CLI の
+            <code>/memory show</code> で現在ロードされている全コンテキストを確認できます。<code
+              >/memory refresh</code
+            >
+            で再スキャン、<code>/memory add &lt;text&gt;</code> でグローバル GEMINI.md
+            に即時追記が可能です。これを活用することでデバッグが大幅に楽になります。
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Routing Decision -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">6</span>
+          <h2>サブエージェント ルーティング設計の意思決定ツリー</h2>
+        </div>
+
+        <div class="flow-wrap">
+          <div class="flow-title">ADK / Gemini サブエージェント ルーティング決定フロー</div>
+
+          <div class="flow-row">
+            <div class="fn-q">タスクが 3件以上ある？</div>
+            <div class="fn-arr">→ NO →</div>
+            <div class="fn-n">単一エージェントで処理</div>
+          </div>
+          <div class="fn-indent">
+            <div class="flow-row" style="margin-top: 12px">
+              <div class="fn-label">↓ YES</div>
+            </div>
+            <div class="flow-row">
+              <div class="fn-q">
+                タスク間に依存関係がある？<br /><small style="font-weight: 400; font-size: 11px"
+                  >(B の処理に A の出力が必要)</small
+                >
+              </div>
+              <div class="fn-arr">→ YES →</div>
+              <div class="fn-n">SequentialAgent<br /><small>A → B → C</small></div>
+            </div>
+            <div class="fn-indent">
+              <div class="flow-row" style="margin-top: 12px">
+                <div class="fn-label">↓ NO</div>
+              </div>
+              <div class="flow-row">
+                <div class="fn-q">
+                  繰り返し精緻化が必要？<br /><small style="font-weight: 400; font-size: 11px"
+                    >(品質基準達成まで繰り返す)</small
+                  >
+                </div>
+                <div class="fn-arr">→ YES →</div>
+                <div class="fn-n">LoopAgent<br /><small>draft → critique → refine</small></div>
+              </div>
+              <div class="fn-indent">
+                <div class="flow-row" style="margin-top: 12px">
+                  <div class="fn-label">↓ NO</div>
+                </div>
+                <div class="flow-row">
+                  <div class="fn-q">各エージェントが異なる<br />output_key に書き込む？</div>
+                  <div class="fn-arr">→ NO →</div>
+                  <div class="fn-n">
+                    output_key を設計し直す<br /><small>レースコンディション防止</small>
+                  </div>
+                </div>
+                <div class="fn-indent">
+                  <div class="flow-row" style="margin-top: 12px">
+                    <div class="fn-label">↓ YES</div>
+                  </div>
+                  <div class="flow-row">
+                    <div class="fn-y">
+                      ✅ ParallelAgent<br /><small>A ‖ B ‖ C（並列実行）</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Model Selection -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">7</span>
+          <h2>コスト最適なモデル選択戦略</h2>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>用途</th>
+                <th>ADK agent.py サブエージェント例</th>
+                <th>特徴</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>gemini-2.0-flash</code></td>
+                <td>高速・低コスト</td>
+                <td>コードベース探索、ファイル検索、単純変換</td>
+                <td><span class="chip chip-green">最速</span> 探索・軽量タスク向け</td>
+              </tr>
+              <tr>
+                <td><code>gemini-2.5-flash</code></td>
+                <td>バランス重視</td>
+                <td>コードレビュー、テスト生成、実装、コーディネーター</td>
+                <td><span class="chip chip-blue">推奨デフォルト</span> コスパ最良</td>
+              </tr>
+              <tr>
+                <td><code>gemini-2.5-pro</code></td>
+                <td>高精度・複雑推論</td>
+                <td>アーキテクチャ設計、セキュリティ監査、ADR作成</td>
+                <td><span class="chip chip-purple">最高精度</span> 高コスト</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 8. Anti-Patterns -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">8</span>
+          <h2>絶対に避けるべき Anti-Patterns</h2>
+        </div>
+
+        <div class="pat-grid">
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ GEMINI.md の Anti-Patterns</div>
+            <ul>
+              <li>コードスタイル規約をすべて1ファイルに詰める（@import で分割）</li>
+              <li>長大なコードスニペットを埋め込む（トークン浪費）</li>
+              <li>機密情報・APIキーを記述（.geminiignore で除外）</li>
+              <li>否定形のみの指示（代替案をセットで示す）</li>
+              <li>修正履歴・変更ログを蓄積</li>
+              <li>ツール固有の設定を混在させる</li>
+            </ul>
+          </div>
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ ADK agent.py の Anti-Patterns</div>
+            <ul>
+              <li>description が曖昧（「なんでもやる」エージェント）</li>
+              <li>ParallelAgent で同じ output_key を使う（上書き発生）</li>
+              <li>LoopAgent の終了条件を設定しない（無限ループ）</li>
+              <li>全エージェントに gemini-2.5-pro を使う（コスト爆発）</li>
+              <li>ルートエージェントが直接コードを書く（委譲しない）</li>
+              <li>10件以上のサブエージェントを ParallelAgent で同時起動</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Summary table -->
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">9</span>
+          <h2>まとめ：各ファイルの役割と設計原則</h2>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ファイル</th>
+                <th>ツール</th>
+                <th>読者</th>
+                <th>設計原則</th>
+                <th>アンチパターン</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>~/.gemini/GEMINI.md</code></td>
+                <td>CLI</td>
+                <td>全プロジェクト共通</td>
+                <td>個人のグローバルデフォルト。IDE・言語の好みのみ</td>
+                <td>プロジェクト固有の内容を書く</td>
+              </tr>
+              <tr>
+                <td><code>GEMINI.md</code> (root)</td>
+                <td>CLI/Code Assist</td>
+                <td>メインエージェント（常時ロード）</td>
+                <td>プロジェクト概要・スタック・ルーティングルール・禁止操作</td>
+                <td>コードスニペット・機密情報・肥大化</td>
+              </tr>
+              <tr>
+                <td><code>src/*/GEMINI.md</code></td>
+                <td>CLI/Code Assist</td>
+                <td>そのモジュール作業時のみ（Auto-scan）</td>
+                <td>ドメイン固有ルールのみ。root と重複させない</td>
+                <td>rootと同じ内容の重複記述</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code></td>
+                <td>全ツール共通</td>
+                <td>すべてのAIエージェント</td>
+                <td>ツール横断の共通ルール。固有設定は@importで分離</td>
+                <td>ツール固有の構文を混在</td>
+              </tr>
+              <tr>
+                <td><code>agents/*/agent.py</code></td>
+                <td>ADK</td>
+                <td>各サブエージェント（独立コンテキスト）</td>
+                <td>description 明確化・output_key 一意設定・ツール最小化</td>
+                <td>曖昧なdescription・output_key重複</td>
+              </tr>
+              <tr>
+                <td><code>.geminiignore</code></td>
+                <td>CLI/Code Assist</td>
+                <td>コンテキストシステム</td>
+                <td>機密・ビルド成果物・バイナリを除外してトークン節約</td>
+                <td>作成しない（node_modules が全部ロードされる）</td>
+              </tr>
+              <tr>
+                <td><code>settings.json</code></td>
+                <td>CLI/IDE</td>
+                <td>Geminiランタイム</td>
+                <td>MCP設定・除外ツール・checkpointing の制御</td>
+                <td>直接APIキーを記述する</td>
+              </tr>
+              <tr>
+                <td><code>README.md</code></td>
+                <td>全ツール</td>
+                <td>人間（チームメンバー）</td>
+                <td>エージェント構成・ADKセットアップ・pipeline図</td>
+                <td>エージェント数が多いのに作成しない</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           マルチエージェント & A2A セクション（2026年2月 追記）
+           ═══════════════════════════════════════════════════════════════════ -->
+
+      <!-- ── Section 10: Sub vs Multi 根本的な違い ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">10</span>
+          <h2>サブエージェント vs マルチエージェント — ADK × A2A × MCP の3層構造</h2>
+        </div>
+
+        <div class="ma-banner">
+          <div class="ma-eyebrow">
+            🌐 ADK Python v1.0 GA (2025年5月 Google I/O) · A2A Protocol (Linux Foundation 移管済み)
+          </div>
+          <h3>Google が推奨する 3層アーキテクチャ</h3>
+          <p>
+            Google のマルチエージェント設計は
+            <strong>ADK（エージェント内部ロジック）</strong>・<strong
+              >A2A プロトコル（エージェント間通信）</strong
+            >・<strong>MCP（外部ツール・データ接続）</strong> の3層で構成されます。 A2A は
+            Atlassian・SAP・Salesforce・ServiceNow など
+            <strong>50 以上のパートナー</strong>が対応するオープンスタンダードです。 ADK の
+            <code>RemoteA2aAgent</code>
+            を使えば、リモートエージェントへの接続がローカルのツール呼び出しと同じ感覚で実装できます。
+          </p>
+        </div>
+
+        <!-- 3-layer stack -->
+        <div class="layer-stack">
+          <div class="layer-row lr-adk">
+            <div class="layer-badge lb-adk">ADK</div>
+            <div class="layer-title">🧠 エージェント内部ロジック</div>
+            <div class="layer-body">
+              <div class="layer-desc">
+                agent.py の <code>instruction</code> / <code>tools</code> /
+                <code>sub_agents</code> /
+                <code>output_key</code> を定義。SequentialAgent・ParallelAgent・LoopAgent
+                でワークフローを制御。
+              </div>
+              <span class="layer-file">agents/*/agent.py</span>
+              <span class="layer-file">agents/*/GEMINI.md</span>
+            </div>
+          </div>
+          <div class="layer-row lr-a2a">
+            <div class="layer-badge lb-a2a">A2A</div>
+            <div class="layer-title">🔗 エージェント間通信プロトコル</div>
+            <div class="layer-body">
+              <div class="layer-desc">
+                Agent Card（agent.json）で能力を公開。<code>RemoteA2aAgent</code>
+                でリモートエージェントをローカルツールとして利用。HTTPS + JSON-RPC 2.0
+                で通信。フレームワーク・ベンダーを問わず相互接続可能。
+              </div>
+              <span class="layer-file">agents/{name}/agent.json</span>
+              <span class="layer-file">/.well-known/agent.json（自動生成）</span>
+            </div>
+          </div>
+          <div class="layer-row lr-mcp">
+            <div class="layer-badge lb-mcp">MCP</div>
+            <div class="layer-title">🔧 外部ツール・データ接続</div>
+            <div class="layer-body">
+              <div class="layer-desc">
+                エージェントが外部 API・DB・ファイルシステムに接続するための標準プロトコル。ADK は
+                <code>MCPToolset</code> で透過的に統合。A2A と補完関係にある（MCP = ツール接続、A2A
+                = エージェント接続）。
+              </div>
+              <span class="layer-file">settings.json → mcpServers</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub vs Multi comparison -->
+        <div class="cmp2-grid">
+          <div class="cmp2 cmp2-sub">
+            <div class="cmp2-label">🔵 ローカル サブエージェント（ADK 内部）</div>
+            <ul>
+              <li><strong>同一プロセス内</strong>で動作（低レイテンシ）</li>
+              <li>親エージェントの<strong>セッション状態を共有</strong></li>
+              <li><code>sub_agents</code> パラメータで<strong>静的に定義</strong></li>
+              <li>SequentialAgent / ParallelAgent / LoopAgent で制御</li>
+              <li><code>output_key</code> で結果を共有 state に書き込む</li>
+              <li>チームが同じコードベースを管理する場合に適合</li>
+              <li><strong>適用:</strong> 同一サービス内の処理分業・低レイテンシ重視</li>
+            </ul>
+          </div>
+          <div class="cmp2 cmp2-mult">
+            <div class="cmp2-label">🟢 リモート マルチエージェント（A2A 経由）</div>
+            <ul>
+              <li><strong>異なるサービス・マシン</strong>上で動作（高スケーラビリティ）</li>
+              <li>独立したセッション・コンテキストを保持</li>
+              <li><code>RemoteA2aAgent</code> で<strong>動的ディスカバリー</strong>も可能</li>
+              <li>Agent Card で能力を公開・JSON-RPC で通信</li>
+              <li>フレームワーク（ADK / LangGraph / CrewAI）を<strong>問わず相互接続</strong></li>
+              <li><code>to_a2a()</code> で既存 ADK エージェントを即座に A2A 公開</li>
+              <li>
+                <strong>適用:</strong> クロスチーム・エンタープライズ・ベンダー横断ワークフロー
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Architecture diagram -->
+        <div class="a2a-arch">
+          <div class="a2a-arch-title">
+            A2A MULTI-AGENT ARCHITECTURE — ADK + RemoteA2aAgent + AgentEngine (Vertex AI)
+          </div>
+          <div class="a2a-row">
+            <div class="a2a-box ab-orch">
+              🎯 Orchestrator<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >LlmAgent (ADK)<br />ルートGEMINI.md 読込</small
+              >
+            </div>
+            <div class="a2a-arrow">→</div>
+            <div class="a2a-box ab-local">
+              ⚙️ Local Sub-Agent<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >同一プロセス<br />sub_agents で定義</small
+              >
+            </div>
+            <div class="a2a-arrow" style="font-size: 14px; opacity: 0.5">+</div>
+            <div class="a2a-box ab-remote">
+              🌐 RemoteA2aAgent<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >A2A クライアントプロキシ<br />別サービス・別チーム</small
+              >
+            </div>
+          </div>
+          <div class="a2a-label">
+            ↓ RemoteA2aAgent は開発者から見ると「ローカルのツール」と同じように扱える（network
+            通信を隠蔽）
+          </div>
+          <div class="a2a-row">
+            <div class="a2a-box ab-card">
+              📋 Agent Card<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >agent.json<br />/.well-known/agent.json<br />能力・認証・URL</small
+              >
+            </div>
+            <div class="a2a-arrow">→</div>
+            <div class="a2a-box ab-remote" style="min-width: 140px">
+              🔒 A2A Server<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >to_a2a() または<br />adk api_server --a2a<br />で自動生成</small
+              >
+            </div>
+            <div class="a2a-arrow">→</div>
+            <div class="a2a-box ab-engine">
+              ☁️ AgentEngine<br /><small
+                style="font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, 0.55)"
+                >Vertex AI 管理型<br />本番スケール<br />デプロイ</small
+              >
+            </div>
+          </div>
+          <div class="a2a-label" style="margin-top: 8px">
+            GEMINI.md はすべてのエージェントが参照するコンテキスト。agent.json（Agent
+            Card）はリモートエージェントの公開「能力書」。
+          </div>
+        </div>
+
+        <!-- Decision flow: local sub vs remote -->
+        <div class="dflow">
+          <div class="dflow-title">🔍 ローカル サブエージェント vs リモート A2A — 選択フロー</div>
+          <div class="dflow-row">
+            <div class="dn-q">同じコードベースで管理できるか？</div>
+            <div class="dn-arr">→ Yes</div>
+            <div class="dn-y">ローカル sub_agents（ADK）</div>
+          </div>
+          <div class="dn-ind">
+            <div class="dflow-row">
+              <div class="dn-q">異なるチーム / フレームワーク / マシン？</div>
+              <div class="dn-arr">→ Yes</div>
+              <div class="dn-y">RemoteA2aAgent（A2A Protocol）</div>
+            </div>
+            <div class="dn-ind">
+              <div class="dflow-row">
+                <div class="dn-q">Agent Card を自動生成したい？</div>
+                <div class="dn-arr">→ Yes</div>
+                <div class="dn-y">to_a2a(agent) 関数</div>
+              </div>
+              <div class="dflow-row">
+                <div class="dn-q">複数エージェントを 1サーバーで管理？</div>
+                <div class="dn-arr">→ Yes</div>
+                <div class="dn-y">adk api_server --a2a + 各 agent.json</div>
+              </div>
+              <div class="dflow-row">
+                <div class="dn-q">本番 / スケーラブルな運用？</div>
+                <div class="dn-arr">→ Yes</div>
+                <div class="dn-y">AgentEngine (Vertex AI) にデプロイ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 11: agent.json (Agent Card) ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">11</span>
+          <h2>
+            A2A の核心：<span class="mono">agent.json</span>（Agent Card）—
+            リモートエージェントの「能力書」
+          </h2>
+        </div>
+
+        <div class="card">
+          <p>
+            <strong>Agent Card は A2A マルチエージェント設計で最も重要なファイルです。</strong>
+            他のエージェントがこのエージェントを<em
+              >発見（Discovery）→ 理解（Capability）→ 接続（Auth）</em
+            >するための唯一の情報源です。 ADK の <code>to_a2a(agent)</code> を使えば agent.py
+            の内容から<strong>自動生成</strong>されますが、
+            <code>adk api_server --a2a</code>
+            で複数エージェントを管理する場合は<strong>手動で作成</strong>して品質を担保します。
+          </p>
+          <p style="margin-top: 10px">
+            Agent Card の <code>description</code> と <code>skills</code> フィールドが Orchestrator
+            のルーティング判断基準となるため、 ADK の <code>agent.py</code> における
+            <code>description</code>
+            と同様に<strong>「いつ使う・いつ使わない」を明記</strong>することが最重要です。
+          </p>
+        </div>
+
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <strong>自動公開エンドポイント</strong>
+            ADK の <code>A2AServer</code> または
+            <code>adk api_server --a2a</code> を起動すると、<code>/.well-known/agent.json</code>
+            エンドポイントで Agent Card が自動公開されます（Swagger の AI
+            版）。クライアントエージェントはこの URL にアクセスして能力をディスカバリーします。
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>agents/code-review/agent.json — Agent Card ベストプラクティス</span
+            ><span class="lang">JSON</span>
+          </div>
+          <div class="code-body">
+            { <span class="cm">"name"</span>: <span class="cs">"code-review-agent"</span>,
+            <span class="cm">"version"</span>: <span class="cs">"2.1.0"</span>,
+
+            <span class="cc"
+              >// ── 【最重要】Orchestrator がルーティング判断に使うフィールド ──────────</span
+            >
+            <span class="cm">"description"</span>:
+            <span class="cs"
+              >"コードレビューを実施する専門エージェント。 【呼び出す場合】: - PR
+              作成前のセキュリティ・品質・パフォーマンスチェック - TypeScript/Python/Go
+              コードの静的解析レポートが必要な場合 - コード品質スコア（0-100）と改善提案が必要な場合
+              【呼び出さない場合】: - コードの実装・修正 → code-implementer-agent を使う -
+              テスト生成 → test-generator-agent を使う - ドキュメント作成 → doc-writer-agent
+              を使う"</span
+            >,
+
+            <span class="cm">"url"</span>:
+            <span class="cs">"https://code-review.internal.example.com"</span>,
+
+            <span class="cc"
+              >// ── スキル定義（Orchestrator が能力を詳細に理解するために使用）────────</span
+            >
+            <span class="cm">"skills"</span>: [ { <span class="cm">"id"</span>:
+            <span class="cs">"security-review"</span>, <span class="cm">"name"</span>:
+            <span class="cs">"Security Review"</span>, <span class="cm">"description"</span>:
+            <span class="cs">"SQLインジェクション・XSS・SSRF・認証バイパスを自動検出する"</span>,
+            <span class="cm">"tags"</span>: [<span class="cs">"security"</span>,
+            <span class="cs">"vulnerability"</span>, <span class="cs">"owasp"</span>],
+            <span class="cm">"examples"</span>: [<span class="cs"
+              >"このPRにSQLインジェクションのリスクはありますか？"</span
+            >] }, { <span class="cm">"id"</span>: <span class="cs">"performance-review"</span>,
+            <span class="cm">"name"</span>: <span class="cs">"Performance Review"</span>,
+            <span class="cm">"description"</span>:
+            <span class="cs">"N+1クエリ・不要な再レンダリング・O(n²)アルゴリズムを検出する"</span>,
+            <span class="cm">"tags"</span>: [<span class="cs">"performance"</span>,
+            <span class="cs">"optimization"</span>, <span class="cs">"complexity"</span>] } ],
+
+            <span class="cc"
+              >// ── 認証（A2A は OpenAPI 互換の securitySchemes を採用）───────────────</span
+            >
+            <span class="cm">"securitySchemes"</span>: { <span class="cm">"bearerAuth"</span>: {
+            <span class="cm">"type"</span>: <span class="cs">"http"</span>,
+            <span class="cm">"scheme"</span>: <span class="cs">"bearer"</span>,
+            <span class="cm">"bearerFormat"</span>: <span class="cs">"JWT"</span>
+            } },
+            <span class="cm">"security"</span>: [{ <span class="cm">"bearerAuth"</span>: [] }],
+
+            <span class="cc"
+              >// ── 入出力形式 ─────────────────────────────────────────────────────────</span
+            >
+            <span class="cm">"defaultInputModes"</span>: [<span class="cs">"text/plain"</span>,
+            <span class="cs">"application/json"</span>],
+            <span class="cm">"defaultOutputModes"</span>: [<span class="cs">"text/plain"</span>,
+            <span class="cs">"application/json"</span>],
+
+            <span class="cm">"provider"</span>: { <span class="cm">"organization"</span>:
+            <span class="cs">"Platform Engineering Team"</span>, <span class="cm">"url"</span>:
+            <span class="cs">"https://internal.example.com/agents"</span> } }
+          </div>
+        </div>
+
+        <div class="pat-grid">
+          <div class="pat pat-ok">
+            <div class="pat-label">✅ agent.json ベストプラクティス</div>
+            <ul>
+              <li>description に「いつ使う・いつ使わない」を両方記述</li>
+              <li>skills は機能単位で細かく分割（タグ・examples 付き）</li>
+              <li>securitySchemes を必ず設定（認証なし公開は危険）</li>
+              <li>
+                version を semantic versioning で管理（破壊的変更 = メジャーバージョンアップ）
+              </li>
+              <li>examples フィールドで Orchestrator の理解を補助</li>
+              <li>provider に連絡先・組織情報を明記（オーナー不明問題を防止）</li>
+            </ul>
+          </div>
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ agent.json Anti-Patterns</div>
+            <ul>
+              <li>description が「なんでもやります」（誤ルーティングの最大要因）</li>
+              <li>securitySchemes なしで公開（セキュリティリスク）</li>
+              <li>skills を定義しない（能力発見できず Orchestrator から使われない）</li>
+              <li>url が内部 IP / localhost のまま本番公開</li>
+              <li>version を更新せず API 変更（クライアントが無警告で壊れる）</li>
+              <li>description が agent.py の instruction と乖離している</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 12: GEMINI.md for Multi-Agent ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">12</span>
+          <h2>
+            マルチエージェント向け <span class="mono">GEMINI.md</span> — Orchestrator
+            の「作戦指令書」
+          </h2>
+        </div>
+
+        <div class="alert alert-success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-content">
+            <strong>GEMINI.md はマルチエージェント全体の品質ゲートウェイ</strong>
+            Orchestrator は GEMINI.md を読み込んで「どのエージェントをいつ呼ぶか」を判断します。
+            サブエージェントには独立した <code>agent.py instruction</code> がありますが、<strong
+              >Orchestrator のルーティング精度は GEMINI.md の記述品質で決まります。</strong
+            >
+            A2A リモートエージェントのエンドポイント
+            URL・ファイル所有権・フォールバック戦略を必ず記載します。
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>GEMINI.md — マルチエージェント向け追記テンプレート（rootに追加）</span
+            ><span class="lang">Markdown</span>
+          </div>
+          <div class="code-body">
+            <span class="ch"># PROJECT: enterprise-dev-platform</span>
+            <span class="cc">## Stack / Overview ... （既存セクションはそのまま）</span>
+
+            <span class="ch"
+              >## ──────────────────────────────────────────────────────────── ## Multi-Agent
+              Configuration（マルチエージェント設定） ##
+              ────────────────────────────────────────────────────────────</span
+            >
+
+            <span class="ch">### ローカル サブエージェント（同一プロセス・ADK sub_agents）</span>
+            同一サービス内・低レイテンシが必要な場合に使用: | Agent name | 役割 | 書き込み可能パス |
+            |---|---|---| | <span class="cs">spec-writer</span> | 新機能の仕様書作成 |
+            <span class="cs">docs/specs/</span> | | <span class="cs">code-implementer</span> |
+            コード実装 | <span class="cs">src/, tests/</span> | |
+            <span class="cs">test-generator</span> | テスト生成 | <span class="cs">tests/</span> |
+
+            <span class="cw"
+              >ファイル所有権ルール: 担当外のパスへの書き込みは禁止。
+              同一ファイルへの複数エージェント同時書き込みは禁止。</span
+            >
+
+            <span class="ch">### リモート エージェント（A2A Protocol 経由）</span>
+            別チーム・別フレームワーク・専門性が必要な場合に使用: | Agent name | Agent Card URL |
+            備考 | |---|---|---| | <span class="cs">code-review-agent</span> |
+            <span class="cv">https://review.internal.example.com/.well-known/agent.json</span> |
+            セキュリティ・品質レビュー | | <span class="cs">security-scanner</span> |
+            <span class="cv">https://security.internal.example.com/.well-known/agent.json</span> |
+            本番デプロイ前必須 | | <span class="cs">doc-generator</span> |
+            <span class="cv">https://docs.internal.example.com/.well-known/agent.json</span> | API
+            ドキュメント生成 |
+
+            <span class="ch">### A2A 通信ルール</span>
+            - リモートエージェント呼び出し前に Agent Card の
+            <span class="cs">skills</span> を確認して適切なエージェントを選択 - タイムアウト（>
+            30秒）→ ローカルフォールバックを試みる - 認証エラー → リトライせず即座にユーザーへ報告 -
+            リモートエージェントが「Read-only」の場合、ファイル変更は要求しない
+
+            <span class="ch">### Quality Gates（全エージェント共通）</span>
+            - コード変更後: <span class="cs">`pytest tests/`</span> と
+            <span class="cs">`ruff check .`</span> を必ず実行 - 本番デプロイ前:
+            <span class="cs">security-scanner</span> エージェントを**必ず**呼ぶ - DB
+            マイグレーション: <span class="cs">db-agent</span> 経由でのみ実行（直接 SQL は禁止）
+
+            <span class="ch">### @import で分割管理（GEMINI.md が肥大化した場合）</span>
+            <span class="cc"># 各エージェントのルールが多い場合は以下のように分割</span>
+            <span class="cm">@import ./agents/orchestrator/GEMINI.md</span>
+            <span class="cc"># Orchestratorルーティングルール</span>
+            <span class="cm">@import ./agents/implementer/GEMINI.md</span>
+            <span class="cc"># 実装エージェント固有ルール</span>
+            <span class="cm">@import ./docs/agent-endpoints.md</span>
+            <span class="cc"># リモートエンドポイント一覧</span>
+          </div>
+        </div>
+
+        <div class="alert alert-warn">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <strong>サービス固有 GEMINI.md の配置戦略（Auto-scan 活用）</strong>
+            マルチエージェントシステムではサービス数が増えるため GEMINI.md が肥大化しやすい。
+            <code>agents/code-review/GEMINI.md</code
+            >（レビュー固有ルール）のように<strong>エージェントディレクトリ内に配置</strong>し、
+            そのエージェントが作業するときのみ Auto-scan でロードされる構成を推奨。 ルート GEMINI.md
+            からは <code>@import</code> で共通部分のみを参照させる。
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 13: agent.py for Multi-Agent (RemoteA2aAgent) ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">13</span>
+          <h2>
+            マルチエージェント <span class="mono">agent.py</span> — Orchestrator + RemoteA2aAgent
+            実装パターン
+          </h2>
+        </div>
+
+        <div class="card">
+          <p>
+            A2A マルチエージェントでは
+            <strong>Orchestrator が RemoteA2aAgent を「ローカルのツール」として利用</strong>します。
+            <code>RemoteA2aAgent</code> は Agent Card URL
+            を受け取り、ネットワーク通信・認証・データ形式変換をすべて隠蔽するため、
+            開発者はリモートエージェントへの接続をローカルのサブエージェント呼び出しと同じ感覚で実装できます。
+            <code>instruction</code> フィールドが実質的にそのエージェントの「内部
+            GEMINI.md」となるため、<strong>ルーティング判断の記述が最重要</strong>です。
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span
+              >agents/orchestrator/agent.py — A2A Orchestrator 実装（SequentialAgent +
+              RemoteA2aAgent）</span
+            ><span class="lang">Python</span>
+          </div>
+          <div class="code-body">
+            <span class="ck">from</span> google.adk.agents <span class="ck">import</span> LlmAgent,
+            SequentialAgent, ParallelAgent
+            <span class="ck">from</span> google.adk.agents.remote_a2a_agent
+            <span class="ck">import</span> RemoteA2aAgent
+
+            <span class="cc"
+              ># ═══════════════════════════════════════════════════════════════════ # ① リモート
+              エージェント（A2A Protocol 経由 — 別サービス・別チーム） # RemoteA2aAgent: Agent Card
+              URL を指定するだけで接続を確立する #
+              ═══════════════════════════════════════════════════════════════════</span
+            >
+            code_review_remote = RemoteA2aAgent(
+            <span class="cm">name</span>=<span class="cs">"code-review-agent"</span>,
+            <span class="cc"
+              ># description が Orchestrator のルーティング判断基準（Agent Card と一致させる）</span
+            >
+            <span class="cm">description</span>=<span class="cs"
+              >""" コードレビューを実施するリモート専門エージェント（別チーム管理）。
+              【呼び出す場合】: PR 作成前のセキュリティ・品質チェック 【呼び出さない場合】:
+              コードの実装・修正（implementer を使う） 出力:
+              セキュリティスコア（0-100）・改善提案・重大度別バグ一覧 """</span
+            >,
+            <span class="cc"
+              ># Agent Card URL: /.well-known/agent.json を自動取得してスキルと認証を確認</span
+            >
+            <span class="cm">agent_card_url</span>=<span class="cs"
+              >"https://review.internal.example.com/.well-known/agent.json"</span
+            >, ) security_scanner_remote = RemoteA2aAgent( <span class="cm">name</span>=<span
+              class="cs"
+              >"security-scanner"</span
+            >, <span class="cm">description</span>=<span class="cs"
+              >""" セキュリティスキャン専門エージェント（本番デプロイ前に必ず呼ぶ）。
+              【呼び出す場合】: 本番デプロイ前 / 認証・認可コードの変更後 出力: CVE レポート・OWASP
+              スコア・修正優先度マトリクス（JSON 形式） """</span
+            >, <span class="cm">agent_card_url</span>=<span class="cs"
+              >"https://security.internal.example.com/.well-known/agent.json"</span
+            >, )
+
+            <span class="cc"
+              ># ═══════════════════════════════════════════════════════════════════ # ② ローカル
+              サブエージェント（ADK 内部 — 同一サービス） #
+              ═══════════════════════════════════════════════════════════════════</span
+            >
+            spec_writer = LlmAgent(
+            <span class="cm">name</span>=<span class="cs">"spec-writer"</span>,
+            <span class="cm">model</span>=<span class="cs">"gemini-2.5-flash"</span>,
+            <span class="cc"># コスト最適化: Orchestratorより軽量モデルを使用</span>
+            <span class="cm">description</span>=<span class="cs"
+              >"新機能の仕様書を docs/specs/ に作成する。ステータスを READY_FOR_IMPL
+              に設定する。"</span
+            >, <span class="cm">instruction</span>=<span class="cs"
+              >""" あなたは PM ロールの仕様書作成エージェントです。 以下の形式で
+              docs/specs/{feature-name}.md を作成してください: - 機能概要（2-3文） -
+              受け入れ条件（箇条書き） - API エンドポイント定義（OpenAPI 形式） -
+              非機能要件（パフォーマンス・セキュリティ） 完了後、output_key "spec_document"
+              にファイルパスを格納すること。 """</span
+            >, <span class="cm">tools</span>=[<span class="cs">"write_file"</span>,
+            <span class="cs">"read_file"</span>], <span class="cm">output_key</span>=<span
+              class="cs"
+              >"spec_document"</span
+            >, <span class="cc"># ← output_key は一意に（他と重複禁止）</span>
+            ) implementer = LlmAgent(
+            <span class="cm">name</span>=<span class="cs">"code-implementer"</span>,
+            <span class="cm">model</span>=<span class="cs">"gemini-2.5-flash"</span>,
+            <span class="cm">description</span>=<span class="cs"
+              >"spec_document の仕様に従ってコードを実装する。src/ のみ変更可能。"</span
+            >, <span class="cm">instruction</span>=<span class="cs"
+              >""" {spec_document} の仕様に従って実装してください。 【書き込み可能】: src/, tests/
+              のみ 【禁止】: docs/, agent.json, .env の変更 - TypeScript strict モード必須 -
+              エラーは Result&lt;T,E&gt; 型（throw 禁止） 完了後 output_key "implementation_summary"
+              に変更ファイル一覧を格納。 """</span
+            >, <span class="cm">tools</span>=[<span class="cs">"write_file"</span>,
+            <span class="cs">"read_file"</span>, <span class="cs">"run_command"</span>],
+            <span class="cm">output_key</span>=<span class="cs">"implementation_summary"</span>, )
+
+            <span class="cc"
+              ># ═══════════════════════════════════════════════════════════════════ # ③
+              Orchestrator — Sequential: 仕様 → 実装 → レビュー → セキュリティの順 #
+              ═══════════════════════════════════════════════════════════════════</span
+            >
+            root_agent = SequentialAgent(
+            <span class="cm">name</span>=<span class="cs">"dev-orchestrator"</span>,
+            <span class="cm">description</span>=<span class="cs"
+              >"開発ワークフロー全体を制御するオーケストレータ"</span
+            >, <span class="cm">sub_agents</span>=[ spec_writer,
+            <span class="cc"># Step 1: 仕様書作成（ローカル）</span> implementer,
+            <span class="cc"># Step 2: 実装（ローカル）</span> code_review_remote,
+            <span class="cc"># Step 3: コードレビュー（A2A リモート）</span>
+            security_scanner_remote,
+            <span class="cc"># Step 4: セキュリティスキャン（A2A リモート）</span> ], )
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span
+              >既存 ADK エージェントを A2A で即座に公開（to_a2a 関数 — Agent Card 自動生成）</span
+            ><span class="lang">Python</span>
+          </div>
+          <div class="code-body">
+            <span class="ck">from</span> google.adk.a2a.utils <span class="ck">import</span> to_a2a
+            <span class="ck">import</span> uvicorn
+
+            <span class="cc"
+              ># 既存 ADK エージェントを 1行で A2A Server として公開 # /.well-known/agent.json
+              エンドポイントが自動生成される # agent.py の name / description / instruction から
+              Agent Card を構築</span
+            >
+            a2a_app = to_a2a(root_agent) <span class="cc"># → FastAPI/Starlette アプリが返る</span>
+
+            <span class="ck">if</span> __name__ == <span class="cs">"__main__"</span>:
+            uvicorn.run(a2a_app, host=<span class="cs">"0.0.0.0"</span>, port=<span class="cv"
+              >8001</span
+            >)
+            <span class="cc"
+              ># 起動後 http://localhost:8001/.well-known/agent.json で Agent Card を確認可能</span
+            >
+
+            <span class="cc"
+              ># ── adk api_server アプローチ（複数エージェントを1サーバーで管理）──────── # agents/
+              # ├── code-review/ # │ ├── agent.py # │ └── agent.json ←
+              手動作成。このファイルがある場合だけ A2A 公開される # ├── security/ # │ ├── agent.py #
+              │ └── agent.json # └── doc-writer/ # ├── agent.py # └── agent.json ←
+              このディレクトリは agent.json がないので A2A 公開されない # # 起動コマンド: adk
+              api_server --a2a agents/ --port 8080</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 14: AgentEngine Deployment ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">14</span>
+          <h2>AgentEngine（Vertex AI）本番デプロイと <span class="mono">GEMINI.md</span> 連携</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            Google Agent Engine（Vertex AI の管理型エージェント実行基盤）にデプロイすると、
+            エージェントはスケーラブルな HTTPS エンドポイントとして公開され、A2A
+            クライアントから呼び出せるようになります。 デプロイ後は
+            <strong>GEMINI.md のリモートエージェント一覧テーブルに AgentEngine の URL を記載</strong
+            >し、 Orchestrator が認識できるようにします。
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>AgentEngine デプロイ（Vertex AI Python SDK）</span
+            ><span class="lang">Python</span>
+          </div>
+          <div class="code-body">
+            <span class="ck">import</span> vertexai <span class="ck">from</span> vertexai.preview
+            <span class="ck">import</span> reasoning_engines vertexai.init(project=<span class="cs"
+              >"my-gcp-project"</span
+            >, location=<span class="cs">"us-central1"</span>)
+
+            <span class="cc"
+              ># ADK エージェントを AgentEngine（管理型ランタイム）としてデプロイ</span
+            >
+            deployed_agent = reasoning_engines.create(
+            <span class="cm">reasoning_engine</span>=root_agent,
+            <span class="cc"># ADK エージェント（agent.py で定義）</span>
+            <span class="cm">display_name</span>=<span class="cs">"Code Review Agent v2.1"</span>,
+            <span class="cm">description</span>=<span class="cs"
+              >"PR レビューのセキュリティ・品質チェック専門エージェント（A2A 公開）"</span
+            >, <span class="cm">requirements</span>=[
+            <span class="cs">"google-cloud-aiplatform[adk,a2a]>=1.88"</span>,
+            <span class="cs">"google-adk>=1.0.0"</span>, ], )
+
+            <span class="cc"># デプロイ後にエンドポイントを確認 → GEMINI.md に記載する</span>
+            <span class="ck">print</span>(deployed_agent.resource_name)
+            <span class="cc"
+              ># 出力: projects/123456/locations/us-central1/reasoningEngines/789</span
+            >
+            <span class="cc"
+              ># A2A URL 形式: #
+              https://us-central1-aiplatform.googleapis.com/v1/{resource_name}/a2a</span
+            >
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span
+              >docs/agent-endpoints.md — GEMINI.md から @import するエンドポイント管理ファイル</span
+            ><span class="lang">Markdown</span>
+          </div>
+          <div class="code-body">
+            <span class="ch"># Remote Agent Endpoints（AgentEngine / 自社サーバー）</span>
+            <span class="cw"
+              >このファイルは GEMINI.md から @import
+              される。エンドポイント変更時はここのみ更新。</span
+            >
+
+            <span class="ch">## 本番環境（AgentEngine on Vertex AI）</span>
+
+            | Agent | A2A Endpoint | Agent Card | ステータス | |---|---|---|---| | code-review-agent
+            |
+            <span class="cv"
+              >https://us-central1-aiplatform.googleapis.com/v1/projects/123/…/a2a</span
+            >
+            | <span class="cv">/…/a2a/.well-known/agent.json</span> | 🟢 稼働中 | | security-scanner
+            | <span class="cv">https://security.internal.example.com</span> |
+            <span class="cv">/.well-known/agent.json</span> | 🟢 稼働中 |
+
+            <span class="ch">## Orchestrator のフォールバックルール</span>
+            - AgentEngine タイムアウト（> 30秒） → ローカル実装フォールバックを試みる -
+            認証エラー（401/403） → リトライせずユーザーに報告 - サービス不応答（503） →
+            インシデントチャンネル（#agent-ops）に通知
+
+            <span class="ch">## ローカル開発環境（adk web / adk api_server --a2a）</span>
+            | Agent | Local URL | |---|---| | code-review-agent |
+            <span class="cv">http://localhost:8001</span> | | security-scanner |
+            <span class="cv">http://localhost:8002</span> |
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 15: Use Cases ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">15</span>
+          <h2>マルチエージェント ユースケース別 設計パターン</h2>
+        </div>
+
+        <div class="uc-grid">
+          <div class="uc">
+            <div class="uc-icon">🏢</div>
+            <div class="uc-title">エンタープライズ クロスチーム協調</div>
+            <div class="uc-desc">
+              フロント・バックエンド・セキュリティチームがそれぞれ独立した A2A
+              エージェントを管理。Orchestrator が Agent Card
+              を使って最適なエージェントを自動選択。異なるフレームワーク（ADK / LangGraph /
+              CrewAI）間も A2A で接続可能。
+            </div>
+            <div class="uc-code">
+              Orchestrator (ADK)<br />
+              → frontend-agent (LangGraph, A2A)<br />
+              → backend-agent (ADK, A2A)<br />
+              → security-agent (CrewAI, A2A)
+            </div>
+          </div>
+          <div class="uc">
+            <div class="uc-icon">🔍</div>
+            <div class="uc-title">動的ディスカバリー（Discovery Service パターン）</div>
+            <div class="uc-desc">
+              Orchestrator がハードコードされたエージェントリストを持たず、Discovery Service
+              に問い合わせてリモートエージェントを動的に発見。<code>RemoteA2aAgent</code>
+              を実行時に生成して <code>sub_agents</code> に追加する高度なパターン。
+            </div>
+            <div class="uc-code">
+              await discover_agents() # registry に問合せ<br />→ RemoteA2aAgent を動的生成<br />→
+              LlmAgent に tools として追加<br />→ LLM が最適エージェントを自律選択
+            </div>
+          </div>
+          <div class="uc">
+            <div class="uc-icon">🔄</div>
+            <div class="uc-title">LoopAgent + A2A レビューループ</div>
+            <div class="uc-desc">
+              実装エージェント（ローカル）がコードを書き、レビューエージェント（リモート
+              A2A）が品質評価。評価スコアが閾値を超えるまで繰り返す品質保証ループ。LoopAgent の
+              <code>max_iterations</code> で無限ループを防止。
+            </div>
+            <div class="uc-code">
+              LoopAgent(<br />
+              sub_agents=[<br />
+              implementer, # ローカル<br />
+              code_review_remote], # A2A リモート<br />
+              max_iterations=5<br />) # output_key "quality_score" が80以上で終了
+            </div>
+          </div>
+          <div class="uc">
+            <div class="uc-icon">⚡</div>
+            <div class="uc-title">ParallelAgent + マルチリージョン分析</div>
+            <div class="uc-desc">
+              異なるリージョン・データセンターで動く分析エージェントを ParallelAgent
+              で同時呼び出し。<code>output_key</code>
+              を必ず一意にしてレースコンディションを防止。集計エージェントが並列結果を統合。
+            </div>
+            <div class="uc-code">
+              ParallelAgent(<br />
+              sub_agents=[<br />
+              RemoteA2aAgent(us_analyzer, # output_key="us_result"<br />
+              agent_card_url=US_URL),<br />
+              RemoteA2aAgent(eu_analyzer, # output_key="eu_result"<br />
+              agent_card_url=EU_URL)]<br />) # ⚠ output_key は必ず一意に！
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 16: Multi-Agent Anti-Patterns ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">16</span>
+          <h2>マルチエージェント固有の Anti-Patterns — 設計・運用両面</h2>
+        </div>
+
+        <div class="pat-grid">
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ agent.json / Agent Card の Anti-Patterns</div>
+            <ul>
+              <li>description が曖昧（「なんでもやります」A2A エージェント）</li>
+              <li>securitySchemes を設定しない（認証なし公開）</li>
+              <li>skills を定義しない（能力発見ができず Orchestrator から使われない）</li>
+              <li>agent.json の description と agent.py の instruction が乖離</li>
+              <li>version を更新せず破壊的変更（サイレントな障害の原因）</li>
+              <li>url が内部 IP のまま本番公開</li>
+            </ul>
+          </div>
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ GEMINI.md / Orchestration の Anti-Patterns</div>
+            <ul>
+              <li>GEMINI.md にリモートエンドポイント URL を書かない（管理外に散乱）</li>
+              <li>ParallelAgent で同じ output_key を使う（上書き競合・最大の地雷）</li>
+              <li>LoopAgent の終了条件・max_iterations を設定しない（無限ループ）</li>
+              <li>全リモートエージェントに gemini-2.5-pro（コスト爆発）</li>
+              <li>エージェント間のファイル所有権を定義しない（書き込み競合）</li>
+              <li>A2A タイムアウト・フォールバック戦略を GEMINI.md に記載しない</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 17: Updated Master Summary Table ── -->
+      <div class="section section-ma">
+        <div class="section-head">
+          <span class="section-num">17</span>
+          <h2>全ファイル役割まとめ（マルチエージェント + A2A 対応版）</h2>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ファイル</th>
+                <th>レイヤー</th>
+                <th>読者</th>
+                <th>マルチエージェントでの役割</th>
+                <th>設計原則（追記）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>GEMINI.md</code> (root)</td>
+                <td>ADK / CLI</td>
+                <td>Orchestrator（常時ロード）</td>
+                <td>
+                  ルーティングルール・ファイル所有権・リモートエンドポイント一覧・フォールバック戦略
+                </td>
+                <td>
+                  A2A エンドポイント URL テーブルと Quality Gates を必ず記載。@import で
+                  docs/agent-endpoints.md を分離
+                </td>
+              </tr>
+              <tr>
+                <td><code>agents/*/GEMINI.md</code></td>
+                <td>ADK</td>
+                <td>各エージェント（Auto-scan）</td>
+                <td>サービス固有ルール。A2A エージェントごとに独立管理</td>
+                <td>Auto-scan で動的ロード。ルート GEMINI.md との重複を避ける</td>
+              </tr>
+              <tr>
+                <td><code>agent.json</code><br />（Agent Card）</td>
+                <td>A2A</td>
+                <td>リモートクライアントエージェント・Orchestrator</td>
+                <td>能力公開・認証定義・スキル一覧（ディスカバリーの唯一の情報源）</td>
+                <td>
+                  description・skills・securitySchemes は必須。version 管理を徹底。to_a2a()
+                  で自動生成も可
+                </td>
+              </tr>
+              <tr>
+                <td><code>agents/*/agent.py</code></td>
+                <td>ADK</td>
+                <td>各エージェントランタイム</td>
+                <td>instruction（内部 GEMINI.md 相当）・RemoteA2aAgent 定義・output_key 管理</td>
+                <td>output_key は一意に。RemoteA2aAgent の description に呼び出し条件を明記</td>
+              </tr>
+              <tr>
+                <td><code>docs/agent-endpoints.md</code></td>
+                <td>A2A / 運用</td>
+                <td>Orchestrator（@import）+ 人間</td>
+                <td>AgentEngine URL・ローカル開発 URL・フォールバックルールを一元管理</td>
+                <td>GEMINI.md から @import。エンドポイント変更はこのファイルのみ更新</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code></td>
+                <td>共通</td>
+                <td>全 AI ツール（クロスツール）</td>
+                <td>A2A エージェント一覧・ADK パイプライン・AgentEngine エンドポイント概要</td>
+                <td>
+                  ツール固有の詳細（agent.json
+                  URL等）はここに書かず各ファイルへ。横断的ルールのみ記載
+                </td>
+              </tr>
+              <tr>
+                <td><code>.geminiignore</code></td>
+                <td>CLI</td>
+                <td>コンテキストシステム</td>
+                <td>agent.json（本番の認証情報含む）・.env・*.key を除外リストに追加</td>
+                <td>
+                  <code>agent.json</code> に secrets が含まれる場合は必ず除外。node_modules・dist
+                  も忘れずに
+                </td>
+              </tr>
+              <tr>
+                <td><code>settings.json</code></td>
+                <td>CLI / IDE</td>
+                <td>Gemini ランタイム</td>
+                <td>MCP サーバー・除外ツール・A2A クライアント設定を一元管理</td>
+                <td>A2A サーバーの接続情報は env 変数で渡す（ハードコード禁止）</td>
+              </tr>
+              <tr>
+                <td><code>README.md</code></td>
+                <td>全ツール</td>
+                <td>人間（チームメンバー）</td>
+                <td>A2A エージェント一覧・agent.json URL・AgentEngine デプロイ手順・コスト試算</td>
+                <td>
+                  マルチエージェントアーキテクチャ図・各エージェントのオーナーチーム・フォールバック手順を記載
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr />
+      <div class="section">
+        <div class="section-head">
+          <span class="section-num">📚</span>
+          <h2>参考ソース（公式・一次情報優先）</h2>
+        </div>
+        <div class="src-grid">
+          <div class="src-card">
+            <div class="src-icon">🔵</div>
+            <div class="src-title">Gemini CLI 公式: GEMINI.md ドキュメント</div>
+            <div class="src-url">
+              <a
+                href="https://google-gemini.github.io/gemini-cli/docs/cli/gemini-md.html"
+                target="_blank"
+                >google-gemini.github.io/gemini-cli/docs/cli/gemini-md.html</a
+              >
+            </div>
+            <div class="src-desc">
+              階層ロード仕様・@import構文・/memory コマンド・context.fileName 設定の公式リファレンス
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟢</div>
+            <div class="src-title">Google Developers: Gemini Code Assist agent mode</div>
+            <div class="src-url">
+              <a
+                href="https://developers.google.com/gemini-code-assist/docs/use-agentic-chat-pair-programmer"
+                target="_blank"
+                >developers.google.com/gemini-code-assist/docs/use-agentic-chat-pair-programmer</a
+              >
+            </div>
+            <div class="src-desc">
+              GEMINI.md / AGENT.md の使い方・IDE設定・MCP サーバー設定の公式ガイド
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟡</div>
+            <div class="src-title">Google Cloud Docs: Gemini Code Assist agent mode</div>
+            <div class="src-url">
+              <a
+                href="https://docs.cloud.google.com/gemini/docs/codeassist/use-agentic-chat-pair-programmer"
+                target="_blank"
+                >docs.cloud.google.com/gemini/docs/codeassist/use-agentic-chat-pair-programmer</a
+              >
+            </div>
+            <div class="src-desc">
+              Cloud コンソール向けのエージェントモード設定・スコープ別 GEMINI.md 配置テーブル
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🔴</div>
+            <div class="src-title">Android Developers: AGENTS.md ファイル</div>
+            <div class="src-url">
+              <a href="https://developer.android.com/studio/gemini/agent-files" target="_blank"
+                >developer.android.com/studio/gemini/agent-files</a
+              >
+            </div>
+            <div class="src-desc">
+              Android Studio での AGENTS.md 複数ファイル配置・自動スキャン仕様
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟣</div>
+            <div class="src-title">ADK 公式: Multi-agent systems</div>
+            <div class="src-url">
+              <a href="https://google.github.io/adk-docs/agents/multi-agents/" target="_blank"
+                >google.github.io/adk-docs/agents/multi-agents/</a
+              >
+            </div>
+            <div class="src-desc">
+              SequentialAgent / ParallelAgent / LoopAgent /
+              LLM委譲の公式仕様。sub_agents・output_key の設計指針
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟠</div>
+            <div class="src-title">Google Cloud Blog: Multi-agent patterns in ADK</div>
+            <div class="src-url">
+              <a
+                href="https://developers.googleblog.com/developers-guide-to-multi-agent-patterns-in-adk/"
+                target="_blank"
+                >developers.googleblog.com/developers-guide-to-multi-agent-patterns-in-adk/</a
+              >
+            </div>
+            <div class="src-desc">
+              description フィールドの重要性・AutoFlow メカニズム・ParallelAgent
+              のレースコンディション対策
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">⚪</div>
+            <div class="src-title">Google Cloud Blog: Building Collaborative AI (ADK)</div>
+            <div class="src-url">
+              <a
+                href="https://cloud.google.com/blog/topics/developers-practitioners/building-collaborative-ai-a-developers-guide-to-multi-agent-systems-with-adk"
+                target="_blank"
+                >cloud.google.com/blog/topics/developers-practitioners/building-collaborative-ai-a-developers-guide-to-multi-agent-systems-with-adk</a
+              >
+            </div>
+            <div class="src-desc">
+              ADK エージェント階層・3種ワークフローエージェントの使い分け・通信メカニズムの詳解
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🔵</div>
+            <div class="src-title">Addy Osmani: Gemini CLI Tips & Tricks</div>
+            <div class="src-url">
+              <a href="https://addyosmani.com/blog/gemini-cli/" target="_blank"
+                >addyosmani.com/blog/gemini-cli/</a
+              >
+            </div>
+            <div class="src-desc">
+              GEMINI.md 実践テクニック・チェックポイント・/restore
+              コマンド・@ファイル参照のベストプラクティス
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟢</div>
+            <div class="src-title">Google Cloud Medium: GEMINI.md hierarchy Part 1</div>
+            <div class="src-url">
+              <a
+                href="https://medium.com/google-cloud/practical-gemini-cli-instruction-following-gemini-md-hierarchy-part-1-3ba241ac5496"
+                target="_blank"
+                >medium.com/google-cloud/practical-gemini-cli-instruction-following-gemini-md-hierarchy-part-1</a
+              >
+            </div>
+            <div class="src-desc">
+              GEMINI.md 階層の実験的検証・優先度・オーバーライド挙動の実践レポート
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🟡</div>
+            <div class="src-title">GitHub: AGENTS.md 標準化ディスカッション</div>
+            <div class="src-url">
+              <a href="https://github.com/google-gemini/gemini-cli/discussions/1471" target="_blank"
+                >github.com/google-gemini/gemini-cli/discussions/1471</a
+              >
+            </div>
+            <div class="src-desc">
+              クロスツール AGENTS.md 標準化の提案・Gemini / Claude / Codex / Cursor
+              の相互運用戦略の議論
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">⚫</div>
+            <div class="src-title">Phil Schmid: Gemini CLI Cheatsheet</div>
+            <div class="src-url">
+              <a href="https://www.philschmid.de/gemini-cli-cheatsheet" target="_blank"
+                >philschmid.de/gemini-cli-cheatsheet</a
+              >
+            </div>
+            <div class="src-desc">
+              settings.json 全フィールド・.geminiignore・@import 構文の網羅的リファレンス
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🔴</div>
+            <div class="src-title">Google Codelabs: Build Multi-Agent Systems with ADK</div>
+            <div class="src-url">
+              <a
+                href="https://codelabs.developers.google.com/codelabs/production-ready-ai-with-gc/3-developing-agents/build-a-multi-agent-system-with-adk"
+                target="_blank"
+                >codelabs.developers.google.com/…/build-a-multi-agent-system-with-adk</a
+              >
+            </div>
+            <div class="src-desc">
+              SequentialAgent / LoopAgent 実装のハンズオン・session state キーテンプレート
+            </div>
+          </div>
+
+          <!-- ── 新規追加：マルチエージェント / A2A ソース ── -->
+          <div class="src-card src-card-new">
+            <div class="src-icon">🌐</div>
+            <div class="src-title">ADK 公式: A2A Protocol 入門（Introduction to A2A）</div>
+            <div class="src-url">
+              <a href="https://google.github.io/adk-docs/a2a/intro/" target="_blank"
+                >google.github.io/adk-docs/a2a/intro/</a
+              >
+            </div>
+            <div class="src-desc">
+              RemoteA2aAgent の仕組み・Exposing（to_a2a）vs Consuming・A2A Server
+              のアーキテクチャ図の公式解説
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🟢</div>
+            <div class="src-title">
+              ADK 公式: A2A Quickstart — エージェントを公開する（Exposing）
+            </div>
+            <div class="src-url">
+              <a href="https://google.github.io/adk-docs/a2a/quickstart-exposing/" target="_blank"
+                >google.github.io/adk-docs/a2a/quickstart-exposing/</a
+              >
+            </div>
+            <div class="src-desc">
+              to_a2a() 関数・adk api_server --a2a・agent.json 配置ルール・Auto-generated Agent Card
+              の仕様（公式一次情報）
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🔵</div>
+            <div class="src-title">Google Blog: Agent2Agent (A2A) Protocol 発表</div>
+            <div class="src-url">
+              <a
+                href="https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/"
+                target="_blank"
+                >developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/</a
+              >
+            </div>
+            <div class="src-desc">
+              A2A の設計思想・Agent Card によるディスカバリー・50 以上のパートナー企業・MCP
+              との補完関係の公式解説（2025年4月）
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🟡</div>
+            <div class="src-title">Google Cloud Blog: ADK エージェントを A2A に変換する</div>
+            <div class="src-url">
+              <a
+                href="https://cloud.google.com/blog/products/ai-machine-learning/unlock-ai-agent-collaboration-convert-adk-agents-for-a2a"
+                target="_blank"
+                >cloud.google.com/blog/…/unlock-ai-agent-collaboration-convert-adk-agents-for-a2a</a
+              >
+            </div>
+            <div class="src-desc">
+              AgentSkill・AgentCard 実装方法・AgentTaskManager・Orchestrator の Discovery
+              パターン・コード実例（2025年7月）
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🟣</div>
+            <div class="src-title">
+              Google Developers Blog: ADK + Interactions API（Deep Research 連携）
+            </div>
+            <div class="src-url">
+              <a
+                href="https://developers.googleblog.com/building-agents-with-the-adk-and-the-new-interactions-api/"
+                target="_blank"
+                >developers.googleblog.com/building-agents-with-the-adk-and-the-new-interactions-api/</a
+              >
+            </div>
+            <div class="src-desc">
+              InteractionsApiTransport で A2A ← → Gemini Deep Research Agent を接続する方法・A2A
+              Extensions の活用（2025年12月）
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🟠</div>
+            <div class="src-title">
+              Google Codelabs: A2A Purchasing Concierge（クロスフレームワーク実例）
+            </div>
+            <div class="src-url">
+              <a
+                href="https://codelabs.developers.google.com/intro-a2a-purchasing-concierge"
+                target="_blank"
+                >codelabs.developers.google.com/intro-a2a-purchasing-concierge</a
+              >
+            </div>
+            <div class="src-desc">
+              ADK（Orchestrator）+ CrewAI + LangGraph の A2A 接続・AgentEngine デプロイ・agent.json
+              実際のサンプル・A2A 通信フロー詳解
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">⚫</div>
+            <div class="src-title">
+              Harris Solangi (Medium): Building Connected AI Agents — ADK & A2A
+            </div>
+            <div class="src-url">
+              <a
+                href="https://harrissolangi.medium.com/building-connected-ai-agents-googles-adk-and-the-a2a-protocol-704ce3347cfc"
+                target="_blank"
+                >harrissolangi.medium.com/building-connected-ai-agents-googles-adk-and-the-a2a-protocol</a
+              >
+            </div>
+            <div class="src-desc">
+              ADK の "Agent Triangle" 原則・A2A ディスカバリーフロー・RemoteA2aAgent
+              を「ローカルツール」として扱う設計哲学（2025年12月）
+            </div>
+          </div>
+          <div class="src-card src-card-new">
+            <div class="src-icon">🔴</div>
+            <div class="src-title">
+              GitGuardian Blog: Multi-Agent Security Pipeline with A2A（動的ディスカバリー実装）
+            </div>
+            <div class="src-url">
+              <a
+                href="https://blog.gitguardian.com/building-a-multi-agent-security-pipeline-with-googles-a2a-protocol-and-gitguardian/"
+                target="_blank"
+                >blog.gitguardian.com/building-a-multi-agent-security-pipeline-with-googles-a2a-protocol-and-gitguardian/</a
+              >
+            </div>
+            <div class="src-desc">
+              Discovery Service パターンの実装コード・RemoteA2aAgent
+              の動的生成・ハードコードなしオーケストレーション・A2A
+              のフレームワーク非依存性実証（2025年12月）
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

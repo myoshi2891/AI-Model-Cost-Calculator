@@ -62,3 +62,6 @@ pnpm-debug.log*
 # Backup/Temp
 *.tmp
 *.bak
+
+# temp files
+links.md

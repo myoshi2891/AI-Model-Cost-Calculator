@@ -1,0 +1,2185 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenAI Codex サブエージェント Markdownファイル ベストプラクティス</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111111;
+        --surface2: #1a1a1a;
+        --surface3: #222222;
+        --border: #2a2a2a;
+        --border2: #333333;
+        --oai: #10a37f; /* OpenAI green */
+        --oai-dim: #0d8a6b;
+        --oai-glow: rgba(16, 163, 127, 0.15);
+        --blue: #3b82f6;
+        --purple: #8b5cf6;
+        --amber: #f59e0b;
+        --red: #ef4444;
+        --teal: #14b8a6;
+        --text: #f0f0f0;
+        --text2: #a0a0a0;
+        --text3: #606060;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          'Inter',
+          -apple-system,
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      /* ── TOP NAV ── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(10, 10, 10, 0.88);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 32px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .nav-logo {
+        width: 28px;
+        height: 28px;
+        background: var(--oai);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .nav-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .nav-sep {
+        color: var(--text3);
+      }
+      .nav-sub {
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .nav-right {
+        margin-left: auto;
+        display: flex;
+        gap: 6px;
+      }
+      .nav-chip {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 12px;
+        padding: 2px 10px;
+        font-size: 11px;
+        color: var(--text3);
+      }
+
+      /* ── Wrapper ── */
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 52px 24px 100px;
+      }
+
+      /* ── Hero ── */
+      .hero {
+        position: relative;
+        background: linear-gradient(135deg, #0d1f18 0%, #050d0a 50%, #070512 100%);
+        border: 1px solid #1a3028;
+        border-radius: 20px;
+        padding: 56px 52px;
+        margin-bottom: 64px;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(16, 163, 127, 0.1) 0%, transparent 60%);
+        pointer-events: none;
+      }
+      .hero::after {
+        content: '';
+        position: absolute;
+        bottom: -80px;
+        left: 20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.07) 0%, transparent 65%);
+        pointer-events: none;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 163, 127, 0.12);
+        border: 1px solid rgba(16, 163, 127, 0.3);
+        border-radius: 24px;
+        padding: 5px 16px;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--oai);
+        margin-bottom: 24px;
+      }
+      .hero h1 {
+        font-size: 2.7rem;
+        font-weight: 800;
+        line-height: 1.12;
+        margin-bottom: 20px;
+        letter-spacing: -0.02em;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--oai);
+      }
+      .hero p {
+        color: var(--text2);
+        font-size: 1.05rem;
+        max-width: 640px;
+        line-height: 1.75;
+      }
+      .hero-meta {
+        display: flex;
+        gap: 10px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+      .hero-tag {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 4px 14px;
+        font-size: 12px;
+        color: var(--text2);
+      }
+
+      /* ── Section ── */
+      .sec {
+        margin-bottom: 64px;
+      }
+      .sec-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--border2);
+      }
+      .sec-num {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--oai), #0d8a6b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 0 16px rgba(16, 163, 127, 0.3);
+      }
+      .sec-head h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .sec-head small {
+        color: var(--text3);
+        font-size: 13px;
+        font-weight: 400;
+        margin-left: 6px;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin-bottom: 20px;
+      }
+      .card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card p {
+        color: var(--text2);
+        margin-bottom: 10px;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ── Hierarchy load diagram ── */
+      .load-chain {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 32px;
+        margin: 20px 0;
+      }
+      .load-chain-title {
+        text-align: center;
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 28px;
+      }
+      .load-steps {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        justify-content: center;
+      }
+      .load-step {
+        flex: 1;
+        max-width: 200px;
+        text-align: center;
+        position: relative;
+      }
+      .load-box {
+        border-radius: 12px;
+        padding: 16px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        margin: 0 6px;
+      }
+      .lb-global {
+        background: rgba(16, 163, 127, 0.12);
+        border: 1.5px solid rgba(16, 163, 127, 0.35);
+        color: #34d399;
+      }
+      .lb-project {
+        background: rgba(59, 130, 246, 0.12);
+        border: 1.5px solid rgba(59, 130, 246, 0.35);
+        color: #60a5fa;
+      }
+      .lb-sub {
+        background: rgba(139, 92, 246, 0.12);
+        border: 1.5px solid rgba(139, 92, 246, 0.35);
+        color: #a78bfa;
+      }
+      .lb-override {
+        background: rgba(245, 158, 11, 0.12);
+        border: 1.5px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+      }
+      .load-box small {
+        display: block;
+        font-weight: 400;
+        color: var(--text3);
+        font-size: 11px;
+        margin-top: 4px;
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .load-arrow {
+        display: flex;
+        align-items: center;
+        color: var(--border2);
+        font-size: 24px;
+        flex-shrink: 0;
+        padding-bottom: 20px;
+      }
+      .load-note {
+        text-align: center;
+        color: var(--text3);
+        font-size: 11.5px;
+        margin-top: 20px;
+      }
+      .load-limit {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 11.5px;
+        color: #fbbf24;
+        margin-top: 12px;
+      }
+
+      /* ── File Tree SVG ── */
+      .filetree-outer {
+        background: #060606;
+        border: 1px solid #1e2228;
+        border-radius: 14px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      .filetree-bar {
+        background: #111318;
+        border-bottom: 1px solid #1e2228;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .fb-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+
+      /* ── Code blocks ── */
+      .code-wrap {
+        background: #060606;
+        border: 1px solid #1e2228;
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 16px 0;
+      }
+      .code-bar {
+        background: #111318;
+        border-bottom: 1px solid #1e2228;
+        padding: 9px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text3);
+      }
+      .code-lang {
+        color: #818cf8;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+      }
+      .code-body {
+        padding: 22px 24px;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        font-size: 13px;
+        line-height: 1.85;
+        overflow-x: auto;
+        white-space: pre;
+        color: #d0d0d0;
+      }
+      .ck {
+        color: #ff7b72;
+      }
+      .cs {
+        color: #a5d6ff;
+      }
+      .cv {
+        color: #79c0ff;
+      }
+      .cc {
+        color: #484f58;
+        font-style: italic;
+      }
+      .ch {
+        color: #f97316;
+        font-weight: 700;
+      }
+      .cm {
+        color: #34d399;
+        font-weight: 600;
+      }
+      .cw {
+        color: #fbbf24;
+      }
+      .ce {
+        color: #a78bfa;
+      }
+      .co {
+        color: #fb7185;
+      }
+
+      /* ── mono inline ── */
+      .mono {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 12.5px;
+        color: var(--oai);
+      }
+
+      /* ── badges ── */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 5px;
+        padding: 2px 9px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .b-green {
+        background: rgba(16, 163, 127, 0.15);
+        color: var(--oai);
+        border: 1px solid rgba(16, 163, 127, 0.3);
+      }
+      .b-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+      .b-purple {
+        background: rgba(139, 92, 246, 0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+      }
+      .b-amber {
+        background: rgba(245, 158, 11, 0.12);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .b-red {
+        background: rgba(239, 68, 68, 0.12);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .b-teal {
+        background: rgba(20, 184, 166, 0.12);
+        color: #2dd4bf;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+      }
+
+      /* ── alert boxes ── */
+      .alert {
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin: 16px 0;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        font-size: 13.5px;
+      }
+      .alert-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .ai {
+        background: rgba(59, 130, 246, 0.07);
+        border-left: 3px solid #3b82f6;
+      }
+      .aw {
+        background: rgba(245, 158, 11, 0.07);
+        border-left: 3px solid #f59e0b;
+      }
+      .ae {
+        background: rgba(239, 68, 68, 0.07);
+        border-left: 3px solid #ef4444;
+      }
+      .ag {
+        background: rgba(16, 163, 127, 0.07);
+        border-left: 3px solid var(--oai);
+      }
+      .alert-body strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+      .alert-body {
+        color: var(--text2);
+      }
+
+      /* ── Best / Anti ── */
+      .pat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .pat-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .pat {
+        border-radius: 12px;
+        padding: 18px 20px;
+      }
+      .pat-ok {
+        background: rgba(16, 163, 127, 0.06);
+        border: 1px solid rgba(16, 163, 127, 0.25);
+      }
+      .pat-ng {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+      }
+      .pat-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin-bottom: 10px;
+      }
+      .pat-ok .pat-label {
+        color: var(--oai);
+      }
+      .pat-ng .pat-label {
+        color: #f87171;
+      }
+      .pat ul {
+        list-style: none;
+      }
+      .pat ul li {
+        font-size: 13.5px;
+        color: var(--text2);
+        padding: 3px 0;
+        padding-left: 20px;
+        position: relative;
+      }
+      .pat-ok ul li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--oai);
+        font-weight: 700;
+      }
+      .pat-ng ul li::before {
+        content: '✗';
+        position: absolute;
+        left: 0;
+        color: #f87171;
+        font-weight: 700;
+      }
+
+      /* ── multi-agent roles ── */
+      .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 16px 0;
+      }
+      @media (max-width: 640px) {
+        .roles-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .role-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+        transition: border-color 0.2s;
+      }
+      .role-card:hover {
+        border-color: var(--oai);
+      }
+      .role-icon {
+        font-size: 26px;
+        margin-bottom: 10px;
+      }
+      .role-name {
+        font-size: 13.5px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .role-desc {
+        font-size: 12.5px;
+        color: var(--text2);
+        line-height: 1.6;
+      }
+      .role-ex {
+        margin-top: 10px;
+        font-size: 11.5px;
+        color: var(--text3);
+        background: var(--surface2);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      /* ── Table ── */
+      .tbl-wrap {
+        overflow-x: auto;
+        margin: 16px 0;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        background: var(--surface);
+      }
+      thead th {
+        background: var(--surface2);
+        color: var(--text3);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 10px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      tbody td {
+        padding: 11px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text2);
+        vertical-align: top;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      td code {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--oai);
+      }
+
+      /* ── Decision flow ── */
+      .dflow {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px 32px;
+        margin: 20px 0;
+      }
+      .dflow-title {
+        text-align: center;
+        color: var(--text3);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 24px;
+      }
+      .dflow-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+        flex-wrap: wrap;
+      }
+      .dn-q {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: #60a5fa;
+        font-size: 13px;
+      }
+      .dn-y {
+        background: rgba(16, 163, 127, 0.1);
+        border: 1px solid rgba(16, 163, 127, 0.35);
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: #34d399;
+        font-size: 13px;
+      }
+      .dn-n {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-weight: 600;
+        color: #f87171;
+        font-size: 13px;
+      }
+      .dn-arr {
+        color: var(--text3);
+        font-size: 20px;
+      }
+      .dn-indent {
+        border-left: 2px solid var(--border2);
+        padding-left: 24px;
+        margin-left: 18px;
+      }
+
+      /* ── source grid ── */
+      .src-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .src-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .src-icon {
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+      .src-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--oai);
+        margin-bottom: 4px;
+      }
+      .src-url {
+        font-size: 11px;
+        color: var(--text3);
+        word-break: break-all;
+        font-family: 'JetBrains Mono', monospace;
+        margin-bottom: 6px;
+      }
+      .src-desc {
+        font-size: 12px;
+        color: var(--text2);
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 56px 0;
+      }
+      a {
+        color: var(--oai);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="nav-logo">⚙</div>
+      <span class="nav-title">OpenAI Codex Agent Dev Guide</span>
+      <span class="nav-sep">—</span>
+      <span class="nav-sub">codex-1 / Codex CLI / Agents SDK · 2026</span>
+      <div class="nav-right">
+        <span class="nav-chip">Codex CLI</span>
+        <span class="nav-chip">Multi-Agent</span>
+        <span class="nav-chip">Skills</span>
+      </div>
+    </nav>
+
+    <div class="wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-badge">⚙ OpenAI Codex 完全ガイド</div>
+        <h1>サブエージェント開発における<br /><em>Markdownファイル</em><br />ベストプラクティス</h1>
+        <p>
+          AGENTS.md・AGENTS.override.md・SKILL.md・.codex/config.toml・REQUIREMENTS.md ── Codex
+          エコシステム固有のファイル体系と、マルチエージェントワークフロー設計のベストプラクティスを体系的に解説します。
+        </p>
+        <div class="hero-meta">
+          <span class="hero-tag">Codex CLI (Rust製)</span>
+          <span class="hero-tag">codex-1 (o3-based)</span>
+          <span class="hero-tag">Multi-Agent (Experimental)</span>
+          <span class="hero-tag">Skills / SKILL.md</span>
+          <span class="hero-tag">Agents SDK + MCP</span>
+          <span class="hero-tag">Cloud Tasks</span>
+        </div>
+      </div>
+
+      <!-- 1. OVERVIEW -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">1</span>
+          <h2>全体アーキテクチャと各ファイルの位置づけ</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            Codex のファイル体系は <strong>他のツールと最も大きく異なります</strong>。Claude の
+            <code>CLAUDE.md</code>・Gemini の <code>GEMINI.md</code> に相当するのが
+            <code>AGENTS.md</code> ですが、Codex にはそれに加えて
+            <strong>SKILL.md（遅延ロード型スキル）</strong
+            >・<strong>AGENTS.override.md（ホットスワップ型上書き）</strong>・<strong
+              >config.toml（エージェントロール定義）</strong
+            >
+            という独自の概念があります。
+          </p>
+        </div>
+
+        <!-- Context load chain -->
+        <div class="load-chain">
+          <div class="load-chain-title">
+            AGENTS.md 読み込みチェーン — 低優先度 → 高優先度（後のファイルが前を上書き）
+          </div>
+          <div class="load-steps">
+            <div class="load-step">
+              <div class="load-box lb-global">
+                🌐 Global<br />
+                <small>~/.codex/AGENTS.md</small>
+              </div>
+              <div style="font-size: 11px; color: #484f58; text-align: center; margin-top: 8px">
+                全プロジェクト共通<br />Working agreements
+              </div>
+            </div>
+            <div class="load-arrow">→</div>
+            <div class="load-step">
+              <div class="load-box lb-project">
+                📁 Git Root<br />
+                <small>./AGENTS.md</small>
+              </div>
+              <div style="font-size: 11px; color: #484f58; text-align: center; margin-top: 8px">
+                プロジェクト固有<br />(.git を起点)
+              </div>
+            </div>
+            <div class="load-arrow">→</div>
+            <div class="load-step">
+              <div class="load-box lb-sub">
+                📂 Subdir<br />
+                <small>services/*/AGENTS.md</small>
+              </div>
+              <div style="font-size: 11px; color: #484f58; text-align: center; margin-top: 8px">
+                ディレクトリ固有<br />（CWDまで走査）
+              </div>
+            </div>
+            <div class="load-arrow">→</div>
+            <div class="load-step">
+              <div class="load-box lb-override">
+                ⚡ Override<br />
+                <small>AGENTS.override.md</small>
+              </div>
+              <div style="font-size: 11px; color: #484f58; text-align: center; margin-top: 8px">
+                緊急上書き<br />（同一ディレクトリ優先）
+              </div>
+            </div>
+          </div>
+          <div class="load-note">
+            各ディレクトリで
+            <strong>AGENTS.override.md → AGENTS.md → fallback</strong>
+            の順にチェック。1ディレクトリ1ファイルのみ採用。<br />
+            全ファイルを結合してモデルの最初のターンに渡す（空ファイルはスキップ）
+          </div>
+          <div style="text-align: center; margin-top: 12px">
+            <div class="load-limit">
+              ⚠ デフォルト上限: 32 KiB（project_doc_max_bytes） — 超えたら分割するか上限を引き上げる
+            </div>
+          </div>
+        </div>
+
+        <!-- File tree SVG -->
+        <div class="filetree-outer">
+          <div class="filetree-bar">
+            <span class="fb-dot" style="background: #ef4444"></span>
+            <span class="fb-dot" style="background: #f59e0b"></span>
+            <span class="fb-dot" style="background: #10a37f"></span>
+            <span
+              style="
+                margin-left: 10px;
+                color: #484f58;
+                font-size: 12px;
+                font-family: 'JetBrains Mono', monospace;
+              "
+              >project-root/ — Codex エコシステム ファイル構造</span
+            >
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 980 820"
+            width="100%"
+            style="display: block"
+            font-family="'JetBrains Mono','Fira Code',monospace"
+          >
+            <defs>
+              <linearGradient id="cg1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #10a37f" />
+                <stop offset="100%" style="stop-color: #0d8a6b" />
+              </linearGradient>
+              <linearGradient id="cg2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #3b82f6" />
+                <stop offset="100%" style="stop-color: #60a5fa" />
+              </linearGradient>
+              <linearGradient id="cg3" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #f59e0b" />
+                <stop offset="100%" style="stop-color: #fbbf24" />
+              </linearGradient>
+              <linearGradient id="cg4" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #8b5cf6" />
+                <stop offset="100%" style="stop-color: #a78bfa" />
+              </linearGradient>
+              <linearGradient id="cg5" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #ef4444" />
+                <stop offset="100%" style="stop-color: #f87171" />
+              </linearGradient>
+              <linearGradient id="cg6" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: #14b8a6" />
+                <stop offset="100%" style="stop-color: #2dd4bf" />
+              </linearGradient>
+            </defs>
+            <rect width="980" height="820" fill="#060606" />
+
+            <!-- LEGEND -->
+            <rect
+              x="670"
+              y="16"
+              width="296"
+              height="262"
+              rx="10"
+              fill="#111318"
+              stroke="#1e2228"
+              stroke-width="1"
+            />
+            <text
+              x="818"
+              y="38"
+              text-anchor="middle"
+              fill="#484f58"
+              font-size="11"
+              letter-spacing="1.5"
+            >
+              LEGEND
+            </text>
+            <rect x="686" y="50" width="22" height="22" rx="5" fill="url(#cg1)" />
+            <text x="697" y="65" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ①
+            </text>
+            <text x="716" y="65" font-size="12" fill="#d0d0d0">AGENTS.md（常時ロード）</text>
+            <rect x="686" y="82" width="22" height="22" rx="5" fill="url(#cg3)" />
+            <text x="697" y="97" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ②
+            </text>
+            <text x="716" y="97" font-size="12" fill="#d0d0d0">
+              AGENTS.override.md（緊急上書き）
+            </text>
+            <rect x="686" y="114" width="22" height="22" rx="5" fill="url(#cg2)" />
+            <text
+              x="697"
+              y="129"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="716" y="129" font-size="12" fill="#d0d0d0">
+              SKILL.md（遅延ロード型スキル）
+            </text>
+            <rect x="686" y="146" width="22" height="22" rx="5" fill="url(#cg4)" />
+            <text
+              x="697"
+              y="161"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ④
+            </text>
+            <text x="716" y="161" font-size="12" fill="#d0d0d0">
+              config.toml（エージェントロール）
+            </text>
+            <rect x="686" y="178" width="22" height="22" rx="5" fill="url(#cg5)" />
+            <text
+              x="697"
+              y="193"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="716" y="193" font-size="12" fill="#d0d0d0">PM生成ファイル（Agents SDK）</text>
+            <rect x="686" y="210" width="22" height="22" rx="5" fill="url(#cg6)" />
+            <text
+              x="697"
+              y="225"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑥
+            </text>
+            <text x="716" y="225" font-size="12" fill="#d0d0d0">README.md（人間向け）</text>
+            <rect x="686" y="242" width="52" height="22" rx="5" fill="#1e2228" />
+            <text
+              x="712"
+              y="257"
+              text-anchor="middle"
+              fill="#6b7280"
+              font-size="11"
+              font-weight="700"
+            >
+              📁 DIR
+            </text>
+            <text x="746" y="257" font-size="12" fill="#484f58">ディレクトリ</text>
+
+            <!-- TREE LINES -->
+            <line x1="44" y1="50" x2="44" y2="770" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="44" y1="52" x2="70" y2="52" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="44" y1="100" x2="70" y2="100" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="44" y1="150" x2="70" y2="150" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="44" y1="198" x2="70" y2="198" stroke="#1e2228" stroke-width="1.5" />
+            <!-- .codex/ spine -->
+            <line x1="86" y1="198" x2="86" y2="290" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="228" x2="112" y2="228" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="264" x2="112" y2="264" stroke="#1e2228" stroke-width="1.5" />
+            <!-- services/ -->
+            <line x1="44" y1="320" x2="70" y2="320" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="320" x2="86" y2="400" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="350" x2="112" y2="350" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="388" x2="112" y2="388" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="128" y1="388" x2="128" y2="420" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="128" y1="418" x2="154" y2="418" stroke="#1e2228" stroke-width="1.5" />
+            <!-- .agents/ -->
+            <line x1="44" y1="460" x2="70" y2="460" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="460" x2="86" y2="570" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="490" x2="112" y2="490" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="530" x2="112" y2="530" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="128" y1="530" x2="128" y2="570" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="128" y1="558" x2="154" y2="558" stroke="#1e2228" stroke-width="1.5" />
+            <!-- docs/ -->
+            <line x1="44" y1="620" x2="70" y2="620" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="620" x2="86" y2="720" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="648" x2="112" y2="648" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="686" x2="112" y2="686" stroke="#1e2228" stroke-width="1.5" />
+            <line x1="86" y1="724" x2="112" y2="724" stroke="#1e2228" stroke-width="1.5" />
+            <!-- README -->
+            <line x1="44" y1="770" x2="70" y2="770" stroke="#1e2228" stroke-width="1.5" />
+
+            <!-- ROOT -->
+            <text x="20" y="32" font-size="16" fill="#10a37f">📁</text>
+            <text x="42" y="32" font-size="14" font-weight="700" fill="#34d399">project-root/</text>
+
+            <!-- ROW 1: AGENTS.md (root) -->
+            <text x="78" y="58" font-size="14" fill="#34d399">📄</text>
+            <text x="98" y="58" font-size="13.5" font-weight="700" fill="#34d399">AGENTS.md</text>
+            <rect x="196" y="43" width="22" height="22" rx="5" fill="url(#cg1)" />
+            <text x="207" y="58" text-anchor="middle" fill="white" font-size="12" font-weight="700">
+              ①
+            </text>
+            <text x="226" y="58" font-size="12" fill="#6b7280">
+              プロジェクト固有の常設指示（毎セッションロード）
+            </text>
+            <text x="226" y="74" font-size="11" fill="#3a3a3a">※ /init コマンドで自動生成可</text>
+
+            <!-- ROW 2: AGENTS.override.md (root) -->
+            <text x="78" y="106" font-size="14" fill="#fbbf24">⚡</text>
+            <text x="98" y="106" font-size="13.5" font-weight="700" fill="#fbbf24">
+              AGENTS.override.md
+            </text>
+            <rect x="278" y="91" width="22" height="22" rx="5" fill="url(#cg3)" />
+            <text
+              x="289"
+              y="106"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ②
+            </text>
+            <text x="308" y="106" font-size="12" fill="#6b7280">
+              緊急上書き用（AGENTS.md より先に読まれる）
+            </text>
+
+            <!-- ROW 3: config.toml (root) -->
+            <text x="78" y="156" font-size="14" fill="#a78bfa">⚙️</text>
+            <text x="98" y="156" font-size="13.5" font-weight="700" fill="#a78bfa">
+              config.toml
+            </text>
+            <rect x="196" y="141" width="22" height="22" rx="5" fill="url(#cg4)" />
+            <text
+              x="207"
+              y="156"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ④
+            </text>
+            <text x="226" y="156" font-size="12" fill="#6b7280">
+              モデル設定・エージェントロール・MCP・sandbox
+            </text>
+
+            <!-- ROW 4: .codex/ dir -->
+            <text x="78" y="204" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="204" font-size="14" font-weight="700" fill="#60a5fa">.codex/</text>
+            <text x="178" y="204" font-size="12" fill="#3a3a3a">
+              ← プロジェクト固有設定レイヤー
+            </text>
+            <!-- .codex/config.toml -->
+            <text x="120" y="234" font-size="14" fill="#a78bfa">⚙️</text>
+            <text x="140" y="234" font-size="13" fill="#a78bfa">config.toml</text>
+            <rect x="232" y="219" width="22" height="22" rx="5" fill="url(#cg4)" opacity="0.75" />
+            <text
+              x="243"
+              y="234"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ④
+            </text>
+            <text x="262" y="234" font-size="12" fill="#4a4a4a">
+              プロジェクト固有設定（trusted時のみ読込）
+            </text>
+            <!-- .codex/AGENTS.md -->
+            <text x="120" y="270" font-size="14" fill="#34d399">📄</text>
+            <text x="140" y="270" font-size="13" font-weight="700" fill="#34d399">AGENTS.md</text>
+            <rect x="228" y="255" width="22" height="22" rx="5" fill="url(#cg1)" opacity="0.7" />
+            <text
+              x="239"
+              y="270"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ①
+            </text>
+            <text x="258" y="270" font-size="12" fill="#4a4a4a">.codex層の補足指示</text>
+
+            <!-- ROW 5: services/ dir -->
+            <text x="78" y="326" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="326" font-size="14" font-weight="700" fill="#60a5fa">services/</text>
+            <!-- services/payments/AGENTS.md -->
+            <text x="120" y="356" font-size="13" fill="#60a5fa">📂</text>
+            <text x="140" y="356" font-size="13" font-weight="700" fill="#60a5fa">payments/</text>
+            <!-- services/payments/AGENTS.md is overridden by override -->
+            <text x="120" y="394" font-size="13" fill="#60a5fa">📂</text>
+            <text x="140" y="394" font-size="13" font-weight="700" fill="#60a5fa">auth/</text>
+            <text x="162" y="424" font-size="13" fill="#fbbf24">⚡</text>
+            <text x="182" y="424" font-size="13" font-weight="700" fill="#fbbf24">
+              AGENTS.override.md
+            </text>
+            <rect x="350" y="409" width="22" height="22" rx="5" fill="url(#cg3)" opacity="0.8" />
+            <text
+              x="361"
+              y="424"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ②
+            </text>
+            <text x="380" y="424" font-size="12" fill="#6b7280">auth/ 固有ルールを緊急上書き</text>
+
+            <!-- ROW 6: .agents/ dir (Skills) -->
+            <text x="78" y="466" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="466" font-size="14" font-weight="700" fill="#60a5fa">.agents/</text>
+            <!-- .agents/skills/ dir -->
+            <text x="120" y="496" font-size="13" fill="#60a5fa">📂</text>
+            <text x="140" y="496" font-size="13" font-weight="700" fill="#60a5fa">skills/</text>
+            <text x="220" y="496" font-size="12" fill="#3a3a3a">← リポジトリ固有スキル置き場</text>
+            <!-- skill folder -->
+            <text x="120" y="536" font-size="13" fill="#60a5fa">📂</text>
+            <text x="140" y="536" font-size="13" font-weight="700" fill="#60a5fa">
+              code-review/
+            </text>
+            <text x="162" y="564" font-size="13" fill="#60a5fa">📝</text>
+            <text x="182" y="564" font-size="13" fill="#60a5fa">SKILL.md</text>
+            <rect x="264" y="549" width="22" height="22" rx="5" fill="url(#cg2)" />
+            <text
+              x="275"
+              y="564"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ③
+            </text>
+            <text x="294" y="564" font-size="12" fill="#6b7280">
+              スキル定義（必要時のみフル読込：遅延ロード）
+            </text>
+
+            <!-- ROW 7: docs/ dir (Agents SDK) -->
+            <text x="78" y="626" font-size="14" fill="#60a5fa">📁</text>
+            <text x="98" y="626" font-size="14" font-weight="700" fill="#60a5fa">docs/</text>
+            <text x="178" y="626" font-size="12" fill="#3a3a3a">
+              ← Agents SDK マルチエージェント生成ファイル
+            </text>
+            <text x="120" y="654" font-size="13" fill="#fb7185">📋</text>
+            <text x="140" y="654" font-size="13" fill="#fb7185">REQUIREMENTS.md</text>
+            <rect x="302" y="639" width="22" height="22" rx="5" fill="url(#cg5)" />
+            <text
+              x="313"
+              y="654"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="332" y="654" font-size="12" fill="#6b7280">
+              PM エージェントが自動生成する仕様書
+            </text>
+            <text x="120" y="692" font-size="13" fill="#fb7185">📋</text>
+            <text x="140" y="692" font-size="13" fill="#fb7185">AGENT_TASKS.md</text>
+            <rect x="298" y="677" width="22" height="22" rx="5" fill="url(#cg5)" opacity="0.85" />
+            <text
+              x="309"
+              y="692"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="328" y="692" font-size="12" fill="#6b7280">
+              PM が各サブエージェントへの指示を記述
+            </text>
+            <text x="120" y="730" font-size="13" fill="#fb7185">📋</text>
+            <text x="140" y="730" font-size="13" fill="#fb7185">TEST.md</text>
+            <rect x="226" y="715" width="22" height="22" rx="5" fill="url(#cg5)" opacity="0.7" />
+            <text
+              x="237"
+              y="730"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑤
+            </text>
+            <text x="256" y="730" font-size="12" fill="#6b7280">
+              Tester エージェントが生成するテスト計画
+            </text>
+
+            <!-- ROW 8: README.md -->
+            <text x="78" y="776" font-size="14" fill="#60a5fa">📘</text>
+            <text x="98" y="776" font-size="14" font-weight="700" fill="#2dd4bf">README.md</text>
+            <rect x="208" y="761" width="22" height="22" rx="5" fill="url(#cg6)" />
+            <text
+              x="219"
+              y="776"
+              text-anchor="middle"
+              fill="white"
+              font-size="12"
+              font-weight="700"
+            >
+              ⑥
+            </text>
+            <text x="238" y="776" font-size="12" fill="#6b7280">
+              人間向け：エージェント構成・セットアップ手順
+            </text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 2. AGENTS.md -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">2</span>
+          <h2>
+            <span class="mono">AGENTS.md</span> / <span class="mono">AGENTS.override.md</span> —
+            コンテキスト設計
+          </h2>
+        </div>
+
+        <div class="alert ai">
+          <span class="alert-icon">ℹ️</span>
+          <div class="alert-body">
+            <strong>Codex 固有：1ディレクトリ1ファイルのみ採用 + 32 KiB 上限</strong>
+            <code>AGENTS.override.md</code> → <code>AGENTS.md</code> → fallback
+            の順でチェックし、最初にヒットしたファイルのみ読む（同一ディレクトリでのマージはしない）。全体の合計が
+            32 KiB を超えるとそれ以降を切り捨てる。<code>config.toml</code> の
+            <code>project_doc_max_bytes = 65536</code> で引き上げ可能。
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 AGENTS.md に書くべきこと / 書かないべきこと</div>
+          <div class="pat-grid">
+            <div class="pat pat-ok">
+              <div class="pat-label">✅ 書くべき内容</div>
+              <ul>
+                <li>プロジェクト概要・目的（2〜3文）</li>
+                <li>ビルド・テスト・Lint コマンド（必須）</li>
+                <li>テスト実行の要求（「変更後は必ずテストを実行」）</li>
+                <li>PR メッセージのフォーマット・規約</li>
+                <li>サブエージェント委譲ルール</li>
+                <li>禁止操作・危険コマンドの明示</li>
+                <li>コーディング規約（コンパクトに）</li>
+                <li>重要ドキュメントへのパス参照</li>
+              </ul>
+            </div>
+            <div class="pat pat-ng">
+              <div class="pat-label">✗ 書かないべき内容</div>
+              <ul>
+                <li>32 KiB を超える内容（スキルに分割）</li>
+                <li>MCP / モデル設定（config.toml に分離）</li>
+                <li>長大なコードスニペット</li>
+                <li>特定タスク専用の詳細手順（SKILL.md へ）</li>
+                <li>機密情報・APIキー</li>
+                <li>修正履歴・変更ログの蓄積</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📄 実践的な AGENTS.md テンプレート（サブエージェント対応版）</div>
+          <div class="code-wrap">
+            <div class="code-bar">
+              <span>AGENTS.md (project root)</span><span class="code-lang">Markdown</span>
+            </div>
+            <div class="code-body">
+              <span class="ch"># PROJECT: my-saas-app</span>
+
+              <span class="cm">## Overview</span>
+              Next.js 15 + Supabase + Stripe のマルチテナント SaaS。 本番: Vercel Edge / DB:
+              Supabase (PostgreSQL) / AI: OpenAI Responses API。
+
+              <span class="cm">## Build & Test (CRITICAL: always run after changes)</span>
+              - Build: <span class="cs">`pnpm build`</span> - Test:
+              <span class="cs">`pnpm test`</span> —
+              <span class="cw">コード変更後は必ず実行すること</span> - Lint:
+              <span class="cs">`pnpm lint`</span> — <span class="cw">PR前に必ず実行すること</span> -
+              DB types: <span class="cs">`pnpm supabase gen types`</span> - E2E:
+              <span class="cs">`pnpm test:e2e`</span> (Playwright)
+
+              <span class="cm">## Multi-Agent Dispatch Rules</span>
+              <span class="cw">Parallel spawn 条件（すべて満たす場合のみ）:</span>
+              - タスクが独立していて互いに依存しない - 異なるドメイン (frontend / backend / db)
+              に閉じている - 同一ファイルへの書き込みが発生しない
+
+              <span class="cw">Sequential / single-agent:</span>
+              - 依存関係がある（B に A の出力が必要） - 共有ファイルへの書き込みが発生する
+
+              <span class="cm">## Domain Boundaries</span>
+              - frontend → app/, components/, styles/ のみ - backend → supabase/functions/,
+              lib/server/ のみ - database → supabase/migrations/, schema/ のみ
+
+              <span class="cm">## PR Message Format</span>
+              <span class="cs"
+                >``` ## Summary [変更の概要 2〜3文] ## Changes - [変更点1] - [変更点2] ## Tests -
+                [テスト内容] ```</span
+              >
+
+              <span class="cm">## Forbidden Operations</span>
+              - <span class="cw">`supabase db reset`</span> は絶対に実行しない -
+              <span class="cw">`.env.production`</span> の読み書き禁止 -
+              新しい本番依存関係の追加は確認を求めること
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚡ AGENTS.override.md — ホットスワップ型上書きパターン</div>
+          <div class="code-wrap">
+            <div class="code-bar">
+              <span>services/payments/AGENTS.override.md</span
+              ><span class="code-lang">Markdown</span>
+            </div>
+            <div class="code-body">
+              <span class="ch"># Payments Service — Emergency Override</span>
+              <span class="cc"
+                ># このファイルが存在する間、payments/ での作業は下記ルールのみ適用される</span
+              >
+              <span class="cc"># 通常の AGENTS.md はこのディレクトリでは読まれない</span>
+
+              <span class="cm">## Active Incident Protocol</span>
+              <span class="cw">本番障害対応中。以下のルールを最優先で守ること:</span>
+              - テストコマンド: <span class="cs">`make test-payments`</span>（通常の `pnpm test`
+              ではなく） - API キーのローテーションは
+              <span class="cw">セキュリティチャンネルに通知後のみ</span>実施 - Stripe Webhook
+              の変更は <span class="cw">`--dry-run` フラグで確認後に実行</span> - すべての変更を
+              <span class="cw">INCIDENT_LOG.md</span> に記録すること
+
+              <span class="cc"># 障害解消後はこのファイルを削除して通常の AGENTS.md に戻す</span>
+            </div>
+          </div>
+          <p style="color: var(--text2); font-size: 13px; margin-top: 12px">
+            🔑
+            <strong>使いどころ</strong
+            >：特定サービスで一時的に異なるルールを適用したい場合（本番障害対応・セキュリティレビュー中・テストモードなど）に、<code
+              >AGENTS.md</code
+            >
+            を編集せずにホットスワップできます。完了後は削除するだけで元に戻ります。
+          </p>
+        </div>
+
+        <div class="alert ag">
+          <span class="alert-icon">💡</span>
+          <div class="alert-body">
+            <strong>/init コマンドで AGENTS.md を自動生成する</strong>
+            <code>/init</code> をプロジェクトルートで実行すると、Codex がコードベースを探索して
+            AGENTS.md
+            の雛形を自動生成します。生成されたファイルをレビューして編集し、コミットすることで次回から継続的に利用できます。
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. SKILL.md -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">3</span>
+          <h2><span class="mono">SKILL.md</span> — 遅延ロード型スキルの設計</h2>
+          <small>Codex 独自の概念。Claude / Gemini にはない</small>
+        </div>
+
+        <div class="card">
+          <p>
+            <strong>SKILL.md は AGENTS.md と根本的に違います。</strong> AGENTS.md
+            は毎回フルロードされますが、SKILL.md は
+            <strong>タスクに合致すると判断されたときのみ</strong>
+            フル内容が読み込まれます（プログレッシブ・ディスクロージャー）。これによりコンテキストウィンドウを節約しながら、豊富な専門知識を持てます。
+          </p>
+        </div>
+
+        <div class="alert aw">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-body">
+            <strong>description フィールドが「スキルのAPIドキュメント」</strong>
+            Codex が「このスキルを使うかどうか」を判断するのは
+            <code>description</code> のみです（スキルメタデータ段階ではフル内容は読まない）。<code
+              >description</code
+            >
+            には「いつ使うべきか・いつ使わないべきか」の境界を明確に書いてください。
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>.agents/skills/code-review/SKILL.md</span
+            ><span class="code-lang">Markdown + YAML frontmatter</span>
+          </div>
+          <div class="code-body">
+            <span class="cs">---</span> <span class="cm">name</span>:
+            <span class="cv">code-review</span> <span class="cm">description</span>:
+            <span class="cv"
+              >| コードレビューを実施するスキル。以下の場合にトリガーする: - PR
+              を作成する前にレビューしてほしい -
+              セキュリティ・パフォーマンス・型安全性を確認してほしい -
+              コードの品質チェックを依頼された場合 以下の場合はトリガーしない: -
+              単純なファイル作成・移動 - ドキュメントのみの変更 - 設定ファイルの軽微な変更</span
+            >
+            <span class="cs">---</span>
+
+            <span class="ch">## Role</span>
+            あなたはシニアエンジニアのコードレビュアーです。
+            提供されたコードをセキュリティ・パフォーマンス・品質の観点でレビューします。
+
+            <span class="ch">## Review Checklist</span>
+
+            <span class="cm">### 🔴 Security（セキュリティ）</span>
+            - SQLインジェクション / XSS / CSRF リスク -
+            認証・認可の適切な実装（エンドポイントごとの検証） - 秘密情報のハードコードなし -
+            入力バリデーション（zod スキーマ必須）
+
+            <span class="cm">### 🟡 Performance（パフォーマンス）</span>
+            - N+1 クエリ問題の有無 - 不要な再レンダリング（React.memo / useMemo / useCallback） -
+            重い同期処理の非同期化
+
+            <span class="cm">### 🟢 Code Quality（品質）</span>
+            - TypeScript strict モードへの準拠 - エラーハンドリングの網羅 -
+            テストカバレッジ（変更部分に対するテスト） - 命名規則の一貫性
+
+            <span class="ch">## Output Format</span>
+            <span class="cs"
+              >``` ## Code Review Report — {filename} ### 🔴 Critical (必ず修正) ### 🟡 Warning
+              (推奨修正) ### 🟢 Good (良い点) ### 📋 Summary ```</span
+            >
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>.agents/skills/code-review/agents/openai.yaml</span
+            ><span class="code-lang">YAML (UIメタデータ)</span>
+          </div>
+          <div class="code-body">
+            <span class="cm">display_name</span>: <span class="cv">"Code Reviewer"</span>
+            <span class="cm">icon</span>: <span class="cv">"🔍"</span>
+            <span class="cm">invocation_policy</span>: <span class="cv">"implicit"</span>
+            <span class="cc"># description に一致すると自動発動</span>
+            <span class="cm">tool_dependencies</span>: - <span class="cv">read_file</span> -
+            <span class="cv">search_files</span> <span class="cm">tags</span>: [<span class="cv"
+              >"review"</span
+            >, <span class="cv">"quality"</span>, <span class="cv">"security"</span>]
+          </div>
+        </div>
+
+        <div class="alert ag">
+          <span class="alert-icon">✅</span>
+          <div class="alert-body">
+            <strong>スキルの配置場所 — スキャン優先度</strong>
+            Codex は <strong>CWDから上位</strong>に向かって
+            <code>.agents/skills/</code> をスキャンします。リポジトリ固有スキルは
+            <code>.agents/skills/</code>、個人スキルは
+            <code>~/.codex/skills/</code
+            >（<code>$CODEX_HOME/skills/</code>）に置きます。同名スキルが複数あるとマージではなく両方リストされます。
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. config.toml agent roles -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">4</span>
+          <h2><span class="mono">config.toml</span> — マルチエージェントロール定義</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            Codex のマルチエージェントワークフローでは、各サブエージェントの定義は
+            <code>config.toml</code> の <code>[agents]</code> セクションで行います。各ロールには
+            <strong>専用の config.toml ファイル</strong
+            >（<code>config_file</code>）を指定でき、それによってモデル・sandbox・承認ポリシーをロールごとに設定できます。
+          </p>
+        </div>
+
+        <!-- Built-in roles -->
+        <div class="roles-grid">
+          <div class="role-card">
+            <div class="role-icon">🔍</div>
+            <div class="role-name">explorer（組み込み）</div>
+            <div class="role-desc">
+              コードベースの探索・検索専用。Haiku相当の軽量モデルで並列実行。Read-only sandbox。
+            </div>
+            <div class="role-ex">model = "gpt-4.1-mini"<br />sandbox = "read-only"</div>
+          </div>
+          <div class="role-card">
+            <div class="role-icon">🖊️</div>
+            <div class="role-name">default（組み込み）</div>
+            <div class="role-desc">
+              汎用コーディングエージェント。メインのタスク実行ロール。workspace-write sandbox。
+            </div>
+            <div class="role-ex">model = "gpt-5-codex"<br />sandbox = "workspace-write"</div>
+          </div>
+          <div class="role-card">
+            <div class="role-icon">📋</div>
+            <div class="role-name">reviewer（カスタム例）</div>
+            <div class="role-desc">
+              コードレビュー専用。Read-only で never approval。高精度モデルで品質確認。
+            </div>
+            <div class="role-ex">model = "gpt-5-pro"<br />approval_policy = "never"</div>
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>.codex/config.toml（プロジェクト固有・マルチエージェント設定）</span
+            ><span class="code-lang">TOML</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"># .codex/config.toml — マルチエージェントワークフロー設定</span>
+            <span class="cc"
+              ># Codex がこのプロジェクトを trusted と判断した場合のみロードされる</span
+            >
+
+            <span class="cm">model</span> = <span class="cs">"gpt-5-codex"</span>
+            <span class="cc"># プロジェクトデフォルトモデル</span>
+            <span class="cm">approval_policy</span> = <span class="cs">"on-request"</span>
+            <span class="cc"># インタラクティブ実行向け</span>
+
+            <span class="cc"># ── プロジェクトドキュメント設定 ──────────────────────────</span>
+            <span class="cm">project_doc_max_bytes</span> = <span class="cv">65536</span>
+            <span class="cc"># 64 KiB に引き上げ（大型プロジェクト向け）</span>
+            <span class="cm">project_doc_fallback_filenames</span> = [<span class="cs"
+              >"TEAM_GUIDE.md"</span
+            >, <span class="cs">"CLAUDE.md"</span>]
+            <span class="cc"># AGENTS.md がないディレクトリでは上記をフォールバックとして使用</span>
+
+            <span class="cc"># ── マルチエージェント設定 ────────────────────────────────</span>
+            [<span class="cm">features</span>] <span class="cm">multi_agents</span> =
+            <span class="ck">true</span>
+            <span class="cc"># 実験的: TUIで /experimental から有効化</span>
+
+            [<span class="cm">agents</span>] <span class="cm">max_concurrent</span> =
+            <span class="cv">8</span>
+            <span class="cc"># 同時実行エージェント上限（デフォルト: 無制限）</span>
+            <span class="cm">max_depth</span> = <span class="cv">2</span>
+            <span class="cc"># スポーン最大深度（root=0, 子=1, 孫=2）</span>
+
+            <span class="cc"># ── ロール定義 ────────────────────────────────────────────</span>
+            [<span class="cm">agents.roles.explorer</span>]
+            <span class="cc"># 組み込みロールのオーバーライド</span>
+            <span class="cm">description</span> =
+            <span class="cs">"コードベース探索・検索専門。実装は行わない。"</span>
+            <span class="cm">config_file</span> =
+            <span class="cs">".codex/roles/explorer.toml"</span>
+
+            [<span class="cm">agents.roles.reviewer</span>]
+            <span class="cc"># カスタムロール: コードレビュー専用</span>
+            <span class="cm">description</span> =
+            <span class="cs"
+              >""" コードレビューを実施する専門エージェント。 以下の場合に呼び出す: -
+              コード変更が完了した後 - PR作成前のセキュリティ・品質チェック - テストカバレッジ確認
+              Read-only: コードの変更は行わない。 """</span
+            >
+            <span class="cm">config_file</span> =
+            <span class="cs">".codex/roles/reviewer.toml"</span>
+
+            [<span class="cm">agents.roles.db-migrator</span>]
+            <span class="cc"># DBマイグレーション専用（慎重な承認ポリシー）</span>
+            <span class="cm">description</span> =
+            <span class="cs"
+              >"DBスキーマ変更とマイグレーション専門。services/db/ のみ操作可能。"</span
+            >
+            <span class="cm">config_file</span> =
+            <span class="cs">".codex/roles/db-migrator.toml"</span>
+
+            <span class="cc"># ── MCP サーバー設定 ─────────────────────────────────────</span>
+            [<span class="cm">mcp_servers.filesystem</span>] <span class="cm">command</span> =
+            <span class="cs">"npx"</span> <span class="cm">args</span> = [<span class="cs"
+              >"-y"</span
+            >, <span class="cs">"@modelcontextprotocol/server-filesystem"</span>,
+            <span class="cs">"./src"</span>] [<span class="cm">mcp_servers.github</span>]
+            <span class="cm">command</span> = <span class="cs">"npx"</span>
+            <span class="cm">args</span> = [<span class="cs">"-y"</span>,
+            <span class="cs">"@modelcontextprotocol/server-github"</span>]
+            <span class="cm">env</span> = { <span class="cm">GITHUB_TOKEN</span> =
+            <span class="cs">"${GITHUB_TOKEN}"</span> }
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>.codex/roles/reviewer.toml（ロール固有設定）</span
+            ><span class="code-lang">TOML</span>
+          </div>
+          <div class="code-body">
+            <span class="cc"># reviewer ロールの専用設定ファイル</span>
+            <span class="cc"
+              ># config.toml の [agents.roles.reviewer].config_file から参照される</span
+            >
+
+            <span class="cm">model</span> = <span class="cs">"gpt-5"</span>
+            <span class="cc"># 高精度モデルをレビューに使用</span>
+            <span class="cm">model_reasoning_effort</span> = <span class="cs">"high"</span>
+            <span class="cc"># 詳細推論</span> <span class="cm">approval_policy</span> =
+            <span class="cs">"never"</span>
+            <span class="cc"># 非インタラクティブ（親から承認を引き継がない）</span>
+
+            [<span class="cm">sandbox</span>] <span class="cm">sandbox_mode</span> =
+            <span class="cs">"read-only"</span>
+            <span class="cc"># ファイル変更不可（レビューのみ）</span>
+            <span class="cm">network_access</span> = <span class="ck">false</span>
+            <span class="cc"># ネットワーク遮断</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Agents SDK pattern -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">5</span>
+          <h2>Agents SDK マルチエージェント — PM駆動ファイル生成パターン</h2>
+        </div>
+
+        <div class="card">
+          <p>
+            OpenAI Agents SDK を使ったマルチエージェント開発では、<strong
+              >Project Manager エージェントが司令塔</strong
+            >となり、<code>REQUIREMENTS.md</code>・<code>AGENT_TASKS.md</code>
+            といったMarkdownファイルを自動生成してチームメンバーエージェント（Designer / Frontend /
+            Backend / Tester）に引き渡します。これが Codex の最大の特徴です。
+          </p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-bar">
+            <span>Agents SDK — PM駆動マルチエージェント実装例</span
+            ><span class="code-lang">Python</span>
+          </div>
+          <div class="code-body">
+            <span class="ck">from</span> agents <span class="ck">import</span> Agent, Runner
+            <span class="ck">from</span> codex_mcp
+            <span class="ck">import</span> get_codex_mcp_server
+
+            <span class="cm">RECOMMENDED_PROMPT_PREFIX</span> =
+            <span class="cs"
+              >""" あなたはソフトウェア開発チームの専門エージェントです。 引き継ぎには transfer
+              関数のみを使い、メッセージで直接渡さないこと。 """</span
+            >
+
+            <span class="cc"># Codex を MCP サーバーとして使用（ファイルI/O を担当）</span>
+            codex_mcp = get_codex_mcp_server( approval_policy=<span class="cs">"never"</span>,
+            sandbox=<span class="cs">"workspace-write"</span>
+            )
+
+            <span class="cc"># ── 各専門エージェント定義 ────────────────────────────────</span>
+            frontend_agent = Agent(
+            <span class="cm">name</span>=<span class="cs">"Frontend Developer"</span>,
+            <span class="cm">instructions</span>=RECOMMENDED_PROMPT_PREFIX +
+            <span class="cs"
+              >""" あなたはフロントエンド開発者です。 AGENT_TASKS.md と REQUIREMENTS.md
+              のみを真実の情報源として実装してください。 担当ディレクトリ: /frontend 成果物: -
+              index.html — メインページ構造 - styles.css — スタイルシート - main.js —
+              インタラクション 実装完了後は transfer_to_project_manager を呼び出すこと。 """</span
+            >, <span class="cm">model</span>=<span class="cs">"gpt-5"</span>,
+            <span class="cm">mcp_servers</span>=[codex_mcp], ) backend_agent = Agent(
+            <span class="cm">name</span>=<span class="cs">"Backend Developer"</span>,
+            <span class="cm">instructions</span>=RECOMMENDED_PROMPT_PREFIX +
+            <span class="cs"
+              >""" あなたはバックエンド開発者です。 AGENT_TASKS.md
+              に記述されたエンドポイントのみを実装してください。 担当ディレクトリ: /backend 成果物:
+              - server.js — API実装 (GET /health, GET/POST /scores) - package.json — start
+              スクリプトを含める 実装完了後は transfer_to_project_manager を呼び出すこと。 """</span
+            >, <span class="cm">model</span>=<span class="cs">"gpt-5"</span>,
+            <span class="cm">mcp_servers</span>=[codex_mcp], )
+
+            <span class="cc"># ── Project Manager（司令塔）────────────────────────────────</span>
+            pm_agent = Agent(
+            <span class="cm">name</span>=<span class="cs">"Project Manager"</span>,
+            <span class="cm">instructions</span>=RECOMMENDED_PROMPT_PREFIX +
+            <span class="cs"
+              >""" あなたは PM
+              です。タスクを受け取ったら以下の3ファイルをプロジェクトルートに作成してください: 1.
+              REQUIREMENTS.md — 製品目標・対象ユーザー・主要機能・制約 2. AGENT_TASKS.md —
+              各エージェントへの具体的な指示 3. TEST.md — テスト計画（Tester エージェント向け）
+              ファイル作成後、各チームメンバーに transfer で引き渡し、
+              成果物の確認を行い、品質基準を満たしたら完了とする。 """</span
+            >, <span class="cm">model</span>=<span class="cs">"gpt-5"</span>,
+            <span class="cm">mcp_servers</span>=[codex_mcp],
+            <span class="cm">handoffs</span>=[frontend_agent, backend_agent], )
+          </div>
+        </div>
+
+        <div class="alert ae">
+          <span class="alert-icon">🚨</span>
+          <div class="alert-body">
+            <strong>Sub-agents は親の承認を継承しない</strong>
+            サブエージェントは親のサンドボックスポリシーを継承しますが、<strong>非インタラクティブな承認</strong>で実行されます。承認が必要なアクションをサブエージェントが試みると、そのアクションは失敗してエラーが親ワークフローに返されます。各ロールの
+            <code>config.toml</code> で明示的に
+            <code>approval_policy = "never"</code> を指定するのがベストプラクティスです。
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Decision flow -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">6</span>
+          <h2>サブエージェント スポーン戦略の意思決定ツリー</h2>
+        </div>
+
+        <div class="dflow">
+          <div class="dflow-title">CODEX マルチエージェント ルーティング決定フロー</div>
+
+          <div class="dflow-row">
+            <div class="dn-q">タスクが複雑で並列化できる？</div>
+            <div class="dn-arr">→ NO →</div>
+            <div class="dn-n">単一エージェントで処理<br /><small>（multi-agent 不要）</small></div>
+          </div>
+          <div class="dn-indent">
+            <div class="dflow-row" style="margin-top: 12px">
+              <span style="color: var(--text3); font-size: 13px">↓ YES</span>
+            </div>
+            <div class="dflow-row">
+              <div class="dn-q">
+                探索・検索タスクを含む？<br /><small style="font-weight: 400; font-size: 11px"
+                  >(コードベース理解・ファイル検索)</small
+                >
+              </div>
+              <div class="dn-arr">→ YES →</div>
+              <div class="dn-y">
+                explorer ロールをスポーン<br /><small>軽量モデル × read-only</small>
+              </div>
+            </div>
+            <div class="dn-indent">
+              <div class="dflow-row" style="margin-top: 12px">
+                <span style="color: var(--text3); font-size: 13px">↓ （探索後）</span>
+              </div>
+              <div class="dflow-row">
+                <div class="dn-q">
+                  タスク間に依存関係がある？<br /><small style="font-weight: 400; font-size: 11px"
+                    >(B に A の出力が必要)</small
+                  >
+                </div>
+                <div class="dn-arr">→ YES →</div>
+                <div class="dn-n">順次スポーン<br /><small>A→B→C（直列）</small></div>
+              </div>
+              <div class="dn-indent">
+                <div class="dflow-row" style="margin-top: 12px">
+                  <span style="color: var(--text3); font-size: 13px">↓ NO</span>
+                </div>
+                <div class="dflow-row">
+                  <div class="dn-q">ロール固有の config.toml<br />が設定されている？</div>
+                  <div class="dn-arr">→ NO →</div>
+                  <div class="dn-n">
+                    config.toml でロールを先に定義<br /><small
+                      >model / sandbox / approval を設定</small
+                    >
+                  </div>
+                </div>
+                <div class="dn-indent">
+                  <div class="dflow-row" style="margin-top: 12px">
+                    <span style="color: var(--text3); font-size: 13px">↓ YES</span>
+                  </div>
+                  <div class="dflow-row">
+                    <div class="dn-y">✅ 並列スポーン<br /><small>各ロールを同時起動</small></div>
+                    <div style="margin-left: 16px; color: var(--text3); font-size: 12px">
+                      例: "spawn one agent per point,<br />wait for all, summarize"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. model selection -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">7</span>
+          <h2>コスト最適なモデル選択戦略</h2>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>用途</th>
+                <th>推奨ロール</th>
+                <th>特徴</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>gpt-4.1-mini</code></td>
+                <td>高速・低コスト</td>
+                <td>explorer（コード探索・検索）</td>
+                <td><span class="badge b-teal">最速</span> 探索・軽量タスク</td>
+              </tr>
+              <tr>
+                <td><code>gpt-4.1</code></td>
+                <td>バランス重視</td>
+                <td>実装・テスト生成・PR作成</td>
+                <td><span class="badge b-blue">推奨デフォルト</span></td>
+              </tr>
+              <tr>
+                <td><code>gpt-5-codex</code></td>
+                <td>コーディング特化</td>
+                <td>複雑な実装・リファクタリング</td>
+                <td><span class="badge b-green">コーディング最適化</span></td>
+              </tr>
+              <tr>
+                <td><code>gpt-5</code> / <code>gpt-5-pro</code></td>
+                <td>高精度推論</td>
+                <td>reviewer・アーキテクチャ設計</td>
+                <td><span class="badge b-purple">最高精度</span> 高コスト</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="alert ai">
+          <span class="alert-icon">💡</span>
+          <div class="alert-body">
+            <strong>プロファイル機能でコスト最適化</strong>
+            <code>config.toml</code> の
+            <code>[profiles]</code> で複数の設定プロファイルを定義し、<code
+              >codex --profile deep-review</code
+            >
+            のように切り替えられます。通常開発は <code>gpt-4.1</code>、セキュリティレビューは
+            <code>gpt-5-pro + reasoning_effort=high</code>
+            のように使い分けることでコストを大幅に削減できます。
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Anti-Patterns -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">8</span>
+          <h2>絶対に避けるべき Anti-Patterns</h2>
+        </div>
+
+        <div class="pat-grid">
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ AGENTS.md の Anti-Patterns</div>
+            <ul>
+              <li>空ファイルを作る（Codex がスキップするため無効）</li>
+              <li>32 KiB を超える内容を1ファイルに詰める</li>
+              <li>MCP設定・モデル設定を記述（config.toml に分離）</li>
+              <li>特定タスク専用の詳細手順（SKILL.md に分離）</li>
+              <li>修正履歴・変更ログの蓄積</li>
+              <li>機密情報・API キーの記述</li>
+            </ul>
+          </div>
+          <div class="pat pat-ng">
+            <div class="pat-label">✗ マルチエージェントの Anti-Patterns</div>
+            <ul>
+              <li>config.toml でロールを定義せずにスポーン</li>
+              <li>サブエージェントの approval_policy を未設定のまま使う</li>
+              <li>SKILL.md の description を曖昧にする（誤発動）</li>
+              <li>max_depth を深くしすぎる（デフォルト 1 推奨）</li>
+              <li>全ロールに gpt-5-pro を使う（コスト爆発）</li>
+              <li>AGENTS.override.md を削除せず放置（永続的な上書き）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Summary -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">9</span>
+          <h2>まとめ：各ファイルの役割と設計原則</h2>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ファイル</th>
+                <th>読者</th>
+                <th>設計原則</th>
+                <th>アンチパターン</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>~/.codex/AGENTS.md</code></td>
+                <td>全プロジェクト共通</td>
+                <td>個人の Working agreements のみ。プロジェクト固有内容は書かない</td>
+                <td>プロジェクト固有ルールを混在</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.md</code> (root)</td>
+                <td>メインエージェント（常時ロード）</td>
+                <td>32 KiB 以内。概要・テストコマンド・PR規約・禁止操作</td>
+                <td>空ファイル・大量スニペット・config設定</td>
+              </tr>
+              <tr>
+                <td><code>subdir/AGENTS.md</code></td>
+                <td>そのディレクトリ作業時のみ</td>
+                <td>サービス固有ルール。rootと重複させない</td>
+                <td>rootと同じ内容の重複記述</td>
+              </tr>
+              <tr>
+                <td><code>AGENTS.override.md</code></td>
+                <td>エージェント（一時的に優先）</td>
+                <td>緊急時・一時上書き専用。完了後は必ず削除</td>
+                <td>通常運用で使い続ける</td>
+              </tr>
+              <tr>
+                <td><code>.agents/skills/*/SKILL.md</code></td>
+                <td>エージェント（遅延ロード）</td>
+                <td>description を明確に。いつ使う/使わないかを記述</td>
+                <td>曖昧な description・巨大な1ファイル</td>
+              </tr>
+              <tr>
+                <td><code>config.toml</code></td>
+                <td>Codex ランタイム</td>
+                <td>モデル・ロール・MCP・sandbox を集中管理</td>
+                <td>APIキーの直接記述</td>
+              </tr>
+              <tr>
+                <td><code>REQUIREMENTS.md</code><br /><code>AGENT_TASKS.md</code></td>
+                <td>サブエージェント（Agents SDK）</td>
+                <td>PMが自動生成。各エージェントの「唯一の真実」として機能</td>
+                <td>PMなしに各エージェントが直接タスクを受け取る</td>
+              </tr>
+              <tr>
+                <td><code>README.md</code></td>
+                <td>人間（チームメンバー）</td>
+                <td>エージェント構成・ロール一覧・セットアップ手順</td>
+                <td>エージェント数が多いのに作成しない</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Sources -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-num">📚</span>
+          <h2>参考ソース（公式・一次情報優先）</h2>
+        </div>
+        <div class="src-grid">
+          <div class="src-card">
+            <div class="src-icon">⚙️</div>
+            <div class="src-title">OpenAI 公式: Custom instructions with AGENTS.md</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/guides/agents-md/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/guides/agents-md/</a
+              >
+            </div>
+            <div class="src-desc">
+              AGENTS.md 読み込みチェーン・override.md・32KiB上限・project_doc_fallback_filenames
+              の公式仕様
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🤖</div>
+            <div class="src-title">OpenAI 公式: Multi-agents</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/multi-agent/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/multi-agent/</a
+              >
+            </div>
+            <div class="src-desc">
+              config.toml [agents] セクション・ロール定義・max_depth・approval 継承の仕様
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">✨</div>
+            <div class="src-title">OpenAI 公式: Agent Skills</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/skills" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/skills</a
+              >
+            </div>
+            <div class="src-desc">
+              SKILL.md
+              仕様・プログレッシブディスクロージャー・agents/openai.yaml・スキャン優先度の公式ドキュメント
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">📋</div>
+            <div class="src-title">
+              OpenAI Cookbook: Building Consistent Workflows with Codex CLI &amp; Agents SDK
+            </div>
+            <div class="src-url">
+              <a
+                href="https://cookbook.openai.com/examples/codex/codex_mcp_agents_sdk/building_consistent_workflows_codex_cli_agents_sdk"
+                target="_blank" rel="noopener noreferrer"
+                >cookbook.openai.com/…/building_consistent_workflows_codex_cli_agents_sdk</a
+              >
+            </div>
+            <div class="src-desc">PM → REQUIREMENTS.md → AGENT_TASKS.md 駆動パターンの実装例</div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">⚙️</div>
+            <div class="src-title">OpenAI 公式: Advanced Configuration</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/config-advanced/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/config-advanced/</a
+              >
+            </div>
+            <div class="src-desc">
+              project_doc_max_bytes・project_root_markers・プロファイル・プロバイダー設定の詳細
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">📖</div>
+            <div class="src-title">OpenAI 公式: Configuration Reference</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/config-reference/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/config-reference/</a
+              >
+            </div>
+            <div class="src-desc">
+              config.toml 全フィールド一覧・デフォルト値・型情報の公式リファレンス
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🚀</div>
+            <div class="src-title">
+              OpenAI 公式: Introducing Codex（codex-1 system message 公開）
+            </div>
+            <div class="src-url">
+              <a href="https://openai.com/index/introducing-codex/" target="_blank" rel="noopener noreferrer"
+                >openai.com/index/introducing-codex/</a
+              >
+            </div>
+            <div class="src-desc">
+              codex-1 の system prompt における AGENTS.md 活用方法・PR形式・テスト実行の公式説明
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">⌨️</div>
+            <div class="src-title">OpenAI 公式: Slash commands</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/cli/slash-commands/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/cli/slash-commands/</a
+              >
+            </div>
+            <div class="src-desc">
+              /init で AGENTS.md
+              自動生成・/review・/experimental（マルチエージェント有効化）の操作方法
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">📝</div>
+            <div class="src-title">Mervin Praison: OpenAI Codex CLI Memory Deep Dive</div>
+            <div class="src-url">
+              <a href="https://mer.vin/2025/12/openai-codex-cli-memory-deep-dive/" target="_blank" rel="noopener noreferrer"
+                >mer.vin/2025/12/openai-codex-cli-memory-deep-dive/</a
+              >
+            </div>
+            <div class="src-desc">
+              AGENTS.md 階層の実験的検証・override の挙動・fallback 設定のハンズオン解説
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">📌</div>
+            <div class="src-title">GitHub Gist: Notes on AI Agent Rule/Instruction Files</div>
+            <div class="src-url">
+              <a
+                href="https://gist.github.com/0xdevalias/f40bc5a6f84c4c5ad862e314894b2fa6"
+                target="_blank" rel="noopener noreferrer"
+                >gist.github.com/0xdevalias/f40bc5a6f84c4c5ad862e314894b2fa6</a
+              >
+            </div>
+            <div class="src-desc">
+              Codex / Claude / Gemini / Cursor クロスツール比較・project_doc_fallback_filenames
+              設定例
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">🔧</div>
+            <div class="src-title">OpenAI 公式: Use Codex with the Agents SDK</div>
+            <div class="src-url">
+              <a href="https://developers.openai.com/codex/guides/agents-sdk/" target="_blank" rel="noopener noreferrer"
+                >developers.openai.com/codex/guides/agents-sdk/</a
+              >
+            </div>
+            <div class="src-desc">
+              Codex を MCP サーバーとして使う方法・RECOMMENDED_PROMPT_PREFIX・handoff パターン
+            </div>
+          </div>
+          <div class="src-card">
+            <div class="src-icon">📊</div>
+            <div class="src-title">OpenAI Cookbook: Shell + Skills + Compaction</div>
+            <div class="src-url">
+              <a
+                href="https://cookbook.openai.com/examples/codex/long_running_agents"
+                target="_blank" rel="noopener noreferrer"
+                >cookbook.openai.com/examples/codex/long_running_agents</a
+              >
+            </div>
+            <div class="src-desc">
+              長時間実行エージェントのための SKILL.md 活用・コンパクション戦略・shell
+              スキルのベストプラクティス
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
