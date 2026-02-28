@@ -134,6 +134,20 @@ def _write_output(data: PricingData, output_path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    CLI entry point that parses arguments, manages loading or scraping pricing data, and writes the resulting pricing JSON.
+    
+    Parameters:
+        argv (list[str] | None): Optional list of command-line arguments to parse; when `None`, the system argv is used.
+    
+    Description:
+        - Supports `--output` to set the output JSON path and `--no-scrape` to skip scraping.
+        - When `--no-scrape` is provided and existing output is found, existing model and tool data are reused while the exchange rate is updated.
+        - Otherwise, performs scraping (using any existing data as incremental input when available) and persists the assembled PricingData.
+    
+    Returns:
+        int: Exit code (`0` on success).
+    """
     parser = argparse.ArgumentParser(description="AI Model Pricing Scraper")
     parser.add_argument("--output", type=Path, default=_DEFAULT_OUTPUT, help="出力先 JSON パス")
     parser.add_argument(
@@ -161,7 +175,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     data = PricingData(
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         jpy_rate=jpy_rate,
         jpy_rate_date=jpy_date,
         api_models=api_models,

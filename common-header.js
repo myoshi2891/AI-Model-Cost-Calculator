@@ -266,5 +266,40 @@
 
   // Inject as the first child of body to avoid overlapping where possible depending on context
   document.body.insertBefore(nav, document.body.firstChild);
+
+  // ── Disclaimer Banner ──
+  const disclaimer = document.createElement('div');
+  disclaimer.className = 'ch-disclaimer';
+  disclaimer.lang = 'ja';
+  const line1 = document.createElement('span');
+  line1.className = 'ch-disclaimer-line';
+  line1.textContent = '\u26A0 本サイトは個人開発の参考用に作成したものです。必ず各社公式ページで最新の料金をご確認ください。';
+  const line2 = document.createElement('span');
+  line2.className = 'ch-disclaimer-line';
+  line2.textContent = '情報の正確性は保証しません。本サイトの利用による損害等について一切の責任を負いません。';
+  disclaimer.appendChild(line1);
+  disclaimer.appendChild(line2);
+  nav.insertAdjacentElement('afterend', disclaimer);
+
+  /**
+   * Synchronizes the rendered height of the disclaimer element into a CSS custom property.
+   *
+   * Reads the disclaimer element's current layout height and sets the `--ch-disclaimer-height`
+   * custom property on the document root to that height in pixels.
+   */
+  function syncDisclaimerHeight() {
+    const h = disclaimer.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--ch-disclaimer-height', h + 'px');
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(syncDisclaimerHeight);
+    ro.observe(disclaimer);
+  } else {
+    // ResizeObserver 未対応ブラウザ向けフォールバック
+    requestAnimationFrame(syncDisclaimerHeight);
+    window.addEventListener('resize', syncDisclaimerHeight);
+  }
+
   document.body.classList.add('has-common-header');
 })();
