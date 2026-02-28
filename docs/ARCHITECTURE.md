@@ -96,14 +96,24 @@ flowchart TD
 ├── netlify.toml                 # Netlify デプロイ設定 (ビルドのみ、スクレイプなし)
 ├── index.html                   # ビルド成果物 (単一ポータブル HTML)
 ├── pricing.json                 # ルートの価格データコピー
-├── common-header.js             # 静的 HTML 用共通ヘッダー注入スクリプト (ドロップダウンナビゲーション)
-├── common-header.css            # 共通ヘッダースタイル
+├── common-header.js             # 静的 HTML 用共通ヘッダー注入スクリプト (ドロップダウンナビゲーション + 免責事項バナー)
+├── common-header.css            # 共通ヘッダー + 免責事項スタイル (レスポンシブ対応)
+├── nav-links.json               # ナビリンク構造の外部設定 (任意、なければデフォルト値を使用)
 ├── claude/                      # Claude ドキュメント (skill.html / agent.html)
 ├── gemini/                      # Gemini ドキュメント (skill.html / agent.html)
 ├── codex/                       # Codex ドキュメント (skill.html / agent.html)
 ├── copilot/                     # Copilot ドキュメント (skill.html / agent.html)
 ├── CLAUDE.md                    # Claude Code 向けプロジェクト指示書
-└── AGENTS.md                    # AI エージェント向けガイドライン
+├── AGENTS.md                    # AI エージェント向けガイドライン
+├── docs/
+│   ├── spec.md                  # プロジェクト仕様書 (SDD: 何を・なぜ)
+│   ├── requirements.md          # 詳細要件定義 (FR/NFR ID付き)
+│   ├── design.md                # 技術設計ドキュメント (設計判断と根拠)
+│   ├── tasks.md                 # 実装ロードマップ (依存関係付き)
+│   ├── ARCHITECTURE.md          # 本ファイル (構造の事実)
+│   └── TESTING.md               # テスト戦略・ガイドライン
+├── links.md                     # 公式料金ページ参考リンク集
+└── research.md                  # 改善調査レポート
 ```
 
 ## コアデータモデル
@@ -274,6 +284,60 @@ changes (パスフィルター)
 3. `scrape(existing)` 関数を実装 → `list[ApiModel]` または `list[SubTool]` を返す
 4. `providers/__init__.py` または `tools/__init__.py` にインポートと `__all__` を追加
 5. `scraper/src/scraper/main.py` の `_scrape_all()` にエントリ追加
+
+## 共通ヘッダーシステム
+
+静的 HTML ページ（claude/, gemini/, codex/, copilot/）に共通のナビゲーションと免責事項バナーを注入するシステム。
+
+### コンポーネント構成
+
+```text
+common-header.js   ← IIFE で DOM 要素を動的生成・注入
+common-header.css  ← ヘッダー + 免責事項のスタイル
+nav-links.json     ← ナビリンク構造 (任意)
+```
+
+### リンク設定の 3 段階フォールバック
+
+```text
+1. nav-links.json (fetch)     ← 外部設定ファイル
+   ↓ 取得失敗 or 不正
+2. data-links 属性 (script)   ← <script data-links='[...]'>
+   ↓ なし or パース失敗
+3. デフォルト値 (hardcoded)   ← common-header.js 内の defaultLinks
+```
+
+### セキュリティ
+
+- DOM メソッドのみ使用（innerHTML 不使用）→ XSS を根本排除
+- `isSafeHref()` で href のプロトコルを検証（`javascript:`, `data:`, `//` を拒否）
+
+### 免責事項バナー
+
+```text
+<nav class="ch-nav">...</nav>
+<div class="ch-disclaimer">
+  ├── <span class="ch-disclaimer-line">行1: 参考用サイトの注意</span>
+  └── <span class="ch-disclaimer-line">行2: 免責事項</span>
+</div>
+```
+
+- `ResizeObserver` でバナー高さを `--ch-disclaimer-height` CSS 変数に動的反映
+- `body.has-common-header` の `margin-top` = ヘッダー高さ + バナー高さ + 10px
+- レスポンシブ: >768px（2行分割）/ ≤768px（0.7rem）/ ≤480px（0.65rem, 自然折り返し）
+
+## SDD 仕様書体系
+
+Spec-Driven Development に基づく文書管理:
+
+```text
+docs/spec.md          ← 「何を・なぜ」の起点
+docs/requirements.md  ← FR/NFR ID 付き要件（受入基準付き）
+docs/design.md        ← 設計判断と根拠（本ファイルとの違い: ARCHITECTURE.md は事実、design.md は判断理由）
+docs/tasks.md         ← 実装ロードマップ（依存関係・チェックリスト）
+```
+
+`/clear` 後のコンテキスト回復: `tasks.md` + `design.md` で十分な情報を提供。
 
 ## 設計制約・注意事項
 

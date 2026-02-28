@@ -168,6 +168,89 @@ CI（`.github/workflows/test.yaml`）で自動化されています。
 4. `providers/__init__.py` または `tools/__init__.py` にインポート追加
 5. `main.py` の `_scrape_all()` にエントリ追加
 
+## サブエージェント設計パターン
+
+> Claude Code のサブエージェント機能（[公式ドキュメント](https://code.claude.com/docs/en/sub-agents)）に基づく推奨パターン。
+
+### ルーティング判断フロー
+
+```text
+タスク 3 件以上？
+→ NO → メインエージェントが直接処理
+→ YES → 依存関係あり？
+   → YES → 順次実行（チェーン）
+   → NO → 共有状態あり？
+      → YES → 順次実行
+      → NO → 境界が明確？
+         → YES → 並列実行
+         → NO → スコープを明確化してから分割
+```
+
+### 推奨サブエージェント構成
+
+| 名前 | モデル | ツール | 用途 |
+|------|--------|--------|------|
+| Explore | haiku | Read, Glob, Grep | コードベース探索（高速・低コスト） |
+| Plan | inherit | Read, Glob, Grep | 実装計画策定（読み取り専用） |
+| Code Reviewer | sonnet | Read, Glob, Grep, Bash | コードレビュー（バランス） |
+| Debugger | inherit | Read, Edit, Bash, Grep, Glob | バグ修正・根本原因分析 |
+
+### ベストプラクティス
+
+- **description に具体的なトリガー条件を記述**: 「いつ使う」を明確に
+- **ツールは最小限に制限**: 読み取り専用エージェントには Edit/Write を付与しない
+- **コスト最適化**: 探索系は haiku、分析系は sonnet、複雑な推論は opus
+- **メモリスコープ**: `user`（全プロジェクト共通）/ `project`（プロジェクト固有）/ `local`（個人用）
+
+## マルチエージェント連携
+
+> Gemini ADK のマルチエージェントパターン（[公式ドキュメント](https://google.github.io/adk-docs/agents/multi-agents/)）に基づく。
+
+### エージェント間通信パターン
+
+| パターン | 方式 | 用途 |
+|----------|------|------|
+| Sequential Pipeline | 共有状態（output_key） | 仕様→実装→レビューの段階的処理 |
+| Parallel Fan-Out | 独立 output_key | 独立した調査・分析の並列実行 |
+| Coordinator/Dispatcher | LLM ルーティング | 中央エージェントが専門エージェントに動的委譲 |
+| Review/Critique Loop | LoopAgent | 生成→検証→改善の反復 |
+
+### クロスツール互換（AGENTS.md の位置づけ）
+
+本ファイル（AGENTS.md）は複数 AI ツール間の共通エントリポイントとして機能する:
+
+| ツール | 一次ファイル | 二次ファイル |
+|--------|-------------|-------------|
+| Claude Code | CLAUDE.md | AGENTS.md（読み取り） |
+| Gemini CLI | GEMINI.md | AGENTS.md |
+| Android Studio (Gemini) | AGENTS.md | — |
+| Cursor | .cursorrules | AGENTS.md |
+
+ツール固有の設定は各一次ファイルに記述し、AGENTS.md には横断的な情報のみを含める。
+
+### A2A プロトコル（参考）
+
+Google A2A（Agent-to-Agent）プロトコルは、異なるフレームワークのエージェント間通信を標準化する:
+
+- **Agent Card** (`agent.json`): エージェントの能力を公開する JSON マニフェスト
+- **RemoteA2aAgent**: リモートエージェントを ADK サブエージェントとして統合
+- **to_a2a()**: 既存 ADK エージェントを A2A エンドポイントとして公開
+
+詳細: [A2A ドキュメント](https://google.github.io/adk-docs/a2a/)
+
+## SDD 仕様書体系
+
+Spec-Driven Development に基づく文書管理（詳細は `docs/` 配下を参照）:
+
+| ファイル | 役割 | AI エージェントの用途 |
+|----------|------|---------------------|
+| `docs/spec.md` | 何を・なぜ | プロジェクト全体像の理解 |
+| `docs/requirements.md` | FR/NFR 要件定義 | 受入基準の確認 |
+| `docs/design.md` | 設計判断と根拠 | 実装方針の理解 |
+| `docs/tasks.md` | 実装ロードマップ | `/clear` 後のコンテキスト回復 |
+| `docs/ARCHITECTURE.md` | 構造の事実 | ファイル配置・データフロー |
+| `docs/TESTING.md` | テスト戦略 | テスト追加時のガイドライン |
+
 ## Git 規約
 
 - コミットメッセージ形式: `<type>(<scope>): <subject>`

@@ -8,7 +8,46 @@
 }
 
 body.has-common-header {
-  margin-top: calc(var(--ch-height) + 10px);
+  margin-top: calc(var(--ch-height) + var(--ch-disclaimer-height, 0px) + 10px);
+}
+
+/* ── Disclaimer Banner ── */
+.ch-disclaimer {
+  position: fixed;
+  top: var(--ch-height);
+  left: 0;
+  right: 0;
+  background: rgba(234, 179, 8, 0.12);
+  border-bottom: 1px solid rgba(234, 179, 8, 0.25);
+  z-index: 99998;
+  font-family: inherit;
+  text-align: center;
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  color: #d4a017;
+  line-height: 1.4;
+}
+
+/* デスクトップ: 2行に分割表示 */
+.ch-disclaimer-line {
+  display: block;
+}
+
+/* タブレット: やや小さく */
+@media (max-width: 768px) {
+  .ch-disclaimer {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+  }
+}
+
+/* スマホ: さらにコンパクト、自然折り返し */
+@media (max-width: 480px) {
+  .ch-disclaimer {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.35;
+  }
 }
 
 .ch-nav {
