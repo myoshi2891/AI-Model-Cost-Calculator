@@ -43,11 +43,22 @@ echo ""
 echo ">>> [3/3] 成果物コピー"
 cp "${WEB_DIR}/dist/index.html" "${OUTPUT_HTML}"
 cp "${DATA_JSON}" "${OUTPUT_JSON}"
-cp "${WEB_DIR}/dist"/*.png "${SCRIPT_DIR}/" || true
-cp "${WEB_DIR}/dist"/*.ico "${SCRIPT_DIR}/" || true
+
+shopt -s nullglob
+favicons=("${WEB_DIR}/dist/"*.png "${WEB_DIR}/dist/"*.ico)
+shopt -u nullglob
+
+if [ ${#favicons[@]} -gt 0 ]; then
+  for fav in "${favicons[@]}"; do
+    cp "$fav" "${SCRIPT_DIR}/" || { echo "❌ favicon のコピーに失敗しました: $fav" >&2; exit 1; }
+  done
+  echo "✓ favicons copied to root"
+else
+  echo "⚠ warning: コピー対象の favicon が見つかりませんでした"
+fi
+
 echo "✓ ${OUTPUT_HTML}"
 echo "✓ ${OUTPUT_JSON}"
-echo "✓ favicons copied to root"
 echo ""
 
 echo "=== 完了 ==="
