@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-02-21T03:56:48.725649+00:00",
-  "jpy_rate": 155.21,
-  "jpy_rate_date": "2026-02-20",
+  "generated_at": "2026-02-28T00:00:00+00:00",
+  "jpy_rate": 155.98,
+  "jpy_rate_date": "2026-02-27",
   "api_models": [
     {
       "provider": "Anthropic",
