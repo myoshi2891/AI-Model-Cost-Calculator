@@ -58,6 +58,8 @@ pnpm-debug.log*
 # Set these if you want to keep generated assets out of Git
 /index.html
 /pricing.json
+/*.png
+/*.ico
 
 # Backup/Temp
 *.tmp

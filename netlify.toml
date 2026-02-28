@@ -1,7 +1,7 @@
 [build]
   # webディレクトリ内でBunを使用して依存関係を解決・ビルドし、
-  # 必要な成果物（index.html, pricing.json）をプロジェクトルート（パブリッシュディレクトリ）にコピーします。
-  command = "cd web && bun install && bun run build && cp dist/index.html ../index.html && (cp src/data/pricing.json ../pricing.json || true)"
+  # 必要な成果物（index.html, pricing.json, favicons）をプロジェクトルート（パブリッシュディレクトリ）にコピーします。
+  command = "cd web && bun install && bun run build && cp dist/index.html ../index.html && (cp dist/*.png ../ || true) && (cp dist/*.ico ../ || true) && (cp src/data/pricing.json ../pricing.json || true)"
   publish = "."
 
 [build.environment]

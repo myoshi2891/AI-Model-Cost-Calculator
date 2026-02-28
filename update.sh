@@ -43,8 +43,11 @@ echo ""
 echo ">>> [3/3] 成果物コピー"
 cp "${WEB_DIR}/dist/index.html" "${OUTPUT_HTML}"
 cp "${DATA_JSON}" "${OUTPUT_JSON}"
+cp "${WEB_DIR}/dist"/*.png "${SCRIPT_DIR}/" || true
+cp "${WEB_DIR}/dist"/*.ico "${SCRIPT_DIR}/" || true
 echo "✓ ${OUTPUT_HTML}"
 echo "✓ ${OUTPUT_JSON}"
+echo "✓ favicons copied to root"
 echo ""
 
 echo "=== 完了 ==="
