@@ -1,6 +1,6 @@
 # Web (React Frontend)
 
-This directory contains the React 19 frontend for the AI Model Pricing Calculator. It is designed to be built into a **single, portable HTML file** (`index.html`) using Vite and `vite-plugin-singlefile`.
+This directory contains the React 19 frontend for the LLM Studies Calculator. It is designed to be built into a **single, portable HTML file** (`index.html`) using Vite and `vite-plugin-singlefile`.
 
 ## Technical Stack
 

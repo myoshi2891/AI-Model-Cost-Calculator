@@ -1,10 +1,10 @@
 # Scraper (Python Backend)
 
-This directory contains the Python-based data extraction engine for the AI Model Pricing Calculator. It employs Playwright to regularly fetch current pricing data from various AI providers.
+This directory contains the Python-based data extraction engine for the LLM Studies Calculator. It employs Playwright to regularly fetch current pricing data from various AI providers.
 
 ## Technical Stack
 
-- **Environment**: Python 3.12+ 
+- **Environment**: Python 3.12+
 - **Package Manager**: [uv](https://github.com/astral-sh/uv)
 - **Scraping Engine**: Playwright (Headless Chromium) + httpx
 - **Validation**: Pydantic v2

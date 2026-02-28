@@ -1,5 +1,5 @@
 #!/bin/bash
-# AI Model Pricing 日次更新スクリプト
+# LLM Studies 日次更新スクリプト
 # 使い方: bash update.sh [--no-scrape]
 #   --no-scrape: スクレイピングをスキップし、既存データの為替レートのみ更新
 set -euo pipefail
@@ -21,7 +21,7 @@ for arg in "$@"; do
   [[ "${arg}" == "--no-scrape" ]] && NO_SCRAPE="--no-scrape"
 done
 
-echo "=== AI Model Pricing Updater ==="
+echo "=== LLM Studies Updater ==="
 echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 

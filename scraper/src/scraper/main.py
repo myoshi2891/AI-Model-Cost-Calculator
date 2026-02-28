@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
     Returns:
         int: Exit code (`0` on success).
     """
-    parser = argparse.ArgumentParser(description="AI Model Pricing Scraper")
+    parser = argparse.ArgumentParser(description="LLM-Studies Scraper")
     parser.add_argument("--output", type=Path, default=_DEFAULT_OUTPUT, help="出力先 JSON パス")
     parser.add_argument(
         "--no-scrape", action="store_true",

@@ -1,4 +1,4 @@
-# AI Model Pricing / AI Model Cost Calculator
+# LLM Studies / AI Model Cost Calculator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

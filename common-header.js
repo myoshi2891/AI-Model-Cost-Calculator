@@ -1,4 +1,4 @@
-(async function() {
+(async function () {
   if (document.getElementById('common-header')) return;
 
   // await 後は document.currentScript が null になるため事前キャプチャ
@@ -27,7 +27,7 @@
   const brand = document.createElement('a');
   brand.className = 'ch-brand';
   brand.href = '/index.html';
-  brand.textContent = 'AI Model Pricing';
+  brand.textContent = 'LLM Studies';
   container.appendChild(brand);
 
   const hamburger = document.createElement('button');
@@ -50,22 +50,34 @@
   let links = [];
   const defaultLinks = [
     { name: 'Home', href: '/index.html' },
-    { name: 'Claude', children: [
-      { name: 'Skill', href: '/claude/skill.html' },
-      { name: 'Agent', href: '/claude/agent.html' },
-    ]},
-    { name: 'Gemini', children: [
-      { name: 'Skill', href: '/gemini/skill.html' },
-      { name: 'Agent', href: '/gemini/agent.html' },
-    ]},
-    { name: 'Codex', children: [
-      { name: 'Skill', href: '/codex/skill.html' },
-      { name: 'Agent', href: '/codex/agent.html' },
-    ]},
-    { name: 'Copilot', children: [
-      { name: 'Skill', href: '/copilot/skill.html' },
-      { name: 'Agent', href: '/copilot/agent.html' },
-    ]},
+    {
+      name: 'Claude',
+      children: [
+        { name: 'Skill', href: '/claude/skill.html' },
+        { name: 'Agent', href: '/claude/agent.html' },
+      ],
+    },
+    {
+      name: 'Gemini',
+      children: [
+        { name: 'Skill', href: '/gemini/skill.html' },
+        { name: 'Agent', href: '/gemini/agent.html' },
+      ],
+    },
+    {
+      name: 'Codex',
+      children: [
+        { name: 'Skill', href: '/codex/skill.html' },
+        { name: 'Agent', href: '/codex/agent.html' },
+      ],
+    },
+    {
+      name: 'Copilot',
+      children: [
+        { name: 'Skill', href: '/copilot/skill.html' },
+        { name: 'Agent', href: '/copilot/agent.html' },
+      ],
+    },
   ];
 
   // href が安全なプロトコルかを検証（javascript: 等を排除）
@@ -85,7 +97,10 @@
   const isValidLink = (l) => {
     if (!l || !l.name) return false;
     if (l.children) {
-      return Array.isArray(l.children) && l.children.every((c) => c && c.name && c.href && isSafeHref(c.href));
+      return (
+        Array.isArray(l.children) &&
+        l.children.every((c) => c && c.name && c.href && isSafeHref(c.href))
+      );
     }
     return l.href && isSafeHref(l.href);
   };
@@ -273,10 +288,12 @@
   disclaimer.lang = 'ja';
   const line1 = document.createElement('span');
   line1.className = 'ch-disclaimer-line';
-  line1.textContent = '\u26A0 本サイトは個人開発の参考用に作成したものです。必ず各社公式ページで最新の料金をご確認ください。';
+  line1.textContent =
+    '\u26A0 本サイトは個人開発の参考用に作成したものです。必ず各社公式ページで最新の料金をご確認ください。';
   const line2 = document.createElement('span');
   line2.className = 'ch-disclaimer-line';
-  line2.textContent = '情報の正確性は保証しません。本サイトの利用による損害等について一切の責任を負いません。';
+  line2.textContent =
+    '情報の正確性は保証しません。本サイトの利用による損害等について一切の責任を負いません。';
   disclaimer.appendChild(line1);
   disclaimer.appendChild(line2);
   nav.insertAdjacentElement('afterend', disclaimer);
