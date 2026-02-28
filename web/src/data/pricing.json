@@ -357,7 +357,7 @@
     },
     {
       "provider": "xAI",
-      "name": "Grok 4 Fast",
+      "name": "Grok 4.1 Fast",
       "tag": "Fast",
       "cls": "tag-mini",
       "price_in": 0.2,
