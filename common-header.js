@@ -281,7 +281,12 @@
   disclaimer.appendChild(line2);
   nav.insertAdjacentElement('afterend', disclaimer);
 
-  // ディスクレーマーの高さを CSS 変数に反映（リサイズ追従）
+  /**
+   * Synchronizes the rendered height of the disclaimer element into a CSS custom property.
+   *
+   * Reads the disclaimer element's current layout height and sets the `--ch-disclaimer-height`
+   * custom property on the document root to that height in pixels.
+   */
   function syncDisclaimerHeight() {
     const h = disclaimer.getBoundingClientRect().height;
     document.documentElement.style.setProperty('--ch-disclaimer-height', h + 'px');
