@@ -60,7 +60,7 @@
 
 - [ ] `PricingData` スキーマ（Pydantic v2）に準拠した JSON を生成する
 - [ ] `--output` 指定先と `web/src/data/pricing.json` の二重書き込みを行う
-- [ ] `generated_at`（ISO 8601 UTC）を含める
+- [ ] `generated_at`（YYYY-MM-DD）を含める
 - [ ] `api_models` と `sub_tools` の両配列を含める
 
 **関連ファイル**: `scraper/src/scraper/main.py`, `scraper/src/scraper/models.py`
