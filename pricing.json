@@ -104,6 +104,28 @@
     },
     {
       "provider": "OpenAI",
+      "name": "GPT-5.2",
+      "tag": "Flagship",
+      "cls": "tag-flag",
+      "price_in": 1.75,
+      "price_out": 14.0,
+      "sub_ja": "最新フラッグシップ / Feb 2026",
+      "sub_en": "Latest flagship / Feb 2026",
+      "scrape_status": "manual"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.2 pro",
+      "tag": "Reasoning",
+      "cls": "tag-rsn",
+      "price_in": 21.0,
+      "price_out": 168.0,
+      "sub_ja": "最高品質推論 / Feb 2026",
+      "sub_en": "Highest quality reasoning / Feb 2026",
+      "scrape_status": "manual"
+    },
+    {
+      "provider": "OpenAI",
       "name": "GPT-5",
       "tag": "Flagship",
       "cls": "tag-flag",
