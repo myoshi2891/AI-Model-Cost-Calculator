@@ -116,7 +116,8 @@ def scrape(existing: list[ApiModel] | None = None) -> list[ApiModel]:
 
                         # USD per unit -> USD per 1M tokens
                         # AWS Bedrock is typically per 1,000 tokens
-                        if "1k" in desc_lower:
+                        # 表記揺れ: "1k", "1,000", "per 1000" 等
+                        if "1k" in desc_lower or "1,000" in desc_lower or "per 1000" in desc_lower:
                             multiplier = 1000
                             logger.debug(
                                 "AWS/%s: 1K単位の価格検出 (usage=%s, desc=%s, usd=%.6f, price_1m=%.4f)",

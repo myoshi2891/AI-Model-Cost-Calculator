@@ -18,8 +18,8 @@ _URL_VERTEX = "https://cloud.google.com/vertex-ai/generative-ai/pricing"
 
 _FALLBACKS: dict[str, tuple[float, float, str, str, str, str, str]] = {
     # name: (price_in, price_out, provider, tag, cls, sub_ja, sub_en)
-    "Gemini 3.1 Pro Preview": (2.00,  12.00, "Google AI", "Preview",  "tag-flag", "最新世代 / 1M ctx",    "Latest generation / 1M ctx"),
-    "Gemini 2.5 Pro":         (1.25,  10.00, "Google AI", "Flagship", "tag-flag", "コーディング最強 / 1M ctx", "Top coding model / 1M ctx"),
+    "Gemini 3.1 Pro":         (2.00,  12.00, "Google AI", "Flagship", "tag-flag", "最新世代フラッグシップ / 1M ctx", "Latest generation flagship / 1M ctx"),
+    "Gemini 2.5 Pro":         (1.25,  10.00, "Google AI", "Stable",   "tag-flag", "コーディング最強 / 1M ctx", "Top coding model / 1M ctx"),
     "Gemini 2.5 Flash":       (0.30,   2.50, "Google AI", "Fast",     "tag-bal",  "バランス高速 / 1M ctx",   "Balanced & fast / 1M ctx"),
     "Gemini 2.5 Flash-Lite":  (0.10,   0.40, "Google AI", "Budget",   "tag-mini", "超低コスト / 1M ctx",    "Ultra low cost / 1M ctx"),
     "Gemini 2.5 Pro (Vertex)":        (1.25,  10.00, "Vertex AI", "GCP Enterprise", "tag-vtx",

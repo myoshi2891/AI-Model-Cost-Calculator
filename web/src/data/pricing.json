@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-02-21T12:41:54.227617+00:00",
-  "jpy_rate": 155.21,
-  "jpy_rate_date": "2026-02-20",
+  "generated_at": "2026-02-28T00:00:00+00:00",
+  "jpy_rate": 155.98,
+  "jpy_rate_date": "2026-02-27",
   "api_models": [
     {
       "provider": "Anthropic",
@@ -104,6 +104,28 @@
     },
     {
       "provider": "OpenAI",
+      "name": "GPT-5.2",
+      "tag": "Flagship",
+      "cls": "tag-flag",
+      "price_in": 1.75,
+      "price_out": 14.0,
+      "sub_ja": "最新フラッグシップ / Feb 2026",
+      "sub_en": "Latest flagship / Feb 2026",
+      "scrape_status": "manual"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.2 pro",
+      "tag": "Reasoning",
+      "cls": "tag-rsn",
+      "price_in": 21.0,
+      "price_out": 168.0,
+      "sub_ja": "最高品質推論 / Feb 2026",
+      "sub_en": "Highest quality reasoning / Feb 2026",
+      "scrape_status": "manual"
+    },
+    {
+      "provider": "OpenAI",
       "name": "GPT-5",
       "tag": "Flagship",
       "cls": "tag-flag",
@@ -140,8 +162,8 @@
       "name": "GPT-4.1",
       "tag": "New",
       "cls": "tag-bal",
-      "price_in": 2.0,
-      "price_out": 8.0,
+      "price_in": 3.0,
+      "price_out": 12.0,
       "sub_ja": "1Mコンテキスト / Apr 2025",
       "sub_en": "1M context / Apr 2025",
       "scrape_status": "fallback"
@@ -162,8 +184,8 @@
       "name": "GPT-4.1 Mini",
       "tag": "Mini",
       "cls": "tag-mini",
-      "price_in": 0.4,
-      "price_out": 1.6,
+      "price_in": 0.8,
+      "price_out": 3.2,
       "sub_ja": "1Mコンテキスト軽量版",
       "sub_en": "1M context lightweight",
       "scrape_status": "fallback"
@@ -192,21 +214,21 @@
     },
     {
       "provider": "Google AI",
-      "name": "Gemini 3.1 Pro Preview",
-      "tag": "Preview",
+      "name": "Gemini 3.1 Pro",
+      "tag": "Flagship",
       "cls": "tag-flag",
-      "price_in": 0.15,
+      "price_in": 2.0,
       "price_out": 12.0,
-      "sub_ja": "最新世代 / 1M ctx",
-      "sub_en": "Latest generation / 1M ctx",
+      "sub_ja": "最新世代フラッグシップ / 1M ctx",
+      "sub_en": "Latest generation flagship / 1M ctx",
       "scrape_status": "fallback"
     },
     {
       "provider": "Google AI",
       "name": "Gemini 2.5 Pro",
-      "tag": "Flagship",
+      "tag": "Stable",
       "cls": "tag-flag",
-      "price_in": 0.24,
+      "price_in": 1.25,
       "price_out": 10.0,
       "sub_ja": "コーディング最強 / 1M ctx",
       "sub_en": "Top coding model / 1M ctx",
@@ -287,7 +309,7 @@
       "price_out": 3.2,
       "sub_ja": "マルチモーダル / 300K ctx",
       "sub_en": "Multimodal / 300K ctx",
-      "scrape_status": "success"
+      "scrape_status": "fallback"
     },
     {
       "provider": "AWS",
@@ -305,10 +327,10 @@
       "name": "DeepSeek-V3.2",
       "tag": "General",
       "cls": "tag-oss",
-      "price_in": 0.27,
-      "price_out": 1.1,
-      "sub_ja": "671B MoE / OSS MIT",
-      "sub_en": "671B MoE / OSS MIT",
+      "price_in": 0.28,
+      "price_out": 0.42,
+      "sub_ja": "V3.2統合価格 / 671B MoE / OSS MIT",
+      "sub_en": "V3.2 unified pricing / 671B MoE / OSS MIT",
       "scrape_status": "fallback"
     },
     {
@@ -316,10 +338,10 @@
       "name": "DeepSeek-R1",
       "tag": "Reasoning",
       "cls": "tag-oss",
-      "price_in": 0.55,
-      "price_out": 2.19,
-      "sub_ja": "CoT推論 / OSS MIT",
-      "sub_en": "Chain-of-thought reasoning / OSS MIT",
+      "price_in": 0.28,
+      "price_out": 0.42,
+      "sub_ja": "V3.2統合価格 / CoT推論 / OSS MIT",
+      "sub_en": "V3.2 unified pricing / CoT reasoning / OSS MIT",
       "scrape_status": "fallback"
     },
     {
@@ -335,7 +357,7 @@
     },
     {
       "provider": "xAI",
-      "name": "Grok 4 Fast",
+      "name": "Grok 4.1 Fast",
       "tag": "Fast",
       "cls": "tag-mini",
       "price_in": 0.2,
