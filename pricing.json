@@ -305,10 +305,10 @@
       "name": "DeepSeek-V3.2",
       "tag": "General",
       "cls": "tag-oss",
-      "price_in": 0.27,
-      "price_out": 1.1,
-      "sub_ja": "671B MoE / OSS MIT",
-      "sub_en": "671B MoE / OSS MIT",
+      "price_in": 0.28,
+      "price_out": 0.42,
+      "sub_ja": "V3.2統合価格 / 671B MoE / OSS MIT",
+      "sub_en": "V3.2 unified pricing / 671B MoE / OSS MIT",
       "scrape_status": "fallback"
     },
     {
@@ -316,10 +316,10 @@
       "name": "DeepSeek-R1",
       "tag": "Reasoning",
       "cls": "tag-oss",
-      "price_in": 0.55,
-      "price_out": 2.19,
-      "sub_ja": "CoT推論 / OSS MIT",
-      "sub_en": "Chain-of-thought reasoning / OSS MIT",
+      "price_in": 0.28,
+      "price_out": 0.42,
+      "sub_ja": "V3.2統合価格 / CoT推論 / OSS MIT",
+      "sub_en": "V3.2 unified pricing / CoT reasoning / OSS MIT",
       "scrape_status": "fallback"
     },
     {

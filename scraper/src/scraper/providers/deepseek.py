@@ -14,18 +14,18 @@ logger = logging.getLogger(__name__)
 _URL = "https://platform.deepseek.com/api-docs/pricing"
 
 _FALLBACKS: dict[str, tuple[float, float]] = {
-    "DeepSeek-V3.2": (0.27, 1.10),
-    "DeepSeek-R1":   (0.55, 2.19),
+    "DeepSeek-V3.2": (0.28, 0.42),
+    "DeepSeek-R1":   (0.28, 0.42),
 }
 _TAG  = {"DeepSeek-V3.2": "General",   "DeepSeek-R1": "Reasoning"}
 _CLS  = {"DeepSeek-V3.2": "tag-oss",   "DeepSeek-R1": "tag-oss"}
 _SUB_JA = {
-    "DeepSeek-V3.2": "671B MoE / OSS MIT",
-    "DeepSeek-R1":   "CoT推論 / OSS MIT",
+    "DeepSeek-V3.2": "V3.2統合価格 / 671B MoE / OSS MIT",
+    "DeepSeek-R1":   "V3.2統合価格 / CoT推論 / OSS MIT",
 }
 _SUB_EN = {
-    "DeepSeek-V3.2": "671B MoE / OSS MIT",
-    "DeepSeek-R1":   "Chain-of-thought reasoning / OSS MIT",
+    "DeepSeek-V3.2": "V3.2 unified pricing / 671B MoE / OSS MIT",
+    "DeepSeek-R1":   "V3.2 unified pricing / CoT reasoning / OSS MIT",
 }
 
 
