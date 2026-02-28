@@ -161,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     data = PricingData(
-        generated_at=datetime.now(timezone.utc).isoformat(),
+        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         jpy_rate=jpy_rate,
         jpy_rate_date=jpy_date,
         api_models=api_models,
