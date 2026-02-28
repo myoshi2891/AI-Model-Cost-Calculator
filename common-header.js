@@ -278,11 +278,20 @@
     '本サイトの利用による損害等について一切の責任を負いません。';
   nav.insertAdjacentElement('afterend', disclaimer);
 
-  // ディスクレーマーの高さを CSS 変数に反映
-  requestAnimationFrame(() => {
+  // ディスクレーマーの高さを CSS 変数に反映（リサイズ追従）
+  function syncDisclaimerHeight() {
     const h = disclaimer.getBoundingClientRect().height;
     document.documentElement.style.setProperty('--ch-disclaimer-height', h + 'px');
-  });
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(syncDisclaimerHeight);
+    ro.observe(disclaimer);
+  } else {
+    // ResizeObserver 未対応ブラウザ向けフォールバック
+    requestAnimationFrame(syncDisclaimerHeight);
+    window.addEventListener('resize', syncDisclaimerHeight);
+  }
 
   document.body.classList.add('has-common-header');
 })();
