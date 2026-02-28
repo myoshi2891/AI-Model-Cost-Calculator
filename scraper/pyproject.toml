@@ -1,7 +1,7 @@
 [project]
 name = "scraper"
 version = "0.1.0"
-description = "AI Model Pricing auto-scraper"
+description = "LLM-Studies auto-scraper"
 readme = "README.md"
 authors = [
     { name = "myoshizumi", email = "myoshizumi@alumni.berklee.edu" }

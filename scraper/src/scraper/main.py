@@ -134,7 +134,7 @@ def _write_output(data: PricingData, output_path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="AI Model Pricing Scraper")
+    parser = argparse.ArgumentParser(description="LLM-Studies Scraper")
     parser.add_argument("--output", type=Path, default=_DEFAULT_OUTPUT, help="出力先 JSON パス")
     parser.add_argument(
         "--no-scrape", action="store_true",

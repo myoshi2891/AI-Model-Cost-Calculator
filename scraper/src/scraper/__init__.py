@@ -1,1 +1,1 @@
-"""AI Model Pricing Scraper パッケージ。"""
+"""LLM-Studies Scraper パッケージ。"""
