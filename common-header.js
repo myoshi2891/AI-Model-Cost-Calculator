@@ -271,11 +271,14 @@
   const disclaimer = document.createElement('div');
   disclaimer.className = 'ch-disclaimer';
   disclaimer.lang = 'ja';
-  disclaimer.textContent =
-    '\u26A0 本サイトは個人開発の参考用に作成したものです。' +
-    '必ず各社公式ページで最新の料金をご確認ください。' +
-    '情報の正確性は保証しません。' +
-    '本サイトの利用による損害等について一切の責任を負いません。';
+  const line1 = document.createElement('span');
+  line1.className = 'ch-disclaimer-line';
+  line1.textContent = '\u26A0 本サイトは個人開発の参考用に作成したものです。必ず各社公式ページで最新の料金をご確認ください。';
+  const line2 = document.createElement('span');
+  line2.className = 'ch-disclaimer-line';
+  line2.textContent = '情報の正確性は保証しません。本サイトの利用による損害等について一切の責任を負いません。';
+  disclaimer.appendChild(line1);
+  disclaimer.appendChild(line2);
   nav.insertAdjacentElement('afterend', disclaimer);
 
   // ディスクレーマーの高さを CSS 変数に反映（リサイズ追従）

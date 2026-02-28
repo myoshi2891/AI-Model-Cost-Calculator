@@ -28,6 +28,28 @@ body.has-common-header {
   line-height: 1.4;
 }
 
+/* デスクトップ: 2行に分割表示 */
+.ch-disclaimer-line {
+  display: block;
+}
+
+/* タブレット: やや小さく */
+@media (max-width: 768px) {
+  .ch-disclaimer {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+  }
+}
+
+/* スマホ: さらにコンパクト、自然折り返し */
+@media (max-width: 480px) {
+  .ch-disclaimer {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.35;
+  }
+}
+
 .ch-nav {
   position: fixed;
   top: 0;
