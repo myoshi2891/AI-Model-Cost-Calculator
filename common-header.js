@@ -266,5 +266,23 @@
 
   // Inject as the first child of body to avoid overlapping where possible depending on context
   document.body.insertBefore(nav, document.body.firstChild);
+
+  // ── Disclaimer Banner ──
+  const disclaimer = document.createElement('div');
+  disclaimer.className = 'ch-disclaimer';
+  disclaimer.lang = 'ja';
+  disclaimer.textContent =
+    '\u26A0 本サイトは個人開発の参考用に作成したものです。' +
+    '必ず各社公式ページで最新の料金をご確認ください。' +
+    '情報の正確性は保証しません。' +
+    '本サイトの利用による損害等について一切の責任を負いません。';
+  nav.insertAdjacentElement('afterend', disclaimer);
+
+  // ディスクレーマーの高さを CSS 変数に反映
+  requestAnimationFrame(() => {
+    const h = disclaimer.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--ch-disclaimer-height', h + 'px');
+  });
+
   document.body.classList.add('has-common-header');
 })();
